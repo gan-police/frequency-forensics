@@ -11,12 +11,12 @@ The most recent code and data can be installed directly from GitHub with:
 
 .. code-block:: shell
 
-    $ pip install git+https://github.com/gan-police/freqdect.git
+    $ pip install git+https://github.com/gan-police/frequency-detection.git
 
 To install in development mode, use the following:
 
 .. code-block:: shell
 
-    $ git clone git+https://github.com/gan-police/freqdect.git
-    $ cd freqdect
+    $ git clone git+https://github.com/gan-police/frequency-detection.git
+    $ cd frequency-detection
     $ pip install -e .

@@ -197,7 +197,7 @@ texinfo_documents = [
         'freqdect Documentation',
         author,
         'Moritz Wolter',
-        'Use frequency domain methods to identify gan generated content',
+        'Detect GANs using frequency domain methods.',
         'Miscellaneous',
     ),
 ]
