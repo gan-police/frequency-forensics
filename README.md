@@ -20,3 +20,6 @@ I will start to do that next week.
  => See if we can find a wavelet that is better suited to GAN-content 
     dectection and try to write a paper about it.
 
+# GAN Review List
+
+https://docs.google.com/spreadsheets/d/1uWQBdcbQIOcomveN912X8m3U0W_wORY1ZF5tMvGmmSA/edit?usp=sharing
