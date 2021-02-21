@@ -41,4 +41,5 @@ For example:
 - Having an open source software available for the community (e.g., media) to check the vericity of content.
 - Benchmark for the community and extensions (e.g., paper comes and they have to be able to avoid being recognized
 by our software but at the same time new comes).
-
+- If easily generated content is everywhere, the source is key to determine the vericity of the content.
+- 
