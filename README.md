@@ -38,4 +38,5 @@ For example:
 
 ## Goals
 - Flag such content so that people is aware that the image/audio is fake.
-
+- Having an open source software available for the community (e.g., media) to check the vericity of content.
+- 
