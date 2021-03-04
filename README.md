@@ -43,3 +43,14 @@ For example:
 by our software but at the same time new comes).
 - If easily generated content is everywhere, the source is key to determine the vericity of the content.
 - 
+
+
+## Loading the data
+FFHQ:
+``` shell
+$ python download_ffhq.py -t
+```
+LSUN:
+The lsun repository has python 2 to 3 conversion problems, the solution proposed in 
+https://github.com/fyu/lsun/issues/11#issuecomment-567390245
+works.
