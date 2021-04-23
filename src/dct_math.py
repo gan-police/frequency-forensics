@@ -1,3 +1,7 @@
+"""
+As found at:
+https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/src/math.py
+"""
 import numpy as np
 
 

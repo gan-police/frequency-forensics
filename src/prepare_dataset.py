@@ -1,4 +1,7 @@
-"""Prepare image data."""
+""" Prepare image data.
+    Based on
+    https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/prepare_dataset.py
+"""
 import argparse
 import functools
 import os
@@ -7,9 +10,9 @@ from pathlib import Path
 import numpy as np
 import tensorflow as tf
 
-from src.dataset import image_paths, serialize_data
-from src.image_np import dct2, load_image, normalize, scale_image
-from src.math import log_scale, welford
+from image_np import dct2, load_image, normalize, scale_image
+from dct_math import log_scale, welford
+
 
 TRAIN_SIZE = 100_000
 VAL_SIZE = 20_000
@@ -17,6 +20,22 @@ TEST_SIZE = 30_000
 # TRAIN_SIZE = 20_000
 # VAL_SIZE = 2_000
 # TEST_SIZE = 5_000
+
+
+def _find_images(data_path):
+    paths = list(Path(data_path).glob("*.jpeg"))
+
+    if len(paths) == 0:
+        paths = list(Path(data_path).glob("*.jpg"))
+    if len(paths) == 0:
+        paths = list(Path(data_path).glob("*.png"))
+
+    return paths
+
+
+def image_paths(dir_path):
+    """Find all filepaths for images in dir_path."""
+    return [str(path.absolute()) for path in sorted(_find_images(dir_path))]
 
 
 def _collect_image_paths(dirictory):
@@ -70,7 +89,8 @@ def collect_all_paths(dirs):
     return train_dataset, val_dataset, test_dataset
 
 
-def convert_images(inputs, load_function, transformation_function=None, absolute_function=None, normalize_function=None):
+def convert_images(inputs, load_function, transformation_function=None, 
+                   absolute_function=None, normalize_function=None):
     image, label = inputs
     image = load_function(image)
     if transformation_function is not None:
@@ -127,7 +147,7 @@ def create_directory_tf(output_path, images, convert_function):
     os.makedirs(output_path, exist_ok=True)
 
     converted_images = map(convert_function, images)
-    converted_images = map(serialize_data, converted_images)
+    # converted_images = map(serialize_data, converted_images)
 
     def gen():
         i = 0
@@ -143,6 +163,7 @@ def create_directory_tf(output_path, images, convert_function):
     writer.write(dataset)
 
 
+"""
 def tfmode(directory, encode_function, outpath):
     train_dataset, val_dataset, test_dataset = collect_all_paths(directory)
     create_directory_tf(f"{outpath}_train_tf",
@@ -154,6 +175,7 @@ def tfmode(directory, encode_function, outpath):
     create_directory_tf(f"{outpath}_test_tf",
                         test_dataset, encode_function)
     print(f"\nConverted test images!")
+ """
 
 
 def main(args):
@@ -229,11 +251,10 @@ def main(args):
                 normalize, mean=mean, std=std)
 
     encode_function = functools.partial(convert_images, load_function=load_function,
-                                        transformation_function=transformation_function, normalize_function=normalize_function, absolute_function=absolute_function)
+                                        transformation_function=transformation_function,
+                                        normalize_function=normalize_function, absolute_function=absolute_function)
     if args.mode == "normal":
         normal_mode(args.DIRECTORY, encode_function, output)
-    elif args.mode == "tfrecords":
-        tfmode(args.DIRECTORY, encode_function, output)
 
 
 def parse_args():
@@ -241,7 +262,6 @@ def parse_args():
 
     parser.add_argument("DIRECTORY", help="Directory to convert.",
                         type=str)
-
     parser.add_argument("--raw", "-r", help="Save image data as raw image.",
                         action="store_true")
     parser.add_argument("--log", "-l", help="Log scale Images.",
@@ -257,7 +277,6 @@ def parse_args():
         help="Select the mode {normal|tfrecords}", dest="mode")
 
     _ = modes.add_parser("normal")
-    _ = modes.add_parser("tfrecords")
 
     return parser.parse_args()
 

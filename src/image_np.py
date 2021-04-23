@@ -1,3 +1,8 @@
+"""
+As found at:
+https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/src/image_np.py
+"""
+
 import numpy as np
 from PIL import Image
 from scipy import fftpack
