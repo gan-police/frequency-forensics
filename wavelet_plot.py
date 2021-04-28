@@ -78,6 +78,9 @@ if __name__ == '__main__':
         fake_packets = compute_pytorch_packet_representation_2d(
             fake, wavelet_str=wavelet, max_lev=max_lev)
 
+        real_packets = torch.squeeze(real_packets)
+        fake_packets = torch.squeeze(fake_packets)
+
         # merge_packets = np.concatenate([real_packets, fake_packets], axis=1)
         abs_real_packets = np.abs(real_packets.numpy())
         abs_fake_packets = np.abs(fake_packets.numpy())

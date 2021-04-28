@@ -14,12 +14,12 @@ from image_np import dct2, load_image, normalize, scale_image
 from dct_math import log_scale, welford
 
 
-TRAIN_SIZE = 100_000
-VAL_SIZE = 20_000
-TEST_SIZE = 30_000
-# TRAIN_SIZE = 20_000
-# VAL_SIZE = 2_000
-# TEST_SIZE = 5_000
+# TRAIN_SIZE = 100_000
+# VAL_SIZE = 20_000
+# TEST_SIZE = 30_000
+TRAIN_SIZE = 63_000
+VAL_SIZE = 2_000
+TEST_SIZE = 5_000
 
 
 def _find_images(data_path):
@@ -38,21 +38,21 @@ def image_paths(dir_path):
     return [str(path.absolute()) for path in sorted(_find_images(dir_path))]
 
 
-def _collect_image_paths(dirictory):
-    images = list(sorted(image_paths(dirictory)))
+def _collect_image_paths(directory):
+    images = list(sorted(image_paths(directory)))
     assert len(images) >= TRAIN_SIZE + VAL_SIZE + \
-        TEST_SIZE, f"{len(images)} - {dirictory}"
+        TEST_SIZE, f"{len(images)} - {directory}"
 
     train_dataset = images[:TRAIN_SIZE]
     val_dataset = images[TRAIN_SIZE: TRAIN_SIZE + VAL_SIZE]
     test_dataset = images[TRAIN_SIZE +
                           VAL_SIZE: TRAIN_SIZE + VAL_SIZE + TEST_SIZE]
     assert len(
-        train_dataset) == TRAIN_SIZE, f"{len(train_dataset)} - {dirictory}"
+        train_dataset) == TRAIN_SIZE, f"{len(train_dataset)} - {directory}"
 
-    assert len(val_dataset) == VAL_SIZE, f"{len(val_dataset)} - {dirictory}"
+    assert len(val_dataset) == VAL_SIZE, f"{len(val_dataset)} - {directory}"
 
-    assert len(test_dataset) == TEST_SIZE, f"{len(test_dataset)} - {dirictory}"
+    assert len(test_dataset) == TEST_SIZE, f"{len(test_dataset)} - {directory}"
 
     return (train_dataset, val_dataset, test_dataset)
 
@@ -143,26 +143,6 @@ def normal_mode(directory, encode_function, outpath):
     print(f"\nConverted test images!")
 
 
-def create_directory_tf(output_path, images, convert_function):
-    os.makedirs(output_path, exist_ok=True)
-
-    converted_images = map(convert_function, images)
-    # converted_images = map(serialize_data, converted_images)
-
-    def gen():
-        i = 0
-        for serialized in converted_images:
-            i += 1
-            print(f"\rConverted {i:06d} images!", end="")
-            yield serialized
-
-    dataset = tf.data.Dataset.from_generator(
-        gen, output_types=tf.string, output_shapes=())
-    filename = f"{output_path}/data.tfrecords"
-    writer = tf.data.experimental.TFRecordWriter(filename)
-    writer.write(dataset)
-
-
 """
 def tfmode(directory, encode_function, outpath):
     train_dataset, val_dataset, test_dataset = collect_all_paths(directory)
@@ -194,15 +174,7 @@ def main(args):
         output += "_color"
 
     # dct or raw image data?
-    if args.raw:
-        output += "_raw"
-
-        # normalization sclaes to [-1, 1]
-        if args.normalize:
-            normalize_function = scale_image
-            output += "_normalized"
-
-    else:
+    if args.dct:
         output += "_dct"
         transformation_function = _dct2_wrapper
 
@@ -249,20 +221,26 @@ def main(args):
             output += "_normalized"
             normalize_function = functools.partial(
                 normalize, mean=mean, std=std)
+    else:
+        output += "_raw"
+
+        # normalization sclaes to [-1, 1]
+        if args.normalize:
+            normalize_function = scale_image
+            output += "_normalized"
 
     encode_function = functools.partial(convert_images, load_function=load_function,
                                         transformation_function=transformation_function,
                                         normalize_function=normalize_function, absolute_function=absolute_function)
-    if args.mode == "normal":
-        normal_mode(args.DIRECTORY, encode_function, output)
+    normal_mode(args.DIRECTORY, encode_function, output)
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("DIRECTORY", help="Directory to convert.",
-                        type=str)
-    parser.add_argument("--raw", "-r", help="Save image data as raw image.",
+    parser.add_argument("DIRECTORY", type=str,
+                        help="Directory to convert.")
+    parser.add_argument("--dct", "-r", help="Save image data as dct image.",
                         action="store_true")
     parser.add_argument("--log", "-l", help="Log scale Images.",
                         action="store_true")
@@ -272,11 +250,8 @@ def parse_args():
                         action="store_true")
     parser.add_argument("--normalize", "-n", help="Normalize data.",
                         action="store_true")
-
     modes = parser.add_subparsers(
         help="Select the mode {normal|tfrecords}", dest="mode")
-
-    _ = modes.add_parser("normal")
 
     return parser.parse_args()
 
