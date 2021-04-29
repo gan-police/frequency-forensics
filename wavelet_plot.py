@@ -1,6 +1,7 @@
 
 import cv2
 import torch
+import argparse
 import numpy as np
 from itertools import product
 import matplotlib.pyplot as plt
@@ -56,15 +57,26 @@ def compute_packet_rep_img(image, wavelet_str, max_lev):
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description='Plot wavelet decomposition of real and fake imgs')
+    parser.add_argument('--data-dir', type=str, default="./data/",
+                        help='path of folder containing the data (default: ./data/)')
+    parser.add_argument('--real-data', type=str, default="A_ffhq",
+                        help='name of folder with real data (default: A_ffhq)')
+    parser.add_argument('--fake-data', type=str, default="B_stylegan",
+                        help='name of folder with fake data (default: B_stylegan)')
+    args = parser.parse_args()
+
+    print(args)
+
     pairs = []
-    pairs.append(read_pair("./data/A_ffhq/00000.png",
-                           "./data/B_stylegan/style_gan_ffhq_example0.png"))
-    pairs.append(read_pair("./data/A_ffhq/00001.png",
-                           "./data/B_stylegan/style_gan_ffhq_example1.png"))
-    pairs.append(read_pair("./data/A_ffhq/00002.png",
-                           "./data/B_stylegan/style_gan_ffhq_example2.png"))
-    pairs.append(read_pair("./data/A_ffhq/00003.png",
-                           "./data/B_stylegan/style_gan_ffhq_example3.png"))
+    pairs.append(read_pair(args.data_dir + args.real_data + "/00000.png",
+                           args.data_dir + args.fake_data + "/style_gan_ffhq_example0.png"))
+    pairs.append(read_pair(args.data_dir + args.real_data + "/00001.png",
+                           args.data_dir + args.fake_data + "/style_gan_ffhq_example1.png"))
+    pairs.append(read_pair(args.data_dir + args.real_data + "/00002.png",
+                           args.data_dir + args.fake_data + "/style_gan_ffhq_example2.png"))
+    pairs.append(read_pair(args.data_dir + args.real_data + "/00003.png",
+                           args.data_dir + args.fake_data + "/style_gan_ffhq_example3.png"))
 
     wavelet = 'db2'
     max_lev = 3
