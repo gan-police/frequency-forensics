@@ -27,13 +27,20 @@ class LoadNumpyDataset(Dataset):
 
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
+    import argparse
+    #import matplotlib.pyplot as plt
     from torch.utils.data import DataLoader
 
-    train_folder = './data_raw_train/'
-    train_sample = np.load('./data_raw_train/000001.npy')
-    labels = np.load('./data_raw_train/labels.npy')
-    train_data_set = LoadNumpyDataset('./data_raw_train')
+    parser = argparse.ArgumentParser(description='Calculate mean and std')
+    parser.add_argument('--train-data', type=str, default="./data/data_raw_train",
+                        help='path of training data (default: ./data/data_raw_train)')
+    args = parser.parse_args()
+
+    print(args)
+
+    train_sample = np.load(args.train_data + '/000001.npy')
+    labels = np.load(args.train_data + '/labels.npy')
+    train_data_set = LoadNumpyDataset(args.train_data)
     train_data_set.__getitem__(0)
 
     train_dataloader = DataLoader(
@@ -56,10 +63,10 @@ if __name__ == '__main__':
     mean = np.mean(img_data)
     std = np.std(img_data)
     print('mean', np.mean(img_data))
-    print('str', np.std(img_data))
+    print('std', np.std(img_data))
     
     # mean 112.52875
-    # str 68.63312
+    # std 68.63312
 
     norm = (img_data - mean) / std
     print(np.mean(norm))
