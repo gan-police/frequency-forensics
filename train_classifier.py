@@ -30,15 +30,15 @@ if __name__ == '__main__':
     parser.add_argument('--batch-size', type=int, default=512,
                         help='input batch size for testing (default: 512)')
     parser.add_argument('--learning-rate', type=float, default=1e-3,
-                        help='input batch size for testing (default: 1e-3)')
+                        help='learning rate for optimizer (default: 1e-3)')
     parser.add_argument('--weight-decay', type=float, default=0,
-                        help='input batch size for testing (default: 0)')
+                        help='learning rate for optimizer (default: 0)')
     parser.add_argument('--epochs', type=int, default=20,
-                        help='input batch size for testing (default: 20)')
+                        help='number of epochs (default: 20)')
     parser.add_argument('--train-data', type=str, default="./data/data_raw_train",
                         help='path of training data (default: ./data/data_raw_train)')
     parser.add_argument('--val-data', type=str, default="./data/data_raw_val",
-                    help='path of validation data (default: ./data/data_raw_val)')
+                        help='path of validation data (default: ./data/data_raw_val)')
     args = parser.parse_args()
 
     print(args)
