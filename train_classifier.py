@@ -140,6 +140,7 @@ if __name__ == '__main__':
 
         res.append({'train loss': loss_list,
                     'train acc': accuracy_list,
-                    'val acc': validation_list})
+                    'val acc': validation_list,
+                    'args': args})
         pickle.dump(res, open(stats_file, "wb"))
         print(stats_file, ' saved.')
