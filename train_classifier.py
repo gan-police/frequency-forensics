@@ -27,25 +27,32 @@ if __name__ == '__main__':
     parser.add_argument('--features', choices=['raw', 'packets'],
                         default='packets',
                         help='the representation type')
-    parser.add_argument('--batch-size', type=int, default=128,
-                        help='input batch size for testing (default: 128)')
+    parser.add_argument('--batch-size', type=int, default=512,
+                        help='input batch size for testing (default: 512)')
+    parser.add_argument('--learning-rate', type=float, default=1e-3,
+                        help='input batch size for testing (default: 1e-3)')
+    parser.add_argument('--weight-decay', type=float, default=0,
+                        help='input batch size for testing (default: 0)')
+    parser.add_argument('--epochs', type=int, default=20,
+                        help='input batch size for testing (default: 20)')
     args = parser.parse_args()
+
     print(args)
 
     train_data_set = LoadNumpyDataset('./data_raw_train')
     val_data_set = LoadNumpyDataset('./data_raw_val')
     train_data_loader = DataLoader(
-        train_data_set, batch_size=128, shuffle=True,
+        train_data_set, batch_size=args.batch_size, shuffle=True,
         num_workers=2)
     val_data_loader = DataLoader(
-        val_data_set, batch_size=128, shuffle=False,
+        val_data_set, batch_size=args.batch_size, shuffle=False,
         num_workers=2)
 
     if args.features == 'packets':
         packets = True
     else:
         packets = False
-    epochs = 4
+
     validation_list = []
     loss_list = []
     accuracy_list = []
@@ -59,9 +66,11 @@ if __name__ == '__main__':
         model = Regression(49152, 2).cuda()
 
     loss_fun = torch.nn.NLLLoss()
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.Adam(model.parameters(),
+                                 lr=args.learning_rate,
+                                 weight_decay=args.weight_decay)
 
-    for e in range(epochs):
+    for e in range(args.epochs):
         # iterate over training data.
         for it, batch in enumerate(iter(train_data_loader)):
             optimizer.zero_grad()
@@ -91,7 +100,7 @@ if __name__ == '__main__':
             accuracy_list.append([step_total, acc.item()])
 
             # iterate over val batches.
-            if step_total % 500 == 0:
+            if step_total % 100 == 0:
                 print('validating....')
                 with torch.no_grad():
                     test_total = 0
