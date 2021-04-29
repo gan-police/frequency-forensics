@@ -35,12 +35,17 @@ if __name__ == '__main__':
                         help='input batch size for testing (default: 0)')
     parser.add_argument('--epochs', type=int, default=20,
                         help='input batch size for testing (default: 20)')
+    parser.add_argument('--train-data', type=str, default="./data/data_raw_train",
+                        help='path of training data (default: ./data/data_raw_train)')
+    parser.add_argument('--val-data', type=str, default="./data/data_raw_val",
+                    help='path of validation data (default: ./data/data_raw_val)')
     args = parser.parse_args()
 
     print(args)
 
-    train_data_set = LoadNumpyDataset('./data_raw_train')
-    val_data_set = LoadNumpyDataset('./data_raw_val')
+    train_data_set = LoadNumpyDataset(args.train_data)
+    val_data_set = LoadNumpyDataset(args.val_data)
+
     train_data_loader = DataLoader(
         train_data_set, batch_size=args.batch_size, shuffle=True,
         num_workers=2)
