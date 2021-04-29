@@ -7,9 +7,9 @@ from torch.utils.data import Dataset
 class LoadNumpyDataset(Dataset):
     def __init__(self, data_dir):
         self.data_dir = data_dir
-        self.file_lst = glob.glob('data_raw_train/*.npy')
+        self.file_lst = glob.glob(data_dir + '/*.npy')
         self.file_lst.sort()
-        assert self.file_lst[-1].split('/')[1] == 'labels.npy'
+        assert self.file_lst[-1].split('/')[-1] == 'labels.npy'
         self.labels = np.load(self.file_lst[-1])
         self.images = self.file_lst[:-1]
 
