@@ -39,6 +39,13 @@ if __name__ == '__main__':
                         help='path of training data (default: ./data/data_raw_train)')
     parser.add_argument('--val-data', type=str, default="./data/data_raw_val",
                         help='path of validation data (default: ./data/data_raw_val)')
+
+    # one should not specify normalization parameters and request their calculation at the same time
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--normalize', nargs=2, type=float, metavar=('MEAN', 'STD'),
+                       help='normalize with specified values for mean and standard deviation')
+    group.add_argument('--calc-normalization', action='store_true',
+                       help='calculates mean and standard deviation used in normalization from the training data')
     args = parser.parse_args()
 
     print(args)
@@ -57,6 +64,21 @@ if __name__ == '__main__':
         packets = True
     else:
         packets = False
+
+    if args.normalize:
+        mean, std = args.normalize
+    elif args.calc_normalization:
+        # compute mean and std
+        img_lst = []
+        for img_no in range(train_data_set.__len__()):
+            img_lst.append(train_data_set.__getitem__(img_no)["image"].numpy())
+        img_data = np.stack(img_lst, 0)
+        mean = np.mean(img_data)
+        std = np.std(img_data)
+    else:
+        mean, std = (112.52875, 68.63312)
+
+    print("mean", mean, "std", std)
 
     validation_list = []
     loss_list = []
@@ -81,7 +103,9 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             batch_images = batch['image'].cuda(non_blocking=True)
             batch_labels = batch['label'].cuda(non_blocking=True)
-            batch_images = (batch_images - 112.52875) / 68.63312
+
+            # normalize image data
+            batch_images = (batch_images - mean) / std
             if packets:
                 channel_list = []
                 for channel in range(3):
@@ -114,7 +138,9 @@ if __name__ == '__main__':
                         batch_images = batch['image'].cuda(non_blocking=True)
                         batch_labels = batch['label'].cuda(non_blocking=True)
                         # batch_labels = torch.nn.functional.one_hot(batch_labels)
-                        batch_images = (batch_images - 112.52875) / 68.63312
+
+                        # normalize image data
+                        batch_images = (batch_images - mean) / std
                         if packets:
                             channel_list = []
                             for channel in range(3):
