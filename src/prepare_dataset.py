@@ -8,7 +8,6 @@ import os
 from pathlib import Path
 
 import numpy as np
-import tensorflow as tf
 
 from image_np import dct2, load_image, normalize, scale_image
 from dct_math import log_scale, welford
