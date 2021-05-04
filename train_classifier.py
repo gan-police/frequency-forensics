@@ -108,9 +108,9 @@ if __name__ == '__main__':
                 with torch.no_grad():
                     val_total = 0
                     val_ok = 0
-                    for test_batch in enumerate(iter(val_data_loader)):
-                        batch_images = batch['image'].cuda(non_blocking=True)
-                        batch_labels = batch['label'].cuda(non_blocking=True)
+                    for val_batch in iter(val_data_loader):
+                        batch_images = val_batch['image'].cuda(non_blocking=True)
+                        batch_labels = val_batch['label'].cuda(non_blocking=True)
                         # batch_labels = torch.nn.functional.one_hot(batch_labels)
                         batch_images = (batch_images - 112.52875) / 68.63312
                         if packets:
@@ -141,9 +141,9 @@ if __name__ == '__main__':
     with torch.no_grad():
         test_total = 0
         test_ok = 0
-        for test_batch in enumerate(iter(val_data_loader)):
-            batch_images = batch['image'].cuda(non_blocking=True)
-            batch_labels = batch['label'].cuda(non_blocking=True)
+        for test_batch in iter(test_data_loader):
+            batch_images = test_batch['image'].cuda(non_blocking=True)
+            batch_labels = test_batch['label'].cuda(non_blocking=True)
             # batch_labels = torch.nn.functional.one_hot(batch_labels)
             batch_images = (batch_images - 112.52875) / 68.63312
             if packets:
