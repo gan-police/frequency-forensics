@@ -22,6 +22,36 @@ class Regression(torch.nn.Module):
         return self.activation(self.linear(x_flat))
 
 
+def val_test_loop(data_loader, model, loss_fun):
+    with torch.no_grad():
+        val_total = 0
+        val_ok = 0
+        for val_batch in iter(data_loader):
+            batch_images = val_batch['image'].cuda(non_blocking=True)
+            batch_labels = val_batch['label'].cuda(non_blocking=True)
+            # batch_labels = torch.nn.functional.one_hot(batch_labels)
+            batch_images = (batch_images - 112.52875) / 68.63312
+            if packets:
+                channel_list = []
+                for channel in range(3):
+                    channel_list.append(
+                        compute_pytorch_packet_representation_2d(
+                            batch_images[:, :, :, channel],
+                            wavelet_str=wavelet, max_lev=max_lev))
+                batch_images = torch.stack(channel_list, -1)
+            out = model(batch_images)
+            loss = loss_fun(torch.squeeze(out), batch_labels)
+            ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
+            val_ok += torch.sum(ok_mask).item()
+            val_total += batch_labels.shape[0]
+        val_acc = val_ok / val_total
+        print('acc', val_acc,
+              'ok', val_ok,
+              'total', val_total)
+    return val_acc
+
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train an image classifier')
     parser.add_argument('--features', choices=['raw', 'packets'],
@@ -46,9 +76,6 @@ if __name__ == '__main__':
         num_workers=2)
     val_data_loader = DataLoader(
         val_data_set, batch_size=args.batch_size, shuffle=False,
-        num_workers=2)
-    test_data_loader = DataLoader(
-        test_data_set, args.batch_size, shuffle=False,
         num_workers=2)
 
     if args.features == 'packets':
@@ -105,64 +132,21 @@ if __name__ == '__main__':
             # iterate over val batches.
             if step_total % 100 == 0:
                 print('validating....')
-                with torch.no_grad():
-                    val_total = 0
-                    val_ok = 0
-                    for val_batch in iter(val_data_loader):
-                        batch_images = val_batch['image'].cuda(non_blocking=True)
-                        batch_labels = val_batch['label'].cuda(non_blocking=True)
-                        # batch_labels = torch.nn.functional.one_hot(batch_labels)
-                        batch_images = (batch_images - 112.52875) / 68.63312
-                        if packets:
-                            channel_list = []
-                            for channel in range(3):
-                                channel_list.append(
-                                    compute_pytorch_packet_representation_2d(
-                                        batch_images[:, :, :, channel],
-                                        wavelet_str=wavelet, max_lev=max_lev))
-                            batch_images = torch.stack(channel_list, -1)
-
-                        out = model(batch_images)
-                        loss = loss_fun(torch.squeeze(out), batch_labels)
-                        ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
-                        val_ok += torch.sum(ok_mask).item()
-                        val_total += batch_labels.shape[0]
-                    validation_list.append((step_total, val_ok / val_total))
-                    print('val acc', validation_list[-1],
-                          'val_ok', val_ok,
-                          'total', val_total)
-                    if validation_list[-1] == 1.:
-                        print('val acc ideal stopping training.')
-                        break
+                validation_list.append(
+                    val_test_loop(val_data_loader, model, loss_fun))
+                if validation_list[-1] == 1.:
+                    print('val acc ideal stopping training.')
+                    break
     print(validation_list)
 
     # Run over the test set.
     print('Training done testing....')
+    test_data_loader = DataLoader(
+        test_data_set, args.batch_size, shuffle=False,
+        num_workers=2)
     with torch.no_grad():
-        test_total = 0
-        test_ok = 0
-        for test_batch in iter(test_data_loader):
-            batch_images = test_batch['image'].cuda(non_blocking=True)
-            batch_labels = test_batch['label'].cuda(non_blocking=True)
-            # batch_labels = torch.nn.functional.one_hot(batch_labels)
-            batch_images = (batch_images - 112.52875) / 68.63312
-            if packets:
-                channel_list = []
-                for channel in range(3):
-                    channel_list.append(
-                        compute_pytorch_packet_representation_2d(
-                            batch_images[:, :, :, channel],
-                            wavelet_str=wavelet, max_lev=max_lev))
-                batch_images = torch.stack(channel_list, -1)
-            out = model(batch_images)
-            loss = loss_fun(torch.squeeze(out), batch_labels)
-            ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
-            test_ok += torch.sum(ok_mask).item()
-            test_total += batch_labels.shape[0]
-        test_acc = test_ok / test_total
-        print('test acc', test_acc,
-              'test_ok', test_ok,
-              'total', test_total)
+        test_acc = val_test_loop(test_data_loader, model, loss_fun)
+        print('test acc', test_acc)
 
     stats_file = './log/v2' + 'packets' + str(packets) + '.pkl'
     try:
