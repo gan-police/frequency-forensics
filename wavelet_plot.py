@@ -1,4 +1,3 @@
-
 import cv2
 import torch
 import numpy as np
@@ -34,9 +33,9 @@ def draw_2d_wp_basis(shape, keys, fmt='k', plot_kwargs={}, ax=None,
 
 def read_pair(path_real, path_fake):
     face = cv2.cvtColor(cv2.imread(path_real),
-                        cv2.COLOR_BGR2RGB)/255.
+                        cv2.COLOR_BGR2RGB) / 255.
     fake_face = cv2.cvtColor(cv2.imread(path_fake),
-                             cv2.COLOR_BGR2RGB)/255.
+                             cv2.COLOR_BGR2RGB) / 255.
     return face, fake_face
 
 
