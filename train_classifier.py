@@ -176,6 +176,7 @@ if __name__ == '__main__':
                 'train acc': accuracy_list,
                 'val acc': validation_list,
                 'test acc': test_acc,
-                'args': args})
+                'args': args,
+                'model': model})
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, ' saved.')
