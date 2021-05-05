@@ -35,10 +35,8 @@ if __name__ == '__main__':
                         help='learning rate for optimizer (default: 0)')
     parser.add_argument('--epochs', type=int, default=20,
                         help='number of epochs (default: 20)')
-    parser.add_argument('--train-data', type=str, default="./data/data_raw_train",
-                        help='path of training data (default: ./data/data_raw_train)')
-    parser.add_argument('--val-data', type=str, default="./data/data_raw_val",
-                        help='path of validation data (default: ./data/data_raw_val)')
+    parser.add_argument('--data-prefix', type=str, default="./data/data_raw",
+                        help='shared prefix of the data paths (default: ./data/data_raw)')
     parser.add_argument('--nclasses', type=int, default=2,
                         help='number of classes (default: 2)')
 
@@ -52,8 +50,9 @@ if __name__ == '__main__':
 
     print(args)
 
-    train_data_set = LoadNumpyDataset(args.train_data)
-    val_data_set = LoadNumpyDataset(args.val_data)
+    train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
+    val_data_set = LoadNumpyDataset(args.data_prefix + "_val")
+    test_data_set = LoadNumpyDataset(args.data_prefix + "_test")
 
     train_data_loader = DataLoader(
         train_data_set, batch_size=args.batch_size, shuffle=True,
