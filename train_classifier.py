@@ -3,8 +3,8 @@ import pickle
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from src.freqdect.wavelet_math import compute_pytorch_packet_representation_2d_tensor
-from src.freqdect.data_loader import LoadNumpyDataset
+from freqdect.wavelet_math import compute_pytorch_packet_representation_2d_tensor
+from freqdect.data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
 
 

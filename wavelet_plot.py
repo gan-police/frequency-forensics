@@ -5,9 +5,9 @@ from itertools import product
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from pywt._doc_utils import _2d_wp_basis_coords
-from src.wavelet_math import compute_packet_rep_2d
-from src.wavelet_math import compute_pytorch_packet_representation_2d_image
-from src.wavelet_math import compute_pytorch_packet_representation_2d_tensor
+from freqdect.wavelet_math import compute_packet_rep_2d
+from freqdect.wavelet_math import compute_pytorch_packet_representation_2d_image
+from freqdect.wavelet_math import compute_pytorch_packet_representation_2d_tensor
 
 
 def draw_2d_wp_basis(shape, keys, fmt='k', plot_kwargs={}, ax=None,
