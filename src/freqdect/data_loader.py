@@ -26,7 +26,7 @@ class LoadNumpyDataset(Dataset):
         return sample
 
 
-if __name__ == '__main__':
+def main():
     import matplotlib.pyplot as plt
     from torch.utils.data import DataLoader
 
@@ -65,3 +65,6 @@ if __name__ == '__main__':
     print(np.mean(norm))
     print(np.std(norm))
 
+
+if __name__ == '__main__':
+    main()
