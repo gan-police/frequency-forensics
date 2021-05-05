@@ -6,10 +6,20 @@
 
 # frequency-detection
 
-Hi guys, welcome!
-The first step will be to reproduce some of the results from
-https://papers.nips.cc/paper/2020/file/1f8d87e1161af68b81bace188a1ec624-Paper.pdf
-I will start to do that next week.
+## Getting a minimal example to run:
+Download FFHQ-Style-Gan examples from 
+https://drive.google.com/file/d/1pKmmRtRCtFqs-FuwmToXEYeZFaXk98Kw/view?usp=sharing
+
+and extract these into a `data` folder. Afterwards run:
+```
+$ CUDA_VISIBLE_DEVICES=0 python src/prepare_dataset.py ./data/source_data/ --packets
+python src/prepare_dataset.py ./data/source_data/ --raw
+```
+
+afterwards you should be able to train a classifier using 
+```
+$ CUDA_VISIBLE_DEVICES=0 python train_classifier.py
+```
 
 ## whats the plan?
  - I think it may be a good idea to use the fwt instead of the fft to find GAN

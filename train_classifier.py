@@ -2,6 +2,7 @@ import torch
 import pickle
 import argparse
 import numpy as np
+import matplotlib.pyplot as plt
 from src.wavelet_math import compute_pytorch_packet_representation_2d_tensor
 from src.data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
@@ -55,7 +56,7 @@ if __name__ == '__main__':
     parser.add_argument('--features', choices=['raw', 'packets'],
                         default='packets',
                         help='the representation type')
-    parser.add_argument('--batch-size', type=int, default=1024,
+    parser.add_argument('--batch-size', type=int, default=512,
                         help='input batch size for testing (default: 512)')
     parser.add_argument('--learning-rate', type=float, default=1e-3,
                         help='input batch size for testing (default: 1e-3)')
@@ -103,21 +104,13 @@ if __name__ == '__main__':
             batch_images = batch['image'].cuda(non_blocking=True)
             batch_labels = batch['label'].cuda(non_blocking=True)
             batch_images = (batch_images - 112.52875) / 68.63312
-            if packets:
-                channel_list = []
-                for channel in range(3):
-                    channel_list.append(
-                        compute_pytorch_packet_representation_2d_tensor(
-                            batch_images[:, :, :, channel],
-                            wavelet_str=wavelet, max_lev=max_lev))
-                batch_images = torch.stack(channel_list, -1)
 
             out = model(batch_images)
             loss = loss_fun(torch.squeeze(out), batch_labels)
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             acc = torch.sum(ok_mask.type(torch.float32)) / len(batch_labels)
 
-            if it % 10 == 0:
+            if it % 1 == 0:
                 print('e', e, 'it', it, 'loss', loss.item(), 'acc', acc.item())
             loss.backward()
             optimizer.step()
