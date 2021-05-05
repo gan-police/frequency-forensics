@@ -55,8 +55,7 @@ def compute_packet_rep_img(image, wavelet_str, max_lev):
         return compute_packet_rep_2d(image, wavelet_str, max_lev)
 
 
-if __name__ == '__main__':
-
+def main():
     pairs = []
     pairs.append(read_pair("./data/A_ffhq/00000.png",
                            "./data/B_stylegan/style_gan_ffhq_example0.png"))
@@ -123,3 +122,7 @@ if __name__ == '__main__':
         plt.semilogy(np.mean(abs_fake_packets, 0), label='fake')
         plt.legend()
         plt.show()
+
+
+if __name__ == '__main__':
+    main()
