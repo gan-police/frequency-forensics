@@ -13,7 +13,7 @@ https://drive.google.com/file/d/1pKmmRtRCtFqs-FuwmToXEYeZFaXk98Kw/view?usp=shari
 and extract these into a `data` folder. Afterwards run:
 ```
 $ CUDA_VISIBLE_DEVICES=0 python src/prepare_dataset.py ./data/source_data/ --packets
-python src/prepare_dataset.py ./data/source_data/ --raw
+$ python src/prepare_dataset.py ./data/source_data/ --raw
 ```
 
 afterwards you should be able to train a classifier using 
