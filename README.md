@@ -10,7 +10,14 @@
 Download FFHQ-Style-Gan examples from 
 https://drive.google.com/file/d/1pKmmRtRCtFqs-FuwmToXEYeZFaXk98Kw/view?usp=sharing
 
-and extract these into a `data` folder. Afterwards run:
+and extract these into a `data` folder.
+
+
+Install the pytorch wavelet toolbox from
+https://github.com/v0lta/PyTorch-Wavelet-Toolbox
+as well as pytorch and pywt.
+
+Afterwards run:
 ```
 $ CUDA_VISIBLE_DEVICES=0 python src/prepare_dataset.py ./data/source_data/ --packets
 $ python src/prepare_dataset.py ./data/source_data/ --raw
