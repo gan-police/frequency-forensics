@@ -91,7 +91,7 @@ def packet_preprocessing(image, wavelet='db1', max_lev=3):
             to use. Defaults to 3.
 
     Returns:
-        [type]: [description]
+        [np.array]: The wavelet packets [N, H, W, C].
     """
     image = torch.from_numpy(image.astype(np.float32)).cuda()
     # transform to from H, W, C to C, H, W
