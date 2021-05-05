@@ -70,8 +70,8 @@ if __name__ == '__main__':
 
     # one should not specify normalization parameters and request their calculation at the same time
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('--normalize', nargs=2, type=float, metavar=('MEAN', 'STD'),
-                       help='normalize with specified values for mean and standard deviation')
+    group.add_argument('--normalize', nargs='+', type=float, metavar=('MEAN', 'STD'),
+                       help='normalize with specified values for mean and standard deviation (either 2 or 6 values are accepted)')
     group.add_argument('--calc-normalization', action='store_true',
                        help='calculates mean and standard deviation used in normalization from the training data')
     args = parser.parse_args()
@@ -94,13 +94,18 @@ if __name__ == '__main__':
         packets = False
 
     if args.normalize:
-        mean, std = args.normalize
+        num_of_norm_vals = len(args.normalize)
+        assert num_of_norm_vals == 2 or num_of_norm_vals == 6
+        mean = torch.FloatTensor(args.normalize[:num_of_norm_vals//2]).cuda()
+        std = torch.FloatTensor(args.normalize[num_of_norm_vals//2:]).cuda()
     elif args.calc_normalization:
         # compute mean and std
         img_lst = []
         for img_no in range(train_data_set.__len__()):
             img_lst.append(train_data_set.__getitem__(img_no)["image"])
         img_data = torch.stack(img_lst, 0)
+
+        # average all axis except the color channel
         axis = tuple(np.arange(len(img_data.shape[:-1])))
         mean = torch.mean(img_data, axis).cuda()
         std = torch.std(img_data, axis).cuda()
