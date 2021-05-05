@@ -6,25 +6,34 @@
 
 # frequency-detection
 
+## Installation
+
+```shell
+$ git clone https://github.com/v0lta/PyTorch-Wavelet-Toolbox
+$ cd PyTorch-Wavelet-Toolbox
+$ pip install -e .
+$ cd ..
+$ git clone https://github.com/gan-police/frequency-forensics
+$ cd frequency-forensics
+$ pip install -e .
+```
+
 ## Getting a minimal example to run:
+
 Download FFHQ-Style-Gan examples from 
 https://drive.google.com/file/d/1pKmmRtRCtFqs-FuwmToXEYeZFaXk98Kw/view?usp=sharing
 
 and extract these into a `data` folder.
 
-
-Install the pytorch wavelet toolbox from
-https://github.com/v0lta/PyTorch-Wavelet-Toolbox
-as well as pytorch and pywt.
-
 Afterwards run:
-```
+```shell
 $ CUDA_VISIBLE_DEVICES=0 python src/prepare_dataset.py ./data/source_data/ --packets
-$ python src/prepare_dataset.py ./data/source_data/ --raw
+$ python -m freqdect.prepare_dataset ./data/source_data/ --raw
 ```
 
 afterwards you should be able to train a classifier using 
-```
+
+```shell
 $ CUDA_VISIBLE_DEVICES=0 python train_classifier.py
 ```
 
