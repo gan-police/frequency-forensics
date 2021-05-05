@@ -112,7 +112,8 @@ if __name__ == '__main__':
         mean = torch.mean(img_data.double(), axis).float().cuda()
         std = torch.std(img_data.double(), axis).float().cuda()
     else:
-        mean, std = (112.52875, 68.63312)
+        mean = torch.cuda.FloatTensor([132.6314, 108.3550,  96.8289]).cuda()
+        std = torch.cuda.FloatTensor([71.1634, 64.5999, 64.9532]).cuda()
 
     print("mean", mean, "std", std)
 
