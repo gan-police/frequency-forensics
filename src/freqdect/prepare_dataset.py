@@ -9,9 +9,9 @@ from pathlib import Path
 
 import numpy as np
 
-from image_np import dct2, load_image, normalize, scale_image
-from dct_math import log_scale, welford
-from wavelet_math import packet_preprocessing
+from .image_np import dct2, load_image, normalize, scale_image
+from .dct_math import log_scale, welford
+from .wavelet_math import packet_preprocessing
 
 
 # TRAIN_SIZE = 64_000
