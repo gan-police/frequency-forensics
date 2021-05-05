@@ -1,5 +1,5 @@
-import os
 import torch
+from pathlib import Path
 import glob
 import numpy as np
 from torch.utils.data import Dataset
@@ -8,9 +8,8 @@ from torch.utils.data import Dataset
 class LoadNumpyDataset(Dataset):
     def __init__(self, data_dir):
         self.data_dir = data_dir
-        self.file_lst = glob.glob(data_dir + '/*.npy')
-        self.file_lst.sort()
-        assert self.file_lst[-1].replace(os.sep, '/').split('/')[-1] == 'labels.npy'
+        self.file_lst = sorted(Path(data_dir).glob('./*.npy'))
+        assert self.file_lst[-1].name == 'labels.npy'
         self.labels = np.load(self.file_lst[-1])
         self.images = self.file_lst[:-1]
 
