@@ -51,7 +51,7 @@ def val_test_loop(data_loader, model, loss_fun):
     return val_acc
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Train an image classifier')
     parser.add_argument('--features', choices=['raw', 'packets'],
                         default='packets',
@@ -153,3 +153,7 @@ if __name__ == '__main__':
                 'model': model})
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, ' saved.')
+
+
+if __name__ == '__main__':
+    main()
