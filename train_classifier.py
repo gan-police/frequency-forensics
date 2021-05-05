@@ -96,8 +96,8 @@ if __name__ == '__main__':
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
-        mean = torch.FloatTensor(args.normalize[:num_of_norm_vals//2]).cuda()
-        std = torch.FloatTensor(args.normalize[num_of_norm_vals//2:]).cuda()
+        mean = torch.cuda.FloatTensor(args.normalize[:num_of_norm_vals//2]).cuda()
+        std = torch.cuda.FloatTensor(args.normalize[num_of_norm_vals//2:]).cuda()
     elif args.calc_normalization:
         # compute mean and std
         img_lst = []
@@ -107,8 +107,10 @@ if __name__ == '__main__':
 
         # average all axis except the color channel
         axis = tuple(np.arange(len(img_data.shape[:-1])))
-        mean = torch.mean(img_data, axis).cuda()
-        std = torch.std(img_data, axis).cuda()
+
+        # calculate mean and std in double to avoid precision problems
+        mean = torch.mean(img_data.double(), axis).float().cuda()
+        std = torch.std(img_data.double(), axis).float().cuda()
     else:
         mean, std = (112.52875, 68.63312)
 
