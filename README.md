@@ -26,15 +26,16 @@ https://drive.google.com/file/d/1pKmmRtRCtFqs-FuwmToXEYeZFaXk98Kw/view?usp=shari
 and extract these into a `data` folder.
 
 Afterwards run:
+
 ```shell
-$ CUDA_VISIBLE_DEVICES=0 python src/prepare_dataset.py ./data/source_data/ --packets
+$ CUDA_VISIBLE_DEVICES=0 python -m freqdect.prepare_dataset ./data/source_data/ --packets
 $ python -m freqdect.prepare_dataset ./data/source_data/ --raw
 ```
 
 afterwards you should be able to train a classifier using 
 
 ```shell
-$ CUDA_VISIBLE_DEVICES=0 python train_classifier.py
+$ CUDA_VISIBLE_DEVICES=0 python -m freqdect.train_classifier
 ```
 
 ## whats the plan?
