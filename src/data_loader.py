@@ -58,18 +58,22 @@ if __name__ == '__main__':
     # compute mean and std
     img_lst = []
     for img_no in range(train_data_set.__len__()):
-        img_lst.append(train_data_set.__getitem__(img_no)["image"].numpy())
-    img_data = np.stack(img_lst, 0)
+        img_lst.append(train_data_set.__getitem__(img_no)["image"])
+    img_data = torch.stack(img_lst, 0)
 
-    mean = np.mean(img_data)
-    std = np.std(img_data)
-    print('mean', np.mean(img_data))
-    print('std', np.std(img_data))
-    
+    # average all axis except the color channel
+    axis = tuple(np.arange(len(img_data.shape[:-1])))
+
+    # calculate mean and std in double to avoid precision problems
+    mean = torch.mean(img_data.double(), axis).float()
+    std = torch.std(img_data.double(), axis).float()
+
+    print('mean', mean)
+    print('std', std)
     # mean 112.52875
     # std 68.63312
 
     norm = (img_data - mean) / std
-    print(np.mean(norm))
-    print(np.std(norm))
+    print(torch.mean(norm, axis=axis))
+    print(torch.std(norm, axis=axis))
 
