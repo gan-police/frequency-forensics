@@ -39,6 +39,8 @@ if __name__ == '__main__':
                         help='path of training data (default: ./data/data_raw_train)')
     parser.add_argument('--val-data', type=str, default="./data/data_raw_val",
                         help='path of validation data (default: ./data/data_raw_val)')
+    parser.add_argument('--nclasses', type=int, default=2,
+                        help='number of classes (default: 2)')
 
     # one should not specify normalization parameters and request their calculation at the same time
     group = parser.add_mutually_exclusive_group()
@@ -88,9 +90,9 @@ if __name__ == '__main__':
     if packets:
         wavelet = 'db2'
         max_lev = 3
-        model = Regression(62208, 2).cuda()
+        model = Regression(62208, args.nclasses).cuda()
     else:
-        model = Regression(49152, 2).cuda()
+        model = Regression(49152, args.nclasses).cuda()
 
     loss_fun = torch.nn.NLLLoss()
     optimizer = torch.optim.Adam(model.parameters(),
