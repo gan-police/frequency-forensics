@@ -2,7 +2,7 @@ import torch
 import pickle
 import argparse
 import numpy as np
-from src.wavelet_math import compute_pytorch_packet_representation_2d
+from src.wavelet_math import compute_pytorch_packet_representation_2d_tensor
 from src.data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
 
@@ -35,12 +35,11 @@ def val_test_loop(data_loader, model, loss_fun):
                 channel_list = []
                 for channel in range(3):
                     channel_list.append(
-                        compute_pytorch_packet_representation_2d(
+                        compute_pytorch_packet_representation_2d_tensor(
                             batch_images[:, :, :, channel],
                             wavelet_str=wavelet, max_lev=max_lev))
                 batch_images = torch.stack(channel_list, -1)
             out = model(batch_images)
-            loss = loss_fun(torch.squeeze(out), batch_labels)
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             val_ok += torch.sum(ok_mask).item()
             val_total += batch_labels.shape[0]
@@ -51,13 +50,12 @@ def val_test_loop(data_loader, model, loss_fun):
     return val_acc
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train an image classifier')
     parser.add_argument('--features', choices=['raw', 'packets'],
                         default='packets',
                         help='the representation type')
-    parser.add_argument('--batch-size', type=int, default=512,
+    parser.add_argument('--batch-size', type=int, default=1024,
                         help='input batch size for testing (default: 512)')
     parser.add_argument('--learning-rate', type=float, default=1e-3,
                         help='input batch size for testing (default: 1e-3)')
@@ -73,10 +71,10 @@ if __name__ == '__main__':
     test_data_set = LoadNumpyDataset('./data_raw_test')
     train_data_loader = DataLoader(
         train_data_set, batch_size=args.batch_size, shuffle=True,
-        num_workers=2)
+        num_workers=1)
     val_data_loader = DataLoader(
         val_data_set, batch_size=args.batch_size, shuffle=False,
-        num_workers=2)
+        num_workers=1)
 
     if args.features == 'packets':
         packets = True
@@ -89,11 +87,9 @@ if __name__ == '__main__':
     step_total = 0
 
     if packets:
-        wavelet = 'db2'
+        wavelet = 'db1'
         max_lev = 3
-        model = Regression(62208, 2).cuda()
-    else:
-        model = Regression(49152, 2).cuda()
+    model = Regression(49152, 2).cuda()
 
     loss_fun = torch.nn.NLLLoss()
     optimizer = torch.optim.Adam(model.parameters(),
@@ -111,7 +107,7 @@ if __name__ == '__main__':
                 channel_list = []
                 for channel in range(3):
                     channel_list.append(
-                        compute_pytorch_packet_representation_2d(
+                        compute_pytorch_packet_representation_2d_tensor(
                             batch_images[:, :, :, channel],
                             wavelet_str=wavelet, max_lev=max_lev))
                 batch_images = torch.stack(channel_list, -1)

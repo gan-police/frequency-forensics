@@ -5,7 +5,9 @@ from itertools import product
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from pywt._doc_utils import _2d_wp_basis_coords
-from src.wavelet_math import compute_packet_rep_2d, compute_pytorch_packet_representation_2d
+from src.wavelet_math import compute_packet_rep_2d
+from src.wavelet_math import compute_pytorch_packet_representation_2d_image
+from src.wavelet_math import compute_pytorch_packet_representation_2d_tensor
 
 
 def draw_2d_wp_basis(shape, keys, fmt='k', plot_kwargs={}, ax=None,
@@ -64,25 +66,29 @@ if __name__ == '__main__':
                            "./data/B_stylegan/style_gan_ffhq_example2.png"))
     pairs.append(read_pair("./data/A_ffhq/00003.png",
                            "./data/B_stylegan/style_gan_ffhq_example3.png"))
+    pairs.append(read_pair("./data/A_ffhq/00004.png",
+                           "./data/B_stylegan/style_gan_ffhq_example4.png"))
+    pairs.append(read_pair("./data/A_ffhq/00005.png",
+                           "./data/B_stylegan/style_gan_ffhq_example5.png"))
 
-    wavelet = 'db2'
+    wavelet = 'db1'
     max_lev = 3
     for real, fake in pairs:
-        real = torch.from_numpy(np.mean(real, -1).astype(np.float32)).unsqueeze(0)
-        fake = torch.from_numpy(np.mean(fake, -1).astype(np.float32)).unsqueeze(0)
+        real = torch.from_numpy(np.mean(real, -1).astype(np.float32)).unsqueeze(0).cuda()
+        fake = torch.from_numpy(np.mean(fake, -1).astype(np.float32)).unsqueeze(0).cuda()
         # plt.imshow(np.concatenate([real, fake], axis=1))
         # plt.show()
-        real_packets = compute_pytorch_packet_representation_2d(
+        real_packets = compute_pytorch_packet_representation_2d_tensor(
             real, wavelet_str=wavelet, max_lev=max_lev)
-        fake_packets = compute_pytorch_packet_representation_2d(
+        fake_packets = compute_pytorch_packet_representation_2d_tensor(
             fake, wavelet_str=wavelet, max_lev=max_lev)
 
         real_packets = torch.squeeze(real_packets)
         fake_packets = torch.squeeze(fake_packets)
 
         # merge_packets = np.concatenate([real_packets, fake_packets], axis=1)
-        abs_real_packets = np.abs(real_packets.numpy())
-        abs_fake_packets = np.abs(fake_packets.numpy())
+        abs_real_packets = np.abs(real_packets.cpu().numpy())
+        abs_fake_packets = np.abs(fake_packets.cpu().numpy())
         # scaled_packets = abs_packets/np.max(abs_packets)
         # log_scaled_packets = np.log(abs_packets)
         # scaled_packets = np.
@@ -93,22 +99,27 @@ if __name__ == '__main__':
 
         cmap = 'cividis'  # 'cividis'  # 'magma'  #'inferno'  # 'viridis
         fig = plt.figure(figsize=(20, 6))
-        ax1 = fig.add_subplot(131)
-        ax2 = fig.add_subplot(132)
-        ax3 = fig.add_subplot(133)
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        # ax3 = fig.add_subplot(133)
         ax1.set_title('real img ' + wavelet + ' packet decomposition')
-        ax1.imshow(np.abs(abs_real_packets),
+        ax1.imshow(abs_real_packets,
                    norm=colors.LogNorm(vmin=scale_min,
                                        vmax=scale_max),
                    cmap=cmap)
         ax2.set_title('fake img ' + wavelet + ' packet decomposition')
-        im = ax2.imshow(np.abs(abs_fake_packets),
+        im = ax2.imshow(abs_fake_packets,
                         norm=colors.LogNorm(vmin=scale_min,
                                             vmax=scale_max),
                         cmap=cmap)
-        fig.colorbar(im)
-        shape = real.shape
-        keys = list(product(['a', 'd', 'h', 'v'], repeat=max_lev))
-        draw_2d_wp_basis(shape, keys, ax=ax3, label_levels=max_lev)
-        ax3.set_title('packet labels')
+        # fig.colorbar(im)
+        # shape = real.shape
+        # keys = list(product(['a', 'd', 'h', 'v'], repeat=max_lev))
+        # draw_2d_wp_basis(shape, keys, ax=ax3, label_levels=max_lev)
+        # ax3.set_title('packet labels')
+        plt.show()
+
+        plt.semilogy(np.mean(abs_real_packets, 0), label='real')
+        plt.semilogy(np.mean(abs_fake_packets, 0), label='fake')
+        plt.legend()
         plt.show()
