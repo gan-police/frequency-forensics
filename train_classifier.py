@@ -2,7 +2,7 @@ import torch
 import pickle
 import argparse
 import numpy as np
-from src.wavelet_math import compute_pytorch_packet_representation_2d
+from src.wavelet_math import compute_pytorch_packet_representation_2d_tensor
 from src.data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
 
@@ -22,19 +22,47 @@ class Regression(torch.nn.Module):
         return self.activation(self.linear(x_flat))
 
 
+def val_test_loop(data_loader, model, loss_fun):
+    with torch.no_grad():
+        val_total = 0
+        val_ok = 0
+        for val_batch in iter(data_loader):
+            batch_images = val_batch['image'].cuda(non_blocking=True)
+            batch_labels = val_batch['label'].cuda(non_blocking=True)
+            # batch_labels = torch.nn.functional.one_hot(batch_labels)
+            batch_images = (batch_images - 112.52875) / 68.63312
+            if packets:
+                channel_list = []
+                for channel in range(3):
+                    channel_list.append(
+                        compute_pytorch_packet_representation_2d_tensor(
+                            batch_images[:, :, :, channel],
+                            wavelet_str=wavelet, max_lev=max_lev))
+                batch_images = torch.stack(channel_list, -1)
+            out = model(batch_images)
+            ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
+            val_ok += torch.sum(ok_mask).item()
+            val_total += batch_labels.shape[0]
+        val_acc = val_ok / val_total
+        print('acc', val_acc,
+              'ok', val_ok,
+              'total', val_total)
+    return val_acc
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train an image classifier')
     parser.add_argument('--features', choices=['raw', 'packets'],
                         default='packets',
                         help='the representation type')
-    parser.add_argument('--batch-size', type=int, default=512,
+    parser.add_argument('--batch-size', type=int, default=1024,
                         help='input batch size for testing (default: 512)')
     parser.add_argument('--learning-rate', type=float, default=1e-3,
                         help='learning rate for optimizer (default: 1e-3)')
     parser.add_argument('--weight-decay', type=float, default=0,
                         help='learning rate for optimizer (default: 0)')
-    parser.add_argument('--epochs', type=int, default=20,
-                        help='number of epochs (default: 20)')
+    parser.add_argument('--epochs', type=int, default=60,
+                        help='number of epochs (default: 60)')
     parser.add_argument('--data-prefix', type=str, default="./data/data_raw",
                         help='shared prefix of the data paths (default: ./data/data_raw)')
     parser.add_argument('--nclasses', type=int, default=2,
@@ -47,7 +75,6 @@ if __name__ == '__main__':
     group.add_argument('--calc-normalization', action='store_true',
                        help='calculates mean and standard deviation used in normalization from the training data')
     args = parser.parse_args()
-
     print(args)
 
     train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
@@ -56,10 +83,10 @@ if __name__ == '__main__':
 
     train_data_loader = DataLoader(
         train_data_set, batch_size=args.batch_size, shuffle=True,
-        num_workers=2)
+        num_workers=1)
     val_data_loader = DataLoader(
         val_data_set, batch_size=args.batch_size, shuffle=False,
-        num_workers=2)
+        num_workers=1)
 
     if args.features == 'packets':
         packets = True
@@ -87,11 +114,9 @@ if __name__ == '__main__':
     step_total = 0
 
     if packets:
-        wavelet = 'db2'
+        wavelet = 'db1'
         max_lev = 3
-        model = Regression(62208, args.nclasses).cuda()
-    else:
-        model = Regression(49152, args.nclasses).cuda()
+    model = Regression(49152, args.nclasses).cuda()
 
     loss_fun = torch.nn.NLLLoss()
     optimizer = torch.optim.Adam(model.parameters(),
@@ -111,7 +136,7 @@ if __name__ == '__main__':
                 channel_list = []
                 for channel in range(3):
                     channel_list.append(
-                        compute_pytorch_packet_representation_2d(
+                        compute_pytorch_packet_representation_2d_tensor(
                             batch_images[:, :, :, channel],
                             wavelet_str=wavelet, max_lev=max_lev))
                 batch_images = torch.stack(channel_list, -1)
@@ -132,37 +157,23 @@ if __name__ == '__main__':
             # iterate over val batches.
             if step_total % 100 == 0:
                 print('validating....')
-                with torch.no_grad():
-                    test_total = 0
-                    test_ok = 0
-                    for test_batch in enumerate(iter(val_data_loader)):
-                        batch_images = batch['image'].cuda(non_blocking=True)
-                        batch_labels = batch['label'].cuda(non_blocking=True)
-                        # batch_labels = torch.nn.functional.one_hot(batch_labels)
-
-                        # normalize image data
-                        batch_images = (batch_images - mean) / std
-                        if packets:
-                            channel_list = []
-                            for channel in range(3):
-                                channel_list.append(
-                                    compute_pytorch_packet_representation_2d(
-                                        batch_images[:, :, :, channel],
-                                        wavelet_str=wavelet, max_lev=max_lev))
-                            batch_images = torch.stack(channel_list, -1)
-
-                        out = model(batch_images)
-                        loss = loss_fun(torch.squeeze(out), batch_labels)
-                        ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
-                        test_ok += torch.sum(ok_mask).item()
-                        test_total += batch_labels.shape[0]
-                    validation_list.append((step_total, test_ok / test_total))
-                    print('test acc', validation_list[-1],
-                          'test_ok', test_ok,
-                          'total', test_total)
+                validation_list.append(
+                    val_test_loop(val_data_loader, model, loss_fun))
+                if validation_list[-1] == 1.:
+                    print('val acc ideal stopping training.')
+                    break
     print(validation_list)
 
-    stats_file = './log/' + 'packets' + str(packets) + '.pkl'
+    # Run over the test set.
+    print('Training done testing....')
+    test_data_loader = DataLoader(
+        test_data_set, args.batch_size, shuffle=False,
+        num_workers=2)
+    with torch.no_grad():
+        test_acc = val_test_loop(test_data_loader, model, loss_fun)
+        print('test acc', test_acc)
+
+    stats_file = './log/v2' + 'packets' + str(packets) + '.pkl'
     try:
         res = pickle.load(open(stats_file, "rb"))
     except (OSError, IOError) as e:
@@ -170,9 +181,11 @@ if __name__ == '__main__':
         print(e, 'stats.pickle does not exist, \
               creating a new file.')
 
-        res.append({'train loss': loss_list,
-                    'train acc': accuracy_list,
-                    'val acc': validation_list,
-                    'args': args})
-        pickle.dump(res, open(stats_file, "wb"))
-        print(stats_file, ' saved.')
+    res.append({'train loss': loss_list,
+                'train acc': accuracy_list,
+                'val acc': validation_list,
+                'test acc': test_acc,
+                'args': args,
+                'model': model})
+    pickle.dump(res, open(stats_file, "wb"))
+    print(stats_file, ' saved.')
