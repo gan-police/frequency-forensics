@@ -3,8 +3,8 @@ import pickle
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from src.wavelet_math import compute_pytorch_packet_representation_2d_tensor
-from src.data_loader import LoadNumpyDataset
+from src.freqdect.wavelet_math import compute_pytorch_packet_representation_2d_tensor
+from src.freqdect.data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
 
 
@@ -67,9 +67,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
 
-    train_data_set = LoadNumpyDataset('./data_raw_train')
-    val_data_set = LoadNumpyDataset('./data_raw_val')
-    test_data_set = LoadNumpyDataset('./data_raw_test')
+    train_data_set = LoadNumpyDataset('./data/source_data_raw_train')
+    val_data_set = LoadNumpyDataset('./data/source_data_raw_val')
+    test_data_set = LoadNumpyDataset('./data/source_data_raw_test')
     train_data_loader = DataLoader(
         train_data_set, batch_size=args.batch_size, shuffle=True,
         num_workers=1)
