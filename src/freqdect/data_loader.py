@@ -26,9 +26,9 @@ class LoadNumpyDataset(Dataset):
         return sample
 
 
-if __name__ == '__main__':
+def main():
     import argparse
-    #import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt
     from torch.utils.data import DataLoader
 
     parser = argparse.ArgumentParser(description='Calculate mean and std')
@@ -69,10 +69,10 @@ if __name__ == '__main__':
 
     print('mean', mean)
     print('std', std)
-    # mean 112.52875
-    # std 68.63312
 
     norm = (img_data - mean) / std
     print(torch.mean(norm, axis=axis))
     print(torch.std(norm, axis=axis))
 
+if __name__ == '__main__':
+    main()

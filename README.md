@@ -6,10 +6,37 @@
 
 # frequency-detection
 
-Hi guys, welcome!
-The first step will be to reproduce some of the results from
-https://papers.nips.cc/paper/2020/file/1f8d87e1161af68b81bace188a1ec624-Paper.pdf
-I will start to do that next week.
+## Installation
+
+```shell
+$ git clone https://github.com/v0lta/PyTorch-Wavelet-Toolbox
+$ cd PyTorch-Wavelet-Toolbox
+$ pip install -e .
+$ cd ..
+$ git clone https://github.com/gan-police/frequency-forensics
+$ cd frequency-forensics
+$ pip install -e .
+```
+
+## Getting a minimal example to run:
+
+Download FFHQ-Style-Gan examples from 
+https://drive.google.com/file/d/1pKmmRtRCtFqs-FuwmToXEYeZFaXk98Kw/view?usp=sharing
+
+and extract these into a `data` folder.
+
+Afterwards run:
+
+```shell
+$ CUDA_VISIBLE_DEVICES=0 python -m freqdect.prepare_dataset ./data/source_data/ --packets
+$ python -m freqdect.prepare_dataset ./data/source_data/ --raw
+```
+
+afterwards you should be able to train a classifier using 
+
+```shell
+$ CUDA_VISIBLE_DEVICES=0 python -m freqdect.train_classifier
+```
 
 ## whats the plan?
  - I think it may be a good idea to use the fwt instead of the fft to find GAN

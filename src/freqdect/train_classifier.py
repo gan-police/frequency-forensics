@@ -2,8 +2,9 @@ import torch
 import pickle
 import argparse
 import numpy as np
-from src.wavelet_math import compute_pytorch_packet_representation_2d_tensor
-from src.data_loader import LoadNumpyDataset
+import matplotlib.pyplot as plt
+from .wavelet_math import compute_pytorch_packet_representation_2d_tensor
+from .data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
 
 
@@ -50,17 +51,17 @@ def val_test_loop(data_loader, model, loss_fun):
     return val_acc
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Train an image classifier')
     parser.add_argument('--features', choices=['raw', 'packets'],
                         default='packets',
                         help='the representation type')
-    parser.add_argument('--batch-size', type=int, default=1024,
+    parser.add_argument('--batch-size', type=int, default=512,
                         help='input batch size for testing (default: 512)')
     parser.add_argument('--learning-rate', type=float, default=1e-3,
                         help='learning rate for optimizer (default: 1e-3)')
     parser.add_argument('--weight-decay', type=float, default=0,
-                        help='learning rate for optimizer (default: 0)')
+                        help='weight decay for optimizer (default: 0)')
     parser.add_argument('--epochs', type=int, default=60,
                         help='number of epochs (default: 60)')
     parser.add_argument('--data-prefix', type=str, default="./data/data_raw",
@@ -155,7 +156,7 @@ if __name__ == '__main__':
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             acc = torch.sum(ok_mask.type(torch.float32)) / len(batch_labels)
 
-            if it % 10 == 0:
+            if it % 1 == 0:
                 print('e', e, 'it', it, 'loss', loss.item(), 'acc', acc.item())
             loss.backward()
             optimizer.step()
@@ -198,3 +199,7 @@ if __name__ == '__main__':
                 'model': model})
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, ' saved.')
+
+
+if __name__ == '__main__':
+    main()

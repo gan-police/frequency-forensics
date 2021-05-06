@@ -9,13 +9,14 @@ from pathlib import Path
 
 import numpy as np
 
-from image_np import dct2, load_image, normalize, scale_image
-from dct_math import log_scale, welford
+from .image_np import dct2, load_image, normalize, scale_image
+from .dct_math import log_scale, welford
+from .wavelet_math import packet_preprocessing
 
 
-# TRAIN_SIZE = 100_000
-# VAL_SIZE = 20_000
-# TEST_SIZE = 30_000
+# TRAIN_SIZE = 64_000
+# VAL_SIZE = 4_000
+# TEST_SIZE = 10_000
 TRAIN_SIZE = 63_000
 VAL_SIZE = 2_000
 TEST_SIZE = 5_000
@@ -142,28 +143,12 @@ def normal_mode(directory, encode_function, outpath):
     print(f"\nConverted test images!")
 
 
-"""
-def tfmode(directory, encode_function, outpath):
-    train_dataset, val_dataset, test_dataset = collect_all_paths(directory)
-    create_directory_tf(f"{outpath}_train_tf",
-                        train_dataset, encode_function)
-    print(f"\nConverted train images!")
-    create_directory_tf(f"{outpath}_val_tf",
-                        val_dataset, encode_function)
-    print(f"\nConverted val images!")
-    create_directory_tf(f"{outpath}_test_tf",
-                        test_dataset, encode_function)
-    print(f"\nConverted test images!")
- """
-
-
 def main(args):
     output = f"{args.DIRECTORY.rstrip('/')}"
 
     # we always load images into numpy arrays
     # we additionally set a flag if we later convert to tensorflow records
-    load_function = functools.partial(
-        load_image, tf=args.mode == "tfrecords")
+    load_function = load_image
     transformation_function = None
     normalize_function = None
     absolute_function = None
@@ -206,20 +191,40 @@ def main(args):
 
             absolute_function = scale_by_absolute
 
-        if args.normalize:
-            # normalize to zero mean and unit variance
-            train, _, _ = collect_all_paths(args.DIRECTORY)
-            images = map(lambda x: x[0], train)
-            images = map(load_function, images)
-            images = map(transformation_function, images)
-            if absolute_function is not None:
-                images = map(absolute_function, images)
+        # if args.normalize:
+        #    # normalize to zero mean and unit variance
+        #    train, _, _ = collect_all_paths(args.DIRECTORY)
+        #    images = map(lambda x: x[0], train)
+        #    images = map(load_function, images)
+        #    images = map(transformation_function, images)
+        #    if absolute_function is not None:
+        #        images = map(absolute_function, images)
 
-            mean, var = welford(images)
-            std = np.sqrt(var)
-            output += "_normalized"
-            normalize_function = functools.partial(
-                normalize, mean=mean, std=std)
+        #    mean, var = welford(images)
+        #    std = np.sqrt(var)
+        #    output += "_normalized"
+        #    normalize_function = functools.partial(
+        #        normalize, mean=mean, std=std)
+
+    elif args.packets:
+        output += "_packets"
+        transformation_function = packet_preprocessing
+
+        # if args.normalize:
+        #    # normalize to zero mean and unit variance
+        #    train, _, _ = collect_all_paths(args.DIRECTORY)
+        #    images = map(lambda x: x[0], train)
+        #    images = map(load_function, images)
+        #    images = map(transformation_function, images)
+        #    if absolute_function is not None:
+        #        images = map(absolute_function, images)
+
+        #    mean, var = welford(images)
+        #    std = np.sqrt(var)
+        #    output += "_normalized"
+        #    normalize_function = functools.partial(
+        #        normalize, mean=mean, std=std)
+
     else:
         output += "_raw"
 
@@ -241,6 +246,8 @@ def parse_args():
                         help="Directory to convert.")
     parser.add_argument("--dct", "-r", help="Save image data as dct image.",
                         action="store_true")
+    parser.add_argument("--packets", "-p", help="Save image data as dct image.",
+                        action="store_true")
     parser.add_argument("--log", "-l", help="Log scale Images.",
                         action="store_true")
     parser.add_argument("--abs", "-a", help="Scale each feature by its max absolute value.",
@@ -249,9 +256,6 @@ def parse_args():
                         action="store_true")
     parser.add_argument("--normalize", "-n", help="Normalize data.",
                         action="store_true")
-    modes = parser.add_subparsers(
-        help="Select the mode {normal|tfrecords}", dest="mode")
-
     return parser.parse_args()
 
 
