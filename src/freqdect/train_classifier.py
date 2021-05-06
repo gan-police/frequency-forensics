@@ -32,14 +32,6 @@ def val_test_loop(data_loader, model, loss_fun):
             batch_labels = val_batch['label'].cuda(non_blocking=True)
             # batch_labels = torch.nn.functional.one_hot(batch_labels)
             batch_images = (batch_images - 112.52875) / 68.63312
-            if packets:
-                channel_list = []
-                for channel in range(3):
-                    channel_list.append(
-                        compute_pytorch_packet_representation_2d_tensor(
-                            batch_images[:, :, :, channel],
-                            wavelet_str=wavelet, max_lev=max_lev))
-                batch_images = torch.stack(channel_list, -1)
             out = model(batch_images)
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             val_ok += torch.sum(ok_mask).item()
@@ -87,9 +79,6 @@ def main():
     accuracy_list = []
     step_total = 0
 
-    if packets:
-        wavelet = 'db1'
-        max_lev = 3
     model = Regression(49152, 2).cuda()
 
     loss_fun = torch.nn.NLLLoss()

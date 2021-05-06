@@ -5,13 +5,15 @@ from torch.utils.data import Dataset
 
 
 class LoadNumpyDataset(Dataset):
-    def __init__(self, data_dir):
+    def __init__(self, data_dir, mean=None, std=None):
         self.data_dir = data_dir
         self.file_lst = glob.glob(data_dir + '/*.npy')
         self.file_lst.sort()
         assert self.file_lst[-1].split('/')[-1] == 'labels.npy'
         self.labels = np.load(self.file_lst[-1])
         self.images = self.file_lst[:-1]
+        self.mean = mean
+        self.std = std
 
     def __len__(self):
         return len(self.labels)
@@ -20,6 +22,9 @@ class LoadNumpyDataset(Dataset):
         img_path = self.images[idx]
         image = np.load(img_path)
         image = torch.from_numpy(image.astype(np.float32))
+        # normalize the data.
+        if self.mean:
+            image = (image - self.mean) / self.std
         label = self.labels[idx]
         label = torch.tensor(int(label))
         sample = {"image": image, "label": label}
@@ -30,10 +35,13 @@ def main():
     import matplotlib.pyplot as plt
     from torch.utils.data import DataLoader
 
-    train_folder = './data_raw_train/'
-    train_sample = np.load('./data_raw_train/000001.npy')
-    labels = np.load('./data_raw_train/labels.npy')
-    train_data_set = LoadNumpyDataset('./data_raw_train')
+    # raw_train_sample = np.load('./data/source_data_raw_train/000001.npy')
+    # labels = np.load('./data/source_data_raw_train/labels.npy')
+
+    packet_train_sample = np.load('./data/source_data_packets_train/000001.npy')
+    labels = np.load('./data/source_data_raw_train/labels.npy')
+
+    train_data_set = LoadNumpyDataset('./data/source_data_raw_train')
     train_data_set.__getitem__(0)
 
     train_dataloader = DataLoader(
@@ -57,7 +65,7 @@ def main():
     std = np.std(img_data)
     print('mean', np.mean(img_data))
     print('str', np.std(img_data))
-    
+
     # mean 112.52875
     # str 68.63312
 

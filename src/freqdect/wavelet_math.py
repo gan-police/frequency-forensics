@@ -79,25 +79,32 @@ def compute_pytorch_packet_representation_2d_tensor(
     return wp_pt
 
 
-def packet_preprocessing(image, wavelet='db1', max_lev=3):
-    """ Preprosess images by computing the wavelet packet 
+def batch_packet_preprocessing(image_batch, wavelet='db1', max_lev=3):
+    """ Preprosess image batches by computing the wavelet packet 
        representation as well as log scaling their absolute value.
 
     Args:
-        image (np.array): An image of shape (H, W, C)
+        image_batch (np.array): An image of shape (B, H, W, C)
         wavelet (str, optional): A pywt-compatible wavelet string.
             Defaults to 'db1'.
         max_lev (int, optional): The number of decomposition scales
             to use. Defaults to 3.
 
     Returns:
-        [np.array]: The wavelet packets [N, H, W, C].
+        [np.array]: The wavelet packets [B, N, H, W, C].
     """
-    image = torch.from_numpy(image.astype(np.float32)).cuda()
+    image_batch = torch.from_numpy(image_batch.astype(np.float32)).cuda()
     # transform to from H, W, C to C, H, W
-    image = image.permute([2, 0, 1])
-    packets = compute_pytorch_packet_representation_2d_tensor(
-        image, wavelet_str=wavelet, max_lev=max_lev)
+    channels = []
+    for channel in range(image_batch.shape[-1]):
+        channel_packets = compute_pytorch_packet_representation_2d_tensor(
+            image_batch[:, :, :, channel], wavelet_str=wavelet, max_lev=max_lev)
+        channels.append(channel_packets)
+    packets = torch.stack(channels, -1)
     packets = torch.abs(packets)
     packets = torch.log(packets)
-    return packets.permute([1, 2, 3, 0]).cpu().numpy()
+    return packets.cpu().numpy()
+
+
+def identitiy_processing(image_batch):
+    return image_batch
