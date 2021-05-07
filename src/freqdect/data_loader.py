@@ -73,8 +73,8 @@ def main():
     print('packet mean', packet_mean)
     print('packet str', packet_std)
 
-    # packet mean 112.52875
-    # packet str 68.63312
+    # packet mean -
+    # packet str -
     norm = (packet_data - packet_mean) / packet_std
     print('packet norm test', np.mean(norm))
     print('packet std test', np.std(norm))
