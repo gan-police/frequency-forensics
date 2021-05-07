@@ -3,13 +3,11 @@ import pickle
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from .wavelet_math import compute_pytorch_packet_representation_2d_tensor
-from .data_loader import LoadNumpyDataset
+from data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
 
 
 class Regression(torch.nn.Module):
-
     def __init__(self, input_size, classes):
         super().__init__()
         self.linear = torch.nn.Linear(
@@ -31,7 +29,7 @@ def val_test_loop(data_loader, model, loss_fun):
             batch_images = val_batch['image'].cuda(non_blocking=True)
             batch_labels = val_batch['label'].cuda(non_blocking=True)
             # batch_labels = torch.nn.functional.one_hot(batch_labels)
-            batch_images = (batch_images - 112.52875) / 68.63312
+            # batch_images = (batch_images - 112.52875) / 68.63312
             out = model(batch_images)
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             val_ok += torch.sum(ok_mask).item()
@@ -59,15 +57,34 @@ def main():
     args = parser.parse_args()
     print(args)
 
-    train_data_set = LoadNumpyDataset('./data/source_data_raw_train')
-    val_data_set = LoadNumpyDataset('./data/source_data_raw_val')
-    test_data_set = LoadNumpyDataset('./data/source_data_raw_test')
+    if args.features == 'raw':
+        mean = 112.52875
+        std = 68.63312
+        train_data_set = LoadNumpyDataset(
+            './data/source_data_raw_train', mean=mean, std=std)
+        val_data_set = LoadNumpyDataset(
+            './data/source_data_raw_val', mean=mean, std=std)
+        test_data_set = LoadNumpyDataset(
+            './data/source_data_raw_test', mean=mean, std=std)
+    elif args.features == 'packets':
+        mean = 1.2623962
+        std = 3.023255
+        train_data_set = LoadNumpyDataset(
+            './data/source_data_packets_train', mean=mean, std=std)
+        val_data_set = LoadNumpyDataset(
+            './data/source_data_packets_val', mean=mean, std=std)
+        test_data_set = LoadNumpyDataset(
+            './data/source_data_packets_test', mean=mean, std=std)
+
+    else:
+        raise NotImplementedError
+
     train_data_loader = DataLoader(
         train_data_set, batch_size=args.batch_size, shuffle=True,
-        num_workers=1)
+        num_workers=2)
     val_data_loader = DataLoader(
         val_data_set, batch_size=args.batch_size, shuffle=False,
-        num_workers=1)
+        num_workers=2)
 
     if args.features == 'packets':
         packets = True
@@ -92,7 +109,7 @@ def main():
             optimizer.zero_grad()
             batch_images = batch['image'].cuda(non_blocking=True)
             batch_labels = batch['label'].cuda(non_blocking=True)
-            batch_images = (batch_images - 112.52875) / 68.63312
+            # batch_images = (batch_images - 112.52875) / 68.63312
 
             out = model(batch_images)
             loss = loss_fun(torch.squeeze(out), batch_labels)

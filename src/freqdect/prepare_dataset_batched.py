@@ -85,21 +85,18 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
          images available."
     random.seed(42)
     random.shuffle(file_list)
-
     train_list = file_list[:train_size]
     validation_list = file_list[train_size:(train_size + val_size)]
     test_list = file_list[(train_size + val_size):(train_size + val_size + test_size)]
 
     # load, process and store the training set.
     train_set, train_labels = load_and_stack(train_list)
-    # os.mkdir(train_dir)
     splits = int(train_set.shape[0] / preprocessing_batch_size)
     training_preprocessing_batches = np.array_split(train_set, splits)
     del train_set
     processed_train_set = preprocess(training_preprocessing_batches, processing_function)
     save_to_disk(processed_train_set, train_labels, target_dir + '_train')
-    del processed_train_set
-    del training_preprocessing_batches
+    del processed_train_set, training_preprocessing_batches
     print('training set stored.')
 
     validation_set, validation_labels = load_and_stack(validation_list)
@@ -108,8 +105,7 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
     del validation_set
     preprocessed_validation_set = preprocess(validation_preprocessing_batches, processing_function)
     save_to_disk(preprocessed_validation_set, validation_labels, target_dir + '_val')
-    del preprocessed_validation_set
-    del validation_preprocessing_batches
+    del preprocessed_validation_set, validation_preprocessing_batches
     print('validation set stored')
 
     test_set, test_labels = load_and_stack(test_list)
@@ -118,8 +114,7 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
     del test_set
     preprocessed_test_set = preprocess(test_preprocessing_batches, processing_function)
     save_to_disk(preprocessed_test_set, test_labels, target_dir + '_test')
-    del preprocessed_test_set
-    del test_preprocessing_batches
+    del preprocessed_test_set, test_preprocessing_batches
     print('test set stored')
 
 

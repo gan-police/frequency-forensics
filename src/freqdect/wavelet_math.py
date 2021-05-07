@@ -89,7 +89,7 @@ def batch_packet_preprocessing(image_batch, wavelet='db1', max_lev=3, eps=1e-12)
             Defaults to 'db1'.
         max_lev (int, optional): The number of decomposition scales
             to use. Defaults to 3.
-        eps: A small number to stabilize the log.
+        eps: A small number to stabilize the logarithm.
 
     Returns:
         [np.array]: The wavelet packets [B, N, H, W, C].

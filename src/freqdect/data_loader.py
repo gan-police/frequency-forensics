@@ -35,8 +35,9 @@ def main():
     import matplotlib.pyplot as plt
     from torch.utils.data import DataLoader
 
-    # raw images.
+    # raw images - use only the training set.
     train_raw_set = LoadNumpyDataset('./data/source_data_raw_train')
+    # packets - use only the training set.
     train_packet_set = LoadNumpyDataset('./data/source_data_packets_train')
 
     # train_dataloader = DataLoader(
@@ -71,10 +72,10 @@ def main():
 
     packet_data, packet_mean, packet_std = compute_mean_std(train_packet_set)
     print('packet mean', packet_mean)
-    print('packet str', packet_std)
+    print('packet std', packet_std)
 
-    # packet mean -
-    # packet str -
+    # packet mean = 1.2623962
+    # packet str = 3.023255
     norm = (packet_data - packet_mean) / packet_std
     print('packet norm test', np.mean(norm))
     print('packet std test', np.std(norm))
