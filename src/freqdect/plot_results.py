@@ -32,7 +32,7 @@ def plot_mean_std(steps, mean, std, color, label='', marker='.'):
                      color=color, alpha=0.2)
 
 
-if __name__ == '__main__':
+def main():
     raw_logs = pickle.load(open('./log/packetsFalse.pkl', 'rb'))
     packet_logs = pickle.load(open('./log/packetsTrue.pkl', 'rb'))
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
@@ -65,3 +65,7 @@ if __name__ == '__main__':
     plt.show()
 
     print('stop')
+
+
+if __name__ == '__main__':
+    main()

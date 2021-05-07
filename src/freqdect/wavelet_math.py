@@ -79,8 +79,13 @@ def compute_pytorch_packet_representation_2d_tensor(
     return wp_pt
 
 
+<<<<<<< HEAD
 def batch_packet_preprocessing(image_batch, wavelet='db1', max_lev=3, eps=1e-12):
     """Preprosess image batches by computing the wavelet packet
+=======
+def batch_packet_preprocessing(image_batch, wavelet='db1', max_lev=3):
+    """ Preprocess image batches by computing the wavelet packet
+>>>>>>> 3db8ba98b50ed07d3af8ff303a81b7afdb9f0b6c
        representation as well as log scaling their absolute value.
 
     Args:
@@ -107,5 +112,5 @@ def batch_packet_preprocessing(image_batch, wavelet='db1', max_lev=3, eps=1e-12)
     return packets.cpu().numpy()
 
 
-def identitiy_processing(image_batch):
+def identity_processing(image_batch):
     return image_batch
