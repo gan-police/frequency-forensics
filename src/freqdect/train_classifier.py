@@ -155,8 +155,7 @@ def main():
                 'train acc': accuracy_list,
                 'val acc': validation_list,
                 'test acc': test_acc,
-                'args': args,
-                'model': model})
+                'args': args})
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, ' saved.')
 
