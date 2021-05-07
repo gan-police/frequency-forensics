@@ -35,43 +35,65 @@ def main():
     import matplotlib.pyplot as plt
     from torch.utils.data import DataLoader
 
-    # raw_train_sample = np.load('./data/source_data_raw_train/000001.npy')
-    # labels = np.load('./data/source_data_raw_train/labels.npy')
+    # raw images.
+    train_raw_set = LoadNumpyDataset('./data/source_data_raw_train')
+    train_packet_set = LoadNumpyDataset('./data/source_data_packets_train')
 
-    packet_train_sample = np.load('./data/source_data_packets_train/000001.npy')
-    labels = np.load('./data/source_data_raw_train/labels.npy')
-
-    train_data_set = LoadNumpyDataset('./data/source_data_raw_train')
-    train_data_set.__getitem__(0)
-
-    train_dataloader = DataLoader(
-        train_data_set, batch_size=64, shuffle=True)
-    sample = next(iter(train_dataloader))
-    print(f"Feature batch shape: {sample['image'].size()}")
-    print(f"Labels batch shape: {sample['label'].size()}")
-    img = sample['image'][0].squeeze()
-    label = sample['label'][0]
+    # train_dataloader = DataLoader(
+    #     train_raw_set, batch_size=64, shuffle=True)
+    # sample = next(iter(train_dataloader))
+    # print(f"Feature batch shape: {sample['image'].size()}")
+    # print(f"Labels batch shape: {sample['label'].size()}")
+    # img = sample['image'][0].squeeze()
+    # label = sample['label'][0]
     # plt.imshow(img.numpy().astype(np.uint8), cmap="gray")
     # plt.savefig('test_tmp.png')
-    print(f"Label: {label}")
+    # print(f"Label: {label}")
 
-    # compute mean and std
-    img_lst = []
-    for img_no in range(train_data_set.__len__()):
-        img_lst.append(train_data_set.__getitem__(img_no)["image"].numpy())
-    img_data = np.stack(img_lst, 0)
+    def compute_mean_std(data_set):
+        # compute mean and std
+        img_lst = []
+        for img_no in range(data_set.__len__()):
+            img_lst.append(data_set.__getitem__(img_no)["image"].numpy())
+        img_data = np.stack(img_lst, 0)
 
-    mean = np.mean(img_data)
-    std = np.std(img_data)
-    print('mean', np.mean(img_data))
-    print('str', np.std(img_data))
+        mean = np.mean(img_data)
+        std = np.std(img_data)
+        return img_data, mean, std
 
-    # mean 112.52875
-    # str 68.63312
+    # packets
+    packet_loader = DataLoader(
+        train_packet_set, batch_size=1, shuffle=True)
+    packet_sample = next(iter(packet_loader))
+    
+    plt.plot(np.mean(np.reshape(packet_sample['image'][0].cpu().numpy(), [64, -1]), -1))
+    plt.show()
 
-    norm = (img_data - mean) / std
-    print(np.mean(norm))
-    print(np.std(norm))
+    packet_data, packet_mean, packet_std = compute_mean_std(train_packet_set)
+    print('packet mean', packet_mean)
+    print('packet str', packet_std)
+
+    # packet mean 112.52875
+    # packet str 68.63312
+    norm = (packet_data - packet_mean) / packet_std
+    print('packet norm test', np.mean(norm))
+    print('packet std test', np.std(norm))
+    del packet_data, norm
+
+    # raw
+    raw_data, raw_mean, raw_std = compute_mean_std(train_raw_set)
+    print('raw mean', raw_mean)
+    print('raw str', raw_std)
+
+    # raw mean 112.52875
+    # raw std 68.63312
+    norm = (raw_data - raw_mean) / raw_std
+    print('raw norm test', np.mean(norm))
+    print('raw std test', np.std(norm))
+    del raw_data, norm
+
+
+
 
 
 if __name__ == '__main__':
