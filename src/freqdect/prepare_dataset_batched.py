@@ -7,7 +7,7 @@ import glob
 import random
 import numpy as np
 from PIL import Image
-from wavelet_math import batch_packet_preprocessing, identitiy_processing
+from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def get_label(path_to_image: str) -> int:
@@ -69,7 +69,7 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
     if feature == 'packets':
         processing_function = batch_packet_preprocessing
     else:
-        processing_function = identitiy_processing
+        processing_function = identity_processing
 
     # find all files in the data_folders
     folder_list = glob.glob(data_folder + "*")
