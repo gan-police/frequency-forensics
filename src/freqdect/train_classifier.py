@@ -52,10 +52,15 @@ def main():
                         help='input batch size for testing (default: 1e-3)')
     parser.add_argument('--weight-decay', type=float, default=0,
                         help='input batch size for testing (default: 0)')
-    parser.add_argument('--epochs', type=int, default=60,
+    parser.add_argument('--epochs', type=int, default=10,
                         help='input batch size for testing (default: 60)')
+    parser.add_argument('--seed', type=int, default=42,
+                        help='the random seed pytorch works with.')
     args = parser.parse_args()
     print(args)
+
+    # fix the seed in the interest of reproducible results.
+    torch.manual_seed(args.seed)
 
     if args.features == 'raw':
         mean = 112.52875
@@ -116,19 +121,19 @@ def main():
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             acc = torch.sum(ok_mask.type(torch.float32)) / len(batch_labels)
 
-            if it % 1 == 0:
+            if it % 10 == 0:
                 print('e', e, 'it', it, 'loss', loss.item(), 'acc', acc.item())
             loss.backward()
             optimizer.step()
             step_total += 1
-            loss_list.append((step_total, loss.item()))
+            loss_list.append([step_total, loss.item()])
             accuracy_list.append([step_total, acc.item()])
 
             # iterate over val batches.
             if step_total % 100 == 0:
                 print('validating....')
                 validation_list.append(
-                    val_test_loop(val_data_loader, model, loss_fun))
+                    [step_total, val_test_loop(val_data_loader, model, loss_fun)])
                 if validation_list[-1] == 1.:
                     print('val acc ideal stopping training.')
                     break
@@ -143,7 +148,7 @@ def main():
         test_acc = val_test_loop(test_data_loader, model, loss_fun)
         print('test acc', test_acc)
 
-    stats_file = './log/v2' + 'packets' + str(packets) + '.pkl'
+    stats_file = './log/' + 'packets' + str(packets) + '.pkl'
     try:
         res = pickle.load(open(stats_file, "rb"))
     except (OSError, IOError) as e:
@@ -151,10 +156,10 @@ def main():
         print(e, 'stats.pickle does not exist, \
               creating a new file.')
 
-    res.append({'train loss': loss_list,
-                'train acc': accuracy_list,
-                'val acc': validation_list,
-                'test acc': test_acc,
+    res.append({'train_loss': loss_list,
+                'train_acc': accuracy_list,
+                'val_acc': validation_list,
+                'test_acc': test_acc,
                 'args': args})
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, ' saved.')

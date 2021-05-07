@@ -37,30 +37,19 @@ def main():
     packet_logs = pickle.load(open('./log/packetsTrue.pkl', 'rb'))
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-    # raw_train_loss_steps, raw_train_loss = zip(*raw_logs[-1]['train loss'])
-    # steps, mean, std = stack_list(raw_logs, key='train loss')
-    # raw_train_acc_steps, raw_train_acc = zip(*raw_logs[-1]['train acc'])
-    steps, mean, std = get_plot_tuple(raw_logs, 'train acc')
-    # plot_mean_std(steps, mean, std, color=colors[0],
-    #               label='raw train acc')
+    steps, mean, std = get_plot_tuple(raw_logs, 'train_acc')
 
-    # raw_val_acc_steps, raw_val_acc = zip(*raw_logs[-1]['val acc'])
-    steps, mean, std = get_plot_tuple(raw_logs, 'val acc')
+    steps, mean, std = get_plot_tuple(raw_logs, 'val_acc')
     plot_mean_std(steps, mean, std, color=colors[0],
                   label='raw validation acc')
 
-    # packet_train_acc_steps, packet_train_acc = zip(*packet_logs[-1]['train acc'])
-    # steps, mean, std = get_plot_tuple(packet_logs, 'train acc')
-    # plot_mean_std(steps, mean, std, color=colors[2],
-    #               label='packet val acc')
-    # packet_val_acc_steps, packet_val_acc = zip(*packet_logs[-1]['val acc'])
-    steps, mean, std = get_plot_tuple(packet_logs, 'val acc')
+    steps, mean, std = get_plot_tuple(packet_logs, 'val_acc')
     plot_mean_std(steps, mean, std, color=colors[1],
                   label='packet validation acc')
 
-    plt.ylabel('accuracy')
+    plt.ylabel('mean accuracy')
     plt.xlabel('training steps')
-    plt.title('Validation accuracy FFHQ')
+    plt.title('Validation accuracy FFHQ-StyleGAN')
     plt.legend()
     plt.show()
 
