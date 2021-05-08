@@ -48,16 +48,20 @@ def main():
     wp_keys = list(product(['a', 'd', 'h', 'v'], repeat=3))
     wp_labels = ["".join(key) for key in wp_keys]
     plot_mean_std(x, ffhq_mean, ffhq_std, colors[0], 'ffhq')
-    plot_mean_std(x, style_gan_mean, style_gan_std, colors[1], 'style_gan')
+    plot_mean_std(x, style_gan_mean, style_gan_std, colors[1], 'style gan')
     plt.legend()
     plt.xlabel('filter')
     plt.xticks(x, labels=wp_labels)
     plt.xticks(rotation=80)
     plt.ylabel('mean absolute coefficient magnitude')
-    plt.show()
+    plt.title('Mean absolute coefficient comparison FFHQ-StyleGAN')
 
-    print('stop')
-
+    if 0:
+        import tikzplotlib
+        tikzplotlib.save('mean_absolute_coeff_comparison.tex',
+                         standalone=True)
+    else:
+        plt.show()
 
 if __name__ == '__main__':
     main()

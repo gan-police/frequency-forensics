@@ -65,7 +65,12 @@ def main():
     plt.xlabel('training steps')
     plt.title('Validation accuracy FFHQ-StyleGAN')
     plt.legend()
-    plt.show()
+    if 0:
+        import tikzplotlib
+        tikzplotlib.save('ffhq_stylegan_regression_accuracy.tex',
+                         standalone=True)
+    else:
+        plt.show()
 
 
 if __name__ == '__main__':
