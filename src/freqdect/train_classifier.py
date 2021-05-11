@@ -2,7 +2,6 @@ import torch
 import pickle
 import argparse
 import numpy as np
-import matplotlib.pyplot as plt
 from data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
 
@@ -64,7 +63,8 @@ def main():
     # one should not specify normalization parameters and request their calculation at the same time
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--normalize', nargs='+', type=float, metavar=('MEAN', 'STD'),
-                       help='normalize with specified values for mean and standard deviation (either 2 or 6 values are accepted)')
+                       help='normalize with specified values for mean and standard deviation (either 2 or 6 values '
+                            'are accepted)')
     group.add_argument('--calc-normalization', action='store_true',
                        help='calculates mean and standard deviation used in normalization from the training data')
     args = parser.parse_args()
@@ -85,14 +85,13 @@ def main():
     else:
         raise NotImplementedError
 
-
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
         mean = torch.cuda.FloatTensor(args.normalize[:num_of_norm_vals//2]).cuda()
         std = torch.cuda.FloatTensor(args.normalize[num_of_norm_vals//2:]).cuda()
     elif args.calc_normalization:
-        #load train data and compute mean and std
+        # load train data and compute mean and std
         train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
 
         img_lst = []

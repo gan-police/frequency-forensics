@@ -1,6 +1,5 @@
 import torch
 from pathlib import Path
-import glob
 import numpy as np
 from torch.utils.data import Dataset
 
