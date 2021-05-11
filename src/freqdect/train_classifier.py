@@ -3,13 +3,11 @@ import pickle
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from .wavelet_math import compute_pytorch_packet_representation_2d_tensor
-from .data_loader import LoadNumpyDataset
+from data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
 
 
 class Regression(torch.nn.Module):
-
     def __init__(self, input_size, classes):
         super().__init__()
         self.linear = torch.nn.Linear(
@@ -31,15 +29,7 @@ def val_test_loop(data_loader, model, loss_fun):
             batch_images = val_batch['image'].cuda(non_blocking=True)
             batch_labels = val_batch['label'].cuda(non_blocking=True)
             # batch_labels = torch.nn.functional.one_hot(batch_labels)
-            batch_images = (batch_images - 112.52875) / 68.63312
-            if packets:
-                channel_list = []
-                for channel in range(3):
-                    channel_list.append(
-                        compute_pytorch_packet_representation_2d_tensor(
-                            batch_images[:, :, :, channel],
-                            wavelet_str=wavelet, max_lev=max_lev))
-                batch_images = torch.stack(channel_list, -1)
+            # batch_images = (batch_images - 112.52875) / 68.63312
             out = model(batch_images)
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             val_ok += torch.sum(ok_mask).item()
@@ -62,12 +52,14 @@ def main():
                         help='learning rate for optimizer (default: 1e-3)')
     parser.add_argument('--weight-decay', type=float, default=0,
                         help='weight decay for optimizer (default: 0)')
-    parser.add_argument('--epochs', type=int, default=60,
-                        help='number of epochs (default: 60)')
-    parser.add_argument('--data-prefix', type=str, default="./data/data_raw",
-                        help='shared prefix of the data paths (default: ./data/data_raw)')
+    parser.add_argument('--epochs', type=int, default=10,
+                        help='number of epochs (default: 10)')
+    parser.add_argument('--data-prefix', type=str, default="./data/source_data",
+                        help='shared prefix of the data paths (default: ./data/source_data)')
     parser.add_argument('--nclasses', type=int, default=2,
                         help='number of classes (default: 2)')
+    parser.add_argument('--seed', type=int, default=42,
+                        help='the random seed pytorch works with.')
 
     # one should not specify normalization parameters and request their calculation at the same time
     group = parser.add_mutually_exclusive_group()
@@ -78,21 +70,21 @@ def main():
     args = parser.parse_args()
     print(args)
 
-    train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
-    val_data_set = LoadNumpyDataset(args.data_prefix + "_val")
-    test_data_set = LoadNumpyDataset(args.data_prefix + "_test")
-
-    train_data_loader = DataLoader(
-        train_data_set, batch_size=args.batch_size, shuffle=True,
-        num_workers=1)
-    val_data_loader = DataLoader(
-        val_data_set, batch_size=args.batch_size, shuffle=False,
-        num_workers=1)
+    # fix the seed in the interest of reproducible results.
+    torch.manual_seed(args.seed)
 
     if args.features == 'packets':
         packets = True
-    else:
+        # TODO calculate reasonable defaults
+        default_mean = torch.cuda.FloatTensor([132.6314, 108.3550, 96.8289]).cuda()
+        default_std = torch.cuda.FloatTensor([71.1634, 64.5999, 64.9532]).cuda()
+    elif args.features == 'raw':
         packets = False
+        default_mean = torch.cuda.FloatTensor([132.6314, 108.3550, 96.8289]).cuda()
+        default_std = torch.cuda.FloatTensor([71.1634, 64.5999, 64.9532]).cuda()
+    else:
+        raise NotImplementedError
+
 
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
@@ -100,7 +92,9 @@ def main():
         mean = torch.cuda.FloatTensor(args.normalize[:num_of_norm_vals//2]).cuda()
         std = torch.cuda.FloatTensor(args.normalize[num_of_norm_vals//2:]).cuda()
     elif args.calc_normalization:
-        # compute mean and std
+        #load train data and compute mean and std
+        train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
+
         img_lst = []
         for img_no in range(train_data_set.__len__()):
             img_lst.append(train_data_set.__getitem__(img_no)["image"])
@@ -113,19 +107,30 @@ def main():
         mean = torch.mean(img_data.double(), axis).float().cuda()
         std = torch.std(img_data.double(), axis).float().cuda()
     else:
-        mean = torch.cuda.FloatTensor([132.6314, 108.3550,  96.8289]).cuda()
-        std = torch.cuda.FloatTensor([71.1634, 64.5999, 64.9532]).cuda()
+        mean = default_mean
+        std = default_std
 
     print("mean", mean, "std", std)
+
+    train_data_set = LoadNumpyDataset(
+        args.data_prefix + '_' + args.packets + '_train', mean=mean, std=std)
+    val_data_set = LoadNumpyDataset(
+        args.data_prefix + '_' + args.packets + '_val', mean=mean, std=std)
+    test_data_set = LoadNumpyDataset(
+        args.data_prefix + '_' + args.packets + '_test', mean=mean, std=std)
+
+    train_data_loader = DataLoader(
+        train_data_set, batch_size=args.batch_size, shuffle=True,
+        num_workers=2)
+    val_data_loader = DataLoader(
+        val_data_set, batch_size=args.batch_size, shuffle=False,
+        num_workers=2)
 
     validation_list = []
     loss_list = []
     accuracy_list = []
     step_total = 0
 
-    if packets:
-        wavelet = 'db1'
-        max_lev = 3
     model = Regression(49152, args.nclasses).cuda()
 
     loss_fun = torch.nn.NLLLoss()
@@ -140,35 +145,24 @@ def main():
             batch_images = batch['image'].cuda(non_blocking=True)
             batch_labels = batch['label'].cuda(non_blocking=True)
 
-            # normalize image data
-            batch_images = (batch_images - mean) / std
-            if packets:
-                channel_list = []
-                for channel in range(3):
-                    channel_list.append(
-                        compute_pytorch_packet_representation_2d_tensor(
-                            batch_images[:, :, :, channel],
-                            wavelet_str=wavelet, max_lev=max_lev))
-                batch_images = torch.stack(channel_list, -1)
-
             out = model(batch_images)
             loss = loss_fun(torch.squeeze(out), batch_labels)
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             acc = torch.sum(ok_mask.type(torch.float32)) / len(batch_labels)
 
-            if it % 1 == 0:
+            if it % 10 == 0:
                 print('e', e, 'it', it, 'loss', loss.item(), 'acc', acc.item())
             loss.backward()
             optimizer.step()
             step_total += 1
-            loss_list.append((step_total, loss.item()))
+            loss_list.append([step_total, loss.item()])
             accuracy_list.append([step_total, acc.item()])
 
             # iterate over val batches.
             if step_total % 100 == 0:
                 print('validating....')
                 validation_list.append(
-                    val_test_loop(val_data_loader, model, loss_fun))
+                    [step_total, val_test_loop(val_data_loader, model, loss_fun)])
                 if validation_list[-1] == 1.:
                     print('val acc ideal stopping training.')
                     break
@@ -183,7 +177,7 @@ def main():
         test_acc = val_test_loop(test_data_loader, model, loss_fun)
         print('test acc', test_acc)
 
-    stats_file = './log/v2' + 'packets' + str(packets) + '.pkl'
+    stats_file = './log/' + 'packets' + str(packets) + '.pkl'
     try:
         res = pickle.load(open(stats_file, "rb"))
     except (OSError, IOError) as e:
@@ -191,12 +185,11 @@ def main():
         print(e, 'stats.pickle does not exist, \
               creating a new file.')
 
-    res.append({'train loss': loss_list,
-                'train acc': accuracy_list,
-                'val acc': validation_list,
-                'test acc': test_acc,
-                'args': args,
-                'model': model})
+    res.append({'train_loss': loss_list,
+                'train_acc': accuracy_list,
+                'val_acc': validation_list,
+                'test_acc': test_acc,
+                'args': args})
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, ' saved.')
 
