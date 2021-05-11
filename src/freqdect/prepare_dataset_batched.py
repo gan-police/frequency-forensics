@@ -3,6 +3,7 @@ processing and is, therefore, quite slow. This module
 is an attempt to fix this.
 """
 import os
+import argparse
 import glob
 import random
 import numpy as np
@@ -118,11 +119,26 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
     print('test set stored')
 
 
-if __name__ == "__main__":
-    data_folder = './data/source_data/'
+def parse_args():
+    parser = argparse.ArgumentParser()
 
-    TRAIN_SIZE = 2 * 63_000
-    VAL_SIZE = 2 * 2_000
-    TEST_SIZE = 2 * 5_000
-    pre_process_folder(data_folder, 2048, TRAIN_SIZE, VAL_SIZE, TEST_SIZE,
-                       'packets')
+    parser.add_argument("DIRECTORY", type=str,
+                        help="The folder with the real and gan generated image folders.")
+    parser.add_argument("--train-size", type=int, default=2*63_000,
+                        help="Desired size of the training set. (default: 126_000).")
+    parser.add_argument("--test-size", type=int, default=2 * 5_000,
+                        help="Desired size of the test set. (default: 5_000).")
+    parser.add_argument("--val-size", type=int, default=2 * 2_000,
+                        help="Desired size of the validation set. (default: 4_000).")
+    parser.add_argument("--batch-size", type=int, default=2048,
+                        help="The batch_size used for image conversion. (default: 2048).")
+    parser.add_argument("--packets", "-p", help="Save image data as wavelet packets.", action="store_true")
+
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    feature = 'packets' if args.packets else None
+    pre_process_folder(args.directory, args.batch_size, args.train_size, args.val_size, args.test_size, feature)

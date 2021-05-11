@@ -54,7 +54,7 @@ def _collect_image_paths(directory):
 
     assert len(test_dataset) == TEST_SIZE, f"{len(test_dataset)} - {directory}"
 
-    return (train_dataset, val_dataset, test_dataset)
+    return train_dataset, val_dataset, test_dataset
 
 
 def collect_all_paths(dirs):
@@ -102,7 +102,7 @@ def convert_images(inputs, load_function, transformation_function=None,
     if normalize_function is not None:
         image = normalize_function(image)
 
-    return (image, label)
+    return image, label
 
 
 def _dct2_wrapper(image, log=False):
