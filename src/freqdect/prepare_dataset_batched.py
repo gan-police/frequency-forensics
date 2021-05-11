@@ -14,10 +14,14 @@ from .wavelet_math import batch_packet_preprocessing, identity_processing
 def get_label(path_to_image: Path) -> int:
     # the the label based on the path, As are 0s and Bs are 1.
     label_str = path_to_image.parent.name.split("_")[0]
-    if label_str == 'B':
-        label = 1
-    elif label_str == 'A':
+    if label_str == 'A':
         label = 0
+    elif label_str == 'B':
+        label = 1
+    elif label_str == 'C':
+        label = 2
+    elif label_str == 'D':
+        label = 3
     else:
         raise NotImplementedError(label_str)
     return label
@@ -96,7 +100,7 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
     training_preprocessing_batches = np.array_split(train_set, splits)
     del train_set
     processed_train_set = preprocess(training_preprocessing_batches, processing_function)
-    save_to_disk(processed_train_set, train_labels, target_dir + '_train')
+    save_to_disk(processed_train_set, train_labels, target_dir.parent / (target_dir.name + '_train'))
     del processed_train_set, training_preprocessing_batches
     print('training set stored.')
 
@@ -105,7 +109,7 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
     validation_preprocessing_batches = np.array_split(validation_set, splits)
     del validation_set
     preprocessed_validation_set = preprocess(validation_preprocessing_batches, processing_function)
-    save_to_disk(preprocessed_validation_set, validation_labels, target_dir + '_val')
+    save_to_disk(preprocessed_validation_set, validation_labels, target_dir.parent / (target_dir.name + '_val'))
     del preprocessed_validation_set, validation_preprocessing_batches
     print('validation set stored')
 
@@ -114,7 +118,7 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
     test_preprocessing_batches = np.array_split(test_set, splits)
     del test_set
     preprocessed_test_set = preprocess(test_preprocessing_batches, processing_function)
-    save_to_disk(preprocessed_test_set, test_labels, target_dir + '_test')
+    save_to_disk(preprocessed_test_set, test_labels, target_dir.parent / (target_dir.name + '_test'))
     del preprocessed_test_set, test_preprocessing_batches
     print('test set stored')
 
