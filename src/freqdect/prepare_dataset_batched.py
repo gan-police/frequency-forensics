@@ -4,22 +4,22 @@ is an attempt to fix this.
 """
 import os
 import argparse
-import glob
+from pathlib import Path
 import random
 import numpy as np
 from PIL import Image
 from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
-def get_label(path_to_image: str) -> int:
+def get_label(path_to_image: Path) -> int:
     # the the label based on the path, As are 0s and Bs are 1.
-    label_str = path_to_image.split("/")[-2].split("_")[0]
+    label_str = path_to_image.parent.name.split("_")[0]
     if label_str == 'B':
         label = 1
     elif label_str == 'A':
         label = 0
     else:
-        raise NotImplementedError()
+        raise NotImplementedError(label_str)
     return label
 
 
@@ -64,8 +64,8 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
         test_size (int): Desired size of the test set.
         feature (str): The feature to pre-compute (choose packets or None).
     """
-    target_dir = "/".join(data_folder.split("/")[:-2]) \
-        + "/" + data_folder.split("/")[-2] + "_" + feature
+    data_dir = Path(data_folder)
+    target_dir = data_dir.parent / (data_dir.name + "_" + feature)
 
     if feature == 'packets':
         processing_function = batch_packet_preprocessing
@@ -73,10 +73,10 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
         processing_function = identity_processing
 
     # find all files in the data_folders
-    folder_list = glob.glob(data_folder + "*")
+    folder_list = data_dir.glob('./*')
     file_list = []
     for folder in folder_list:
-        files = glob.glob(folder + "/*.png")
+        files = folder.glob('./*.png')
         file_list.extend(files)
 
     # shuffle the list and split it into training, validation and test
@@ -122,7 +122,7 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("DIRECTORY", type=str,
+    parser.add_argument("directory", type=str,
                         help="The folder with the real and gan generated image folders.")
     parser.add_argument("--train-size", type=int, default=2*63_000,
                         help="Desired size of the training set. (default: 126_000).")
@@ -139,6 +139,7 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
+    print(args)
 
     feature = 'packets' if args.packets else None
     pre_process_folder(args.directory, args.batch_size, args.train_size, args.val_size, args.test_size, feature)
