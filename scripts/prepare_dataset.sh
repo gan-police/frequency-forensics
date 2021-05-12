@@ -7,7 +7,7 @@
 #SBATCH --error=prepare_dataset-%j.err
 #SBATCH --ntasks=1
 #SBATCH -p gpu
-#SBATCH --gres gpu:v100:8
+#SBATCH --gres gpu:v100:1
 #SBATCH --cpus-per-task=2
 
 DATASET="../datasets/lsun_bedroom_200k_png"

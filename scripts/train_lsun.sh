@@ -7,7 +7,7 @@
 #SBATCH --error=train_lsun-%j.err
 #SBATCH --ntasks=1
 #SBATCH -p gpu
-#SBATCH --gres gpu:v100:8
+#SBATCH --gres gpu:v100:1
 #SBATCH --cpus-per-task=2
 
 DATASET_RAW="../datasets/lsun_bedroom_200k_png_raw"
