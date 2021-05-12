@@ -24,5 +24,5 @@ pip install -e -q .
 python -m freqdect.prepare_dataset_batched $DATASET \
   --train-size 100000 \
   --test-size 30000 \
-   --val-size 20000 \
+  --val-size 20000 \
   -p
