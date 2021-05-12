@@ -40,5 +40,5 @@ python -m freqdect.prepare_dataset_batched $DATASET \
 
 #if [ -d "${TMPDIR}/${DATASET}_raw_train" ]; then
 if ls "${TMPDIR}/${DATASET}_*" > /dev/null 2>&1; then
-  cp ""${TMPDIR}/${DATASET}_*" "${DATASETS}"
+  cp "${TMPDIR}/${DATASET}_*" "${DATASETS}"
 fi
