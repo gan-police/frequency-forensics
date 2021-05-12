@@ -22,13 +22,12 @@ ORIG_PWD=${PWD}
 RAW_PREFIX=$DATASETS
 PACKETS_PREFIX=$DATASETS
 
-if [ -f ${DATASETS}/${DATASET_RAW}.tar ]; then
-  echo "Tarred raw input folder exists, copying to $TMPDIR"
-  cp "${DATASETS}/${DATASET_RAW}.tar" "${TMPDIR}"
-  cd "$TMPDIR"
-  tar -xf "${DATASET_RAW}.tar"
-  RAW_PREFIX="${TMPDIR}/${DATASET_RAW}"
-fi
+module load CUDA
+module load Anaconda3
+module load PyTorch
+source activate "$ANACONDA_ENV"
+
+pip install -q -e .
 
 if [ -f ${DATASETS}/${DATASET_PACKETS}.tar ]; then
   echo "Tarred packets input folder exists, copying to $TMPDIR"
@@ -36,16 +35,10 @@ if [ -f ${DATASETS}/${DATASET_PACKETS}.tar ]; then
   cd "$TMPDIR"
   tar -xf "${DATASET_PACKETS}.tar"
   PACKETS_PREFIX="${TMPDIR}/${DATASET_PACKETS}"
+  rm "${DATASET_PACKETS}.tar"
 fi
 
 cd "$ORIG_PWD"
-
-module load CUDA
-module load Anaconda3
-module load PyTorch
-source activate "$ANACONDA_ENV"
-
-pip install -q -e .
 
 for i in 0 1 2 3 4
 do
@@ -58,6 +51,21 @@ do
 	  --calc-normalization
 done
 
+if [ -f ${DATASETS}/${DATASET_PACKETS}.tar ]; then
+  rm -r "${TMPDIR}/${DATASET_PACKETS}_*"
+fi
+
+if [ -f ${DATASETS}/${DATASET_RAW}.tar ]; then
+  echo "Tarred raw input folder exists, copying to $TMPDIR"
+  cp "${DATASETS}/${DATASET_RAW}.tar" "${TMPDIR}"
+  cd "$TMPDIR"
+  tar -xf "${DATASET_RAW}.tar"
+  RAW_PREFIX="${TMPDIR}/${DATASET_RAW}"
+  rm "${DATASET_RAW}.tar"
+fi
+
+cd "$ORIG_PWD"
+
 for i in 0 1 2 3 4
 do
   echo "raw experiment no: $i "
@@ -68,3 +76,7 @@ do
     --nclasses 4 \
     --calc-normalization
 done
+
+if [ -f ${DATASETS}/${DATASET_RAW}.tar ]; then
+  rm -r "${TMPDIR}/${DATASET_RAW}_*"
+fi
