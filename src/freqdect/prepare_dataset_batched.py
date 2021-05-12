@@ -145,5 +145,5 @@ if __name__ == "__main__":
     args = parse_args()
     print(args)
 
-    feature = 'packets' if args.packets else None
+    feature = 'packets' if args.packets else 'raw'
     pre_process_folder(args.directory, args.batch_size, args.train_size, args.val_size, args.test_size, feature)

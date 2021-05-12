@@ -8,6 +8,7 @@ class LoadNumpyDataset(Dataset):
     def __init__(self, data_dir, mean=None, std=None):
         self.data_dir = data_dir
         self.file_lst = sorted(Path(data_dir).glob('./*.npy'))
+        print("Loading ", data_dir)
         assert self.file_lst[-1].name == 'labels.npy'
         self.labels = np.load(self.file_lst[-1])
         self.images = self.file_lst[:-1]
@@ -22,7 +23,7 @@ class LoadNumpyDataset(Dataset):
         image = np.load(img_path)
         image = torch.from_numpy(image.astype(np.float32))
         # normalize the data.
-        if self.mean:
+        if self.mean is not None:
             image = (image - self.mean) / self.std
         label = self.labels[idx]
         label = torch.tensor(int(label))

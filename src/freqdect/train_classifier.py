@@ -2,7 +2,7 @@ import torch
 import pickle
 import argparse
 import numpy as np
-from data_loader import LoadNumpyDataset
+from .data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
 
 
@@ -76,20 +76,20 @@ def main():
     if args.features == 'packets':
         packets = True
         # TODO calculate reasonable defaults
-        default_mean = torch.cuda.FloatTensor([132.6314, 108.3550, 96.8289]).cuda()
-        default_std = torch.cuda.FloatTensor([71.1634, 64.5999, 64.9532]).cuda()
+        default_mean = torch.cuda.FloatTensor([132.6314, 108.3550, 96.8289])
+        default_std = torch.cuda.FloatTensor([71.1634, 64.5999, 64.9532])
     elif args.features == 'raw':
         packets = False
-        default_mean = torch.cuda.FloatTensor([132.6314, 108.3550, 96.8289]).cuda()
-        default_std = torch.cuda.FloatTensor([71.1634, 64.5999, 64.9532]).cuda()
+        default_mean = torch.cuda.FloatTensor([132.6314, 108.3550, 96.8289])
+        default_std = torch.cuda.FloatTensor([71.1634, 64.5999, 64.9532])
     else:
         raise NotImplementedError
 
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
-        mean = torch.cuda.FloatTensor(args.normalize[:num_of_norm_vals//2]).cuda()
-        std = torch.cuda.FloatTensor(args.normalize[num_of_norm_vals//2:]).cuda()
+        mean = torch.cuda.FloatTensor(args.normalize[:num_of_norm_vals//2])
+        std = torch.cuda.FloatTensor(args.normalize[num_of_norm_vals//2:])
     elif args.calc_normalization:
         # load train data and compute mean and std
         train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
@@ -103,8 +103,8 @@ def main():
         axis = tuple(np.arange(len(img_data.shape[:-1])))
 
         # calculate mean and std in double to avoid precision problems
-        mean = torch.mean(img_data.double(), axis).float().cuda()
-        std = torch.std(img_data.double(), axis).float().cuda()
+        mean = torch.mean(img_data.double(), axis).float()
+        std = torch.std(img_data.double(), axis).float()
     else:
         mean = default_mean
         std = default_std
@@ -112,11 +112,11 @@ def main():
     print("mean", mean, "std", std)
 
     train_data_set = LoadNumpyDataset(
-        args.data_prefix + '_' + args.packets + '_train', mean=mean, std=std)
+        args.data_prefix + '_train', mean=mean, std=std)
     val_data_set = LoadNumpyDataset(
-        args.data_prefix + '_' + args.packets + '_val', mean=mean, std=std)
+        args.data_prefix + '_val', mean=mean, std=std)
     test_data_set = LoadNumpyDataset(
-        args.data_prefix + '_' + args.packets + '_test', mean=mean, std=std)
+        args.data_prefix + '_test', mean=mean, std=std)
 
     train_data_loader = DataLoader(
         train_data_set, batch_size=args.batch_size, shuffle=True,
