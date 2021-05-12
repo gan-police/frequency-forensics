@@ -120,10 +120,10 @@ def main():
 
     train_data_loader = DataLoader(
         train_data_set, batch_size=args.batch_size, shuffle=True,
-        num_workers=2)
+        num_workers=15)
     val_data_loader = DataLoader(
         val_data_set, batch_size=args.batch_size, shuffle=False,
-        num_workers=2)
+        num_workers=15)
 
     validation_list = []
     loss_list = []
@@ -171,7 +171,7 @@ def main():
     print('Training done testing....')
     test_data_loader = DataLoader(
         test_data_set, args.batch_size, shuffle=False,
-        num_workers=2)
+        num_workers=15)
     with torch.no_grad():
         test_acc = val_test_loop(test_data_loader, model, loss_fun)
         print('test acc', test_acc)

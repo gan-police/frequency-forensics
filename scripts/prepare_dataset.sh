@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH -p gpu
 #SBATCH --gres gpu:v100:1
-#SBATCH --cpus-per-task=2
+#SBATCH --cpus-per-task=16
 
 #DATASET="../datasets/lsun_bedroom_200k_png"
 ANACONDA_ENV="~/myconda-env"

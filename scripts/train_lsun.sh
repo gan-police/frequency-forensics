@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH -p gpu
 #SBATCH --gres gpu:v100:1
-#SBATCH --cpus-per-task=2
+#SBATCH --cpus-per-task=16
 
 DATASET_RAW="../datasets/lsun_bedroom_200k_png_raw"
 DATASET_PACKETS="../datasets/lsun_bedroom_200k_png_packets"
