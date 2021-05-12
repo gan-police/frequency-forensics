@@ -13,7 +13,7 @@
 DATASETS="/home/ndv/projects/wavelets/datasets"
 DATASET_RAW="lsun_bedroom_200k_png_raw"
 DATASET_PACKETS="lsun_bedroom_200k_png_packets"
-ANACONDA_ENV="~/myconda-env"
+ANACONDA_ENV="$HOME/myconda-env"
 
 RAW_PREFIX=$DATASETS
 PACKETS_PREFIX=$DATASETS
@@ -22,18 +22,18 @@ LOG_DIR="log"
 TARGET_LOG_DIR="/home/ndv/projects/wavelets/log"
 
 
-if [ -f ${DATASETS}/{DATASET_RAW}.tar ]; then
+if [ -f ${DATASETS}/${DATASET_RAW}.tar ]; then
   echo "Tarred raw input folder exists, copying to $TMPDIR"
   cp "${DATASETS}/${DATASET_RAW}.tar" "${TMPDIR}"
-  cd $TMPDIR
+  cd "$TMPDIR"
   tar -xf "${DATASET_RAW}.tar"
   RAW_PREFIX="${TMPDIR}/${DATASET_RAW}"
 fi
 
-if [ -f ${DATASETS}/{DATASET_PACKETS}.tar ]; then
+if [ -f ${DATASETS}/${DATASET_PACKETS}.tar ]; then
   echo "Tarred packets input folder exists, copying to $TMPDIR"
   cp "${DATASETS}/${DATASET_PACKETS}.tar" "${TMPDIR}"
-  cd $TMPDIR
+  cd "$TMPDIR"
   tar -xf "${DATASET_PACKETS}.tar"
   PACKETS_PREFIX="${TMPDIR}/${DATASET_PACKETS}"
 fi
@@ -41,7 +41,7 @@ fi
 module load CUDA
 module load Anaconda3
 module load PyTorch
-source activate $ANACONDA_ENV
+source activate "$ANACONDA_ENV"
 
 pip install -q -e .
 
@@ -51,7 +51,7 @@ do
   python -m freqdect.train_classifier \
 	  --features packets \
 	  --seed $i \
-	  --data-prefix $PACKETS_PREFIX \
+	  --data-prefix "$PACKETS_PREFIX" \
 	  --nclasses 4 \
 	  --calc-normalization
 done
@@ -62,10 +62,10 @@ do
   python -m freqdect.train_classifier \
     --features raw \
     --seed $i \
-    --data-prefix $RAW_PREFIX \
+    --data-prefix "$RAW_PREFIX" \
     --nclasses 4 \
     --calc-normalization
 done
 
-# copy log files back to home dir
-cp "${TMPDIR}/${LOG_FILES}/*" "${TARGET_DIR}"
+echo "copy log files back to home dir"
+cp "${TMPDIR}/${LOG_DIR}/*" "${TARGET_LOG_DIR}"
