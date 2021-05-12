@@ -19,7 +19,7 @@ module load Anaconda3
 module load Python
 source activate $ANACONDA_ENV
 
-pip install -e -q .
+pip install -q -e .
 
 python -m freqdect.prepare_dataset_batched $DATASET \
   --train-size 100000 \
