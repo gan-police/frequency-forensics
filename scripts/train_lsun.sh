@@ -13,14 +13,14 @@
 DATASETS="/home/ndv/projects/wavelets/datasets"
 DATASET_RAW="lsun_bedroom_200k_png_raw"
 DATASET_PACKETS="lsun_bedroom_200k_png_packets"
+
 ANACONDA_ENV="$HOME/myconda-env"
+
+# save working directory
+ORIG_PWD=${PWD}
 
 RAW_PREFIX=$DATASETS
 PACKETS_PREFIX=$DATASETS
-
-LOG_DIR="log"
-TARGET_LOG_DIR="/home/ndv/projects/wavelets/log"
-
 
 if [ -f ${DATASETS}/${DATASET_RAW}.tar ]; then
   echo "Tarred raw input folder exists, copying to $TMPDIR"
@@ -37,6 +37,8 @@ if [ -f ${DATASETS}/${DATASET_PACKETS}.tar ]; then
   tar -xf "${DATASET_PACKETS}.tar"
   PACKETS_PREFIX="${TMPDIR}/${DATASET_PACKETS}"
 fi
+
+cd "$ORIG_PWD"
 
 module load CUDA
 module load Anaconda3
@@ -66,6 +68,3 @@ do
     --nclasses 4 \
     --calc-normalization
 done
-
-echo "copy log files back to home dir"
-cp "${TMPDIR}/${LOG_DIR}/*" "${TARGET_LOG_DIR}"
