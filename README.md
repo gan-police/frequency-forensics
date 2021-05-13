@@ -6,6 +6,8 @@
 
 # frequency-detection
 
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 ## Installation
 
 The latest code can be installed directly from GitHub with:
@@ -14,7 +16,7 @@ The latest code can be installed directly from GitHub with:
 $ pip install git+https://github.com/gan-police/frequency-forensics
 ```
 
-The lates code can be installed in development mode with:
+The latest code can be installed in development mode with:
 
 ```shell
 $ git clone https://github.com/gan-police/frequency-forensics
@@ -23,6 +25,8 @@ $ pip install -e .
 ```
 
 Where <kbd>-e</kbd> means "editable" mode.
+
+Periodically run `tox -e black` to blackify the code when in development mode.
 
 ## Getting a minimal example to run:
 
