@@ -38,8 +38,8 @@ def get_test_acc_mean_std(dict_list: dict, key: str):
 
 
 def main():
-    raw_logs = pickle.load(open("./log/packetsFalse.pkl", "rb"))
-    packet_logs = pickle.load(open("./log/packetsTrue.pkl", "rb"))
+    raw_logs = pickle.load(open("./log/source_data_raw.pkl", "rb"))
+    packet_logs = pickle.load(open("./log/source_data_packets.pkl", "rb"))
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
     steps, mean, std = get_plot_tuple(raw_logs, "train_acc")
