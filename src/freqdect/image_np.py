@@ -48,7 +48,7 @@ def scale_image(image):
     if image.dtype == np.uint8:
         image = image.astype(np.float32)
     image /= 127.5
-    image -= 1.
+    image -= 1.0
     return image
 
 

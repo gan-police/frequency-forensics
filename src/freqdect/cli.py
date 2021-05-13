@@ -17,7 +17,7 @@ import logging
 
 import click
 
-__all__ = ['main']
+__all__ = ["main"]
 
 logger = logging.getLogger(__name__)
 
@@ -28,5 +28,5 @@ def main():
     """CLI for freqdect."""
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

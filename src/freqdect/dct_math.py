@@ -21,7 +21,7 @@ def _welford_update(existing_aggregate, new_value):
 
 def _welford_finalize(existing_aggregate):
     count, mean, M2 = existing_aggregate
-    mean, variance, sample_variance = (mean, M2/count, M2/(count - 1))
+    mean, variance, sample_variance = (mean, M2 / count, M2 / (count - 1))
     if count < 2:
         return (float("nan"), float("nan"), float("nan"))
     else:
@@ -41,8 +41,7 @@ def welford(sample):
 
 
 def welford_multidimensional(sample):
-    """Same as normal welford but for multidimensional data, computes along the last axis.
-    """
+    """Same as normal welford but for multidimensional data, computes along the last axis."""
     aggregates = {}
 
     for data in sample:
@@ -65,8 +64,7 @@ def welford_multidimensional(sample):
 
 
 def log_scale(array, epsilon=1e-12):
-    """Log scale the input array.
-    """
+    """Log scale the input array."""
     array = np.abs(array)
     array += epsilon  # no zero in log
     array = np.log(array)

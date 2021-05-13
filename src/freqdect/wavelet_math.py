@@ -5,19 +5,17 @@ import numpy as np
 from itertools import product
 
 
-def compute_packet_rep_2d(image, wavelet_str: str = 'db5',
-                          max_lev: int = 5):
+def compute_packet_rep_2d(image, wavelet_str: str = "db5", max_lev: int = 5):
 
     wavelet = pywt.Wavelet(wavelet_str)
-    wp_tree = pywt.WaveletPacket2D(
-        data=image, wavelet=wavelet, mode='reflect')
+    wp_tree = pywt.WaveletPacket2D(data=image, wavelet=wavelet, mode="reflect")
     # Get the full decomposition
-    wp_keys = list(product(['a', 'd', 'h', 'v'], repeat=max_lev))
+    wp_keys = list(product(["a", "d", "h", "v"], repeat=max_lev))
     count = 0
     img_rows = None
     img = []
     for node in wp_keys:
-        packet = np.squeeze(wp_tree[''.join(node)].data)
+        packet = np.squeeze(wp_tree["".join(node)].data)
         if img_rows is not None:
             img_rows = np.concatenate([img_rows, packet], axis=1)
         else:
@@ -33,19 +31,19 @@ def compute_packet_rep_2d(image, wavelet_str: str = 'db5',
 
 
 def compute_pytorch_packet_representation_2d_image(
-        pt_data, wavelet_str: str = 'db5', max_lev: int = 5):
-    """ Create a packet image to plot. """
+    pt_data, wavelet_str: str = "db5", max_lev: int = 5
+):
+    """Create a packet image to plot."""
     wavelet = pywt.Wavelet(wavelet_str)
-    ptwt_wp_tree = ptwt.WaveletPacket2D(
-        data=pt_data, wavelet=wavelet, mode='reflect')
+    ptwt_wp_tree = ptwt.WaveletPacket2D(data=pt_data, wavelet=wavelet, mode="reflect")
 
     # get the pytorch decomposition
-    wp_keys = list(product(['a', 'd', 'h', 'v'], repeat=max_lev))
+    wp_keys = list(product(["a", "d", "h", "v"], repeat=max_lev))
     count = 0
     img_pt = []
     img_rows_pt = None
     for node in wp_keys:
-        packet = torch.squeeze(ptwt_wp_tree[''.join(node)], axis=1)
+        packet = torch.squeeze(ptwt_wp_tree["".join(node)], axis=1)
         if img_rows_pt is not None:
             img_rows_pt = torch.cat([img_rows_pt, packet], axis=2)
         else:
@@ -61,25 +59,25 @@ def compute_pytorch_packet_representation_2d_image(
 
 
 def compute_pytorch_packet_representation_2d_tensor(
-        pt_data, wavelet_str: str = 'db5', max_lev: int = 5):
-    """ Create a multichannel packet tensor. """
+    pt_data, wavelet_str: str = "db5", max_lev: int = 5
+):
+    """Create a multichannel packet tensor."""
     wavelet = pywt.Wavelet(wavelet_str)
-    ptwt_wp_tree = ptwt.WaveletPacket2D(
-        data=pt_data, wavelet=wavelet, mode='reflect')
+    ptwt_wp_tree = ptwt.WaveletPacket2D(data=pt_data, wavelet=wavelet, mode="reflect")
 
     # get the pytorch decomposition
     # batch_size = pt_data.shape[0]
-    wp_keys = list(product(['a', 'd', 'h', 'v'], repeat=max_lev))
+    wp_keys = list(product(["a", "d", "h", "v"], repeat=max_lev))
     packet_list = []
     for node in wp_keys:
-        packet = torch.squeeze(ptwt_wp_tree[''.join(node)], axis=1)
+        packet = torch.squeeze(ptwt_wp_tree["".join(node)], axis=1)
         packet_list.append(packet)
 
     wp_pt = torch.stack(packet_list, axis=1)
     return wp_pt
 
 
-def batch_packet_preprocessing(image_batch, wavelet='db1', max_lev=3, eps=1e-12):
+def batch_packet_preprocessing(image_batch, wavelet="db1", max_lev=3, eps=1e-12):
     """Preprosess image batches by computing the wavelet packet
        representation as well as log scaling their absolute value.
 
@@ -100,7 +98,8 @@ def batch_packet_preprocessing(image_batch, wavelet='db1', max_lev=3, eps=1e-12)
     for channel in range(image_batch.shape[-1]):
         with torch.no_grad():
             channel_packets = compute_pytorch_packet_representation_2d_tensor(
-                image_batch[:, :, :, channel], wavelet_str=wavelet, max_lev=max_lev)
+                image_batch[:, :, :, channel], wavelet_str=wavelet, max_lev=max_lev
+            )
         channels.append(channel_packets)
     packets = torch.stack(channels, -1)
     del channels
