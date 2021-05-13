@@ -98,10 +98,12 @@ def batch_packet_preprocessing(image_batch, wavelet='db1', max_lev=3, eps=1e-12)
     # transform to from H, W, C to C, H, W
     channels = []
     for channel in range(image_batch.shape[-1]):
-        channel_packets = compute_pytorch_packet_representation_2d_tensor(
-            image_batch[:, :, :, channel], wavelet_str=wavelet, max_lev=max_lev)
+        with torch.no_grad():
+            channel_packets = compute_pytorch_packet_representation_2d_tensor(
+                image_batch[:, :, :, channel], wavelet_str=wavelet, max_lev=max_lev)
         channels.append(channel_packets)
     packets = torch.stack(channels, -1)
+    del channels
     packets = torch.abs(packets)
     packets = torch.log(packets + eps)
     return packets.cpu().numpy()

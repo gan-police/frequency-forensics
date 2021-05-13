@@ -6,9 +6,10 @@ import os
 import argparse
 from pathlib import Path
 import random
+# import torch
 import numpy as np
 from PIL import Image
-from .wavelet_math import batch_packet_preprocessing, identity_processing
+from wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def get_label(path_to_image: Path) -> int:
@@ -27,7 +28,7 @@ def get_label(path_to_image: Path) -> int:
     return label
 
 
-def load_and_stack(path_list: list) -> (np.array, np.array):
+def load_and_stack(path_list: list) -> tuple:
     image_list = []
     label_list = []
     for path_to_image in path_list:
@@ -36,22 +37,35 @@ def load_and_stack(path_list: list) -> (np.array, np.array):
     return np.stack(image_list), np.stack(label_list)
 
 
-def preprocess(image_batch_list: list, process: callable) -> np.array:
-    preprocessed_images_list = []
-    for image_batch in image_batch_list:
-        preprocessed_images_list.append(process(image_batch))
-    return np.concatenate(preprocessed_images_list, axis=0)
-
-
-def save_to_disk(data_set: np.array, labels: np.array, directory: str) -> None:
+def save_to_disk(data_set: np.array, labels: np.array, directory: str,
+                 previous_file_count: int = 0) -> int:
     # loop over the batch dimension
-    os.mkdir(directory)
-    for number, pre_processed_image in enumerate(data_set):
-        with open(f"{directory}/{number:06}.npy", "wb") as numpy_file:
+    if not os.path.exists(directory):
+        print('creating', directory)
+        os.mkdir(directory)
+    file_count = previous_file_count
+    for pre_processed_image in data_set:
+        with open(f"{directory}/{file_count:06}.npy", "wb") as numpy_file:
             np.save(numpy_file, pre_processed_image)
+        file_count += 1
 
     with open(f"{directory}/labels.npy", "wb") as label_file:
         np.save(label_file, labels)
+    return file_count
+
+
+def load_process_store(file_list, preprocessing_batch_size, process,
+                       target_dir, label):
+    splits = int(len(file_list) / preprocessing_batch_size)
+    batched_files = np.array_split(file_list, splits)
+    file_count = 0
+    for current_file_batch in batched_files:
+        # load, process and store the current batch training set.
+        image_batch, labels = load_and_stack(current_file_batch)
+        processed_batch = process(image_batch)
+        file_count = save_to_disk(processed_batch, labels, target_dir + '_' + label,
+                                  file_count)
+        print(file_count, label, 'files processed')
 
 
 def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_size: int,
@@ -94,32 +108,19 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
     validation_list = file_list[train_size:(train_size + val_size)]
     test_list = file_list[(train_size + val_size):(train_size + val_size + test_size)]
 
-    # load, process and store the training set.
-    train_set, train_labels = load_and_stack(train_list)
-    splits = int(train_set.shape[0] / preprocessing_batch_size)
-    training_preprocessing_batches = np.array_split(train_set, splits)
-    del train_set
-    processed_train_set = preprocess(training_preprocessing_batches, processing_function)
-    save_to_disk(processed_train_set, train_labels, target_dir.parent / (target_dir.name + '_train'))
-    del processed_train_set, training_preprocessing_batches
+    # group the train set into smaller batches to go easy on the memory.
+    print('processing training set')
+    load_process_store(train_list, preprocessing_batch_size, processing_function,
+                       target_dir, 'train')
     print('training set stored.')
 
-    validation_set, validation_labels = load_and_stack(validation_list)
-    splits = int(validation_set.shape[0] / preprocessing_batch_size)
-    validation_preprocessing_batches = np.array_split(validation_set, splits)
-    del validation_set
-    preprocessed_validation_set = preprocess(validation_preprocessing_batches, processing_function)
-    save_to_disk(preprocessed_validation_set, validation_labels, target_dir.parent / (target_dir.name + '_val'))
-    del preprocessed_validation_set, validation_preprocessing_batches
+    load_process_store(validation_list, preprocessing_batch_size, processing_function,
+                       target_dir, 'val')
     print('validation set stored')
 
-    test_set, test_labels = load_and_stack(test_list)
-    splits = int(test_set.shape[0] / preprocessing_batch_size)
-    test_preprocessing_batches = np.array_split(test_set, splits)
-    del test_set
-    preprocessed_test_set = preprocess(test_preprocessing_batches, processing_function)
-    save_to_disk(preprocessed_test_set, test_labels, target_dir.parent / (target_dir.name + '_test'))
-    del preprocessed_test_set, test_preprocessing_batches
+    load_process_store(test_list, preprocessing_batch_size, processing_function,
+                       target_dir, 'test')
+
     print('test set stored')
 
 
@@ -147,3 +148,4 @@ if __name__ == "__main__":
 
     feature = 'packets' if args.packets else 'raw'
     pre_process_folder(args.directory, args.batch_size, args.train_size, args.val_size, args.test_size, feature)
+
