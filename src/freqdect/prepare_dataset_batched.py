@@ -29,10 +29,10 @@ def load_and_stack(path_list: list) -> tuple:
     for path_to_image in path_list:
         image_list.append(np.array(Image.open(path_to_image)))
         label_list.append(np.array(get_label(path_to_image)))
-    return np.stack(image_list), np.stack(label_list)
+    return np.stack(image_list), label_list
 
 
-def save_to_disk(data_set: np.array, labels: np.array, directory: str,
+def save_to_disk(data_set: np.array, directory: str,
                  previous_file_count: int = 0) -> int:
     # loop over the batch dimension
     if not os.path.exists(directory):
@@ -44,23 +44,28 @@ def save_to_disk(data_set: np.array, labels: np.array, directory: str,
             np.save(numpy_file, pre_processed_image)
         file_count += 1
 
-    with open(f"{directory}/labels.npy", "wb") as label_file:
-        np.save(label_file, labels)
     return file_count
 
 
 def load_process_store(file_list, preprocessing_batch_size, process,
-                       target_dir, label):
+                       target_dir, label_string):
     splits = int(len(file_list) / preprocessing_batch_size)
     batched_files = np.array_split(file_list, splits)
     file_count = 0
+    directory = target_dir + '_' + label_string
+    all_labels = []
     for current_file_batch in batched_files:
         # load, process and store the current batch training set.
         image_batch, labels = load_and_stack(current_file_batch)
+        all_labels.extend(labels)
         processed_batch = process(image_batch)
-        file_count = save_to_disk(processed_batch, labels, target_dir + '_' + label,
+        file_count = save_to_disk(processed_batch, labels, directory,
                                   file_count)
-        print(file_count, label, 'files processed')
+        print(file_count, label_string, 'files processed')
+
+    # save labels
+    with open(f"{directory}/labels.npy", "wb") as label_file:
+        np.save(label_file, np.array(all_labels))
 
 
 def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_size: int,
