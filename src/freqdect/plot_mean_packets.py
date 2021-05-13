@@ -3,12 +3,40 @@ from itertools import product
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .data_loader import LoadNumpyDataset
+from data_loader import LoadNumpyDataset
 
 
 def _plot_mean_std(x, mean, std, color, label="", marker="."):
     plt.plot(x, mean, label=label, color=color, marker=marker)
     plt.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
+
+
+def _generate_packet_image(packet_array):
+    """ Arrange a  packet array  as an image for imshow.
+
+    Args:
+        packet_array ([np.array): The [packet_no, height, width] packets
+
+    Returns:
+        [np.array]: The image of shape [height, width]
+    """
+    packet_count = packet_array.shape[0]
+    count = 0
+    img_rows = None
+    img = []
+    for node_no in range(packet_count):
+        packet = packet_array[node_no]
+        if img_rows is not None:
+            img_rows = np.concatenate([img_rows, packet], axis=1)
+        else:
+            img_rows = packet
+        count += 1
+        if count >= np.sqrt(packet_count):
+            count = 0
+            img.append(img_rows)
+            img_rows = None
+    img = np.concatenate(img, axis=0)
+    return img
 
 
 def main():
@@ -36,6 +64,33 @@ def main():
     ffhq_array = np.array(ffhq_list)
     del ffhq_list
 
+    # mean image plots
+    gan_mean_packet_image = _generate_packet_image(np.mean(style_gan_array, axis=(0, -1)))
+    ffhq_mean_packet_image = _generate_packet_image(np.mean(ffhq_array, axis=(0, -1)))
+
+    fig = plt.figure(figsize=(8, 6))
+    columns = 3
+    rows = 1
+    plot_count = 1
+    cmap = 'cividis'  # 'magma'  #'inferno'  # 'viridis
+
+    def plot_image(image, title):
+        fig.add_subplot(rows, columns, plot_count)
+        plt.imshow(image, cmap=cmap)
+        plt.xticks([], [])
+        plt.yticks([], [])
+        plt.title(title)
+
+    plot_image(gan_mean_packet_image, 'gan mean packets')
+    plot_count += 1
+    plot_image(ffhq_mean_packet_image, 'ffhq mean packets')
+    plot_count += 1
+    plot_image(np.abs(gan_mean_packet_image - ffhq_mean_packet_image),
+               'absolute difference')
+    plot_count += 1
+    plt.show()
+
+    # mean packet plots
     style_gan_mean = np.mean(style_gan_array, axis=(0, 2, 3, 4))
     style_gan_std = np.std(style_gan_array, axis=(0, 2, 3, 4))
 
