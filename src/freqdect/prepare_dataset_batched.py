@@ -7,7 +7,7 @@ import glob
 import random
 import numpy as np
 from PIL import Image
-from .wavelet_math import batch_packet_preprocessing, identity_processing
+from wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def get_label(path_to_image: str) -> int:
@@ -119,10 +119,11 @@ def pre_process_folder(data_folder: str, preprocessing_batch_size: int, train_si
 
 
 if __name__ == "__main__":
-    data_folder = './data/source_data/'
+    data_folder = './data/ffhq_large/'
+    print('processing', data_folder)
 
-    TRAIN_SIZE = 2 * 63_000
-    VAL_SIZE = 2 * 2_000
-    TEST_SIZE = 2 * 5_000
-    pre_process_folder(data_folder, 2048, TRAIN_SIZE, VAL_SIZE, TEST_SIZE,
+    TRAIN_SIZE = 2_000
+    VAL_SIZE = 2_000
+    TEST_SIZE = 2_000
+    pre_process_folder(data_folder, 64, TRAIN_SIZE, VAL_SIZE, TEST_SIZE,
                        'packets')
