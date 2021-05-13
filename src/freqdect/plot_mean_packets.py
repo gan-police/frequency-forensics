@@ -1,11 +1,12 @@
-import torch
-import numpy as np
 from itertools import product
+
 import matplotlib.pyplot as plt
-from data_loader import LoadNumpyDataset
+import numpy as np
+
+from .data_loader import LoadNumpyDataset
 
 
-def plot_mean_std(x, mean, std, color, label="", marker="."):
+def _plot_mean_std(x, mean, std, color, label="", marker="."):
     plt.plot(x, mean, label=label, color=color, marker=marker)
     plt.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
 
@@ -45,8 +46,8 @@ def main():
     x = np.array(range(len(style_gan_mean)))
     wp_keys = list(product(["a", "d", "h", "v"], repeat=3))
     wp_labels = ["".join(key) for key in wp_keys]
-    plot_mean_std(x, ffhq_mean, ffhq_std, colors[0], "ffhq")
-    plot_mean_std(x, style_gan_mean, style_gan_std, colors[1], "style gan")
+    _plot_mean_std(x, ffhq_mean, ffhq_std, colors[0], "ffhq")
+    _plot_mean_std(x, style_gan_mean, style_gan_std, colors[1], "style gan")
     plt.legend()
     plt.xlabel("filter")
     plt.xticks(x, labels=wp_labels)

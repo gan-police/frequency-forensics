@@ -1,8 +1,10 @@
-import pywt
-import ptwt
-import torch
-import numpy as np
 from itertools import product
+
+import numpy as np
+import pywt
+import torch
+
+import ptwt
 
 
 def compute_packet_rep_2d(image, wavelet_str: str = "db5", max_lev: int = 5):

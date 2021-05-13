@@ -1,13 +1,16 @@
-import cv2
-import torch
 import argparse
-import numpy as np
-from itertools import product
-import matplotlib.pyplot as plt
+
+import cv2
 import matplotlib.colors as colors
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
 from pywt._doc_utils import _2d_wp_basis_coords
-from .wavelet_math import compute_packet_rep_2d
-from .wavelet_math import compute_pytorch_packet_representation_2d_tensor
+
+from .wavelet_math import (
+    compute_packet_rep_2d,
+    compute_pytorch_packet_representation_2d_tensor,
+)
 
 
 def draw_2d_wp_basis(shape, keys, fmt="k", plot_kwargs={}, ax=None, label_levels=0):
