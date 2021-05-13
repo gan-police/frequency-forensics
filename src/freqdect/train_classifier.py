@@ -75,7 +75,6 @@ def main():
 
     if args.features == 'packets':
         packets = True
-        # TODO calculate reasonable defaults
         default_mean = torch.cuda.FloatTensor([1.2739, 1.2591, 1.2542])
         default_std = torch.cuda.FloatTensor([3.0472, 2.9926, 3.0297])
     elif args.features == 'raw':
