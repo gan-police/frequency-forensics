@@ -81,8 +81,8 @@ def main():
     # packet mean = 1.2623962
     # packet str = 3.023255
     norm = (packet_data - packet_mean) / packet_std
-    print('packet norm test', np.mean(norm))
-    print('packet std test', np.std(norm))
+    print('packet norm test', torch.mean(norm))
+    print('packet std test', torch.std(norm))
     del packet_data, norm
 
     # raw
@@ -92,9 +92,9 @@ def main():
 
     # raw mean 112.52875
     # raw std 68.63312
-    norm = (raw_data - raw_mean) / raw_std
-    print('raw norm test', np.mean(norm))
-    print('raw std test', np.std(norm))
+    norm = (raw_data - raw_mean.numpy()) / raw_std.numpy()
+    print('raw norm test', torch.mean(norm))
+    print('raw std test', torch.std(norm))
     del raw_data, norm
 
 
