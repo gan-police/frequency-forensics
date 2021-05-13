@@ -2,7 +2,7 @@ import torch
 import pickle
 import argparse
 import numpy as np
-from .data_loader import LoadNumpyDataset
+from data_loader import LoadNumpyDataset
 from torch.utils.data import DataLoader
 
 
@@ -53,8 +53,8 @@ def main():
                         help='weight decay for optimizer (default: 0)')
     parser.add_argument('--epochs', type=int, default=10,
                         help='number of epochs (default: 10)')
-    parser.add_argument('--data-prefix', type=str, default="./data/source_data",
-                        help='shared prefix of the data paths (default: ./data/source_data)')
+    parser.add_argument('--data-prefix', type=str, default="./data/source_data_packets",
+                        help='shared prefix of the data paths (default: ./data/source_data_packets)')
     parser.add_argument('--nclasses', type=int, default=2,
                         help='number of classes (default: 2)')
     parser.add_argument('--seed', type=int, default=42,
@@ -74,21 +74,19 @@ def main():
     torch.manual_seed(args.seed)
 
     if args.features == 'packets':
-        packets = True
-        default_mean = torch.cuda.FloatTensor([1.2739, 1.2591, 1.2542])
-        default_std = torch.cuda.FloatTensor([3.0472, 2.9926, 3.0297])
+        default_mean = torch.tensor([1.2739, 1.2591, 1.2542])
+        default_std = torch.tensor([3.0472, 2.9926, 3.0297])
     elif args.features == 'raw':
-        packets = False
-        default_mean = torch.cuda.FloatTensor([132.6314, 108.3550, 96.8289])
-        default_std = torch.cuda.FloatTensor([71.1634, 64.5999, 64.9532])
+        default_mean = torch.tensor([132.6314, 108.3550, 96.8289])
+        default_std = torch.tensor([71.1634, 64.5999, 64.9532])
     else:
         raise NotImplementedError
 
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
-        mean = torch.cuda.FloatTensor(args.normalize[:num_of_norm_vals // 2])
-        std = torch.cuda.FloatTensor(args.normalize[(num_of_norm_vals // 2):])
+        mean = torch.tensor(args.normalize[:num_of_norm_vals // 2])
+        std = torch.tensor(args.normalize[(num_of_norm_vals // 2):])
     elif args.calc_normalization:
         # load train data and compute mean and std
         train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
@@ -119,10 +117,10 @@ def main():
 
     train_data_loader = DataLoader(
         train_data_set, batch_size=args.batch_size, shuffle=True,
-        num_workers=15)
+        num_workers=2)
     val_data_loader = DataLoader(
         val_data_set, batch_size=args.batch_size, shuffle=False,
-        num_workers=15)
+        num_workers=2)
 
     validation_list = []
     loss_list = []
@@ -170,12 +168,12 @@ def main():
     print('Training done testing....')
     test_data_loader = DataLoader(
         test_data_set, args.batch_size, shuffle=False,
-        num_workers=15)
+        num_workers=2)
     with torch.no_grad():
         test_acc = val_test_loop(test_data_loader, model, loss_fun)
         print('test acc', test_acc)
 
-    stats_file = './log/' + 'packets' + str(packets) + '.pkl'
+    stats_file = './log/' + args.data_prefix.split('/')[-1] + '.pkl'
     try:
         res = pickle.load(open(stats_file, "rb"))
     except (OSError, IOError) as e:
