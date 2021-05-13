@@ -51,17 +51,6 @@ def main():
     # packets - use only the training set.
     train_packet_set = LoadNumpyDataset(args.packets)
 
-    # train_dataloader = DataLoader(
-    #     train_raw_set, batch_size=64, shuffle=True)
-    # sample = next(iter(train_dataloader))
-    # print(f"Feature batch shape: {sample['image'].size()}")
-    # print(f"Labels batch shape: {sample['label'].size()}")
-    # img = sample['image'][0].squeeze()
-    # label = sample['label'][0]
-    # plt.imshow(img.numpy().astype(np.uint8), cmap="gray")
-    # plt.savefig('test_tmp.png')
-    # print(f"Label: {label}")
-
     def compute_mean_std(data_set):
         # compute mean and std
         img_lst = []

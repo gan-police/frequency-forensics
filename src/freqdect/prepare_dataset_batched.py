@@ -57,14 +57,14 @@ def load_process_store(file_list, preprocessing_batch_size, process,
     splits = int(len(file_list) / preprocessing_batch_size)
     batched_files = np.array_split(file_list, splits)
     file_count = 0
-    directory = target_dir + '_' + label_string
+    directory = str(target_dir) + '_' + label_string
     all_labels = []
     for current_file_batch in batched_files:
         # load, process and store the current batch training set.
         image_batch, labels = load_and_stack(current_file_batch)
         all_labels.extend(labels)
         processed_batch = process(image_batch)
-        file_count = save_to_disk(processed_batch, labels, directory,
+        file_count = save_to_disk(processed_batch, directory,
                                   file_count)
         print(file_count, label_string, 'files processed')
 
@@ -134,23 +134,24 @@ def parse_args():
 
     parser.add_argument("directory", type=str,
                         help="The folder with the real and gan generated image folders.")
-    parser.add_argument("--train-size", type=int, default=2*63_000,
+    parser.add_argument("--train-size", type=int, default=2 * 63_000,
                         help="Desired size of the training set. (default: 126_000).")
     parser.add_argument("--test-size", type=int, default=2 * 5_000,
-                        help="Desired size of the test set. (default: 5_000).")
+                        help="Desired size of the test set. (default: 10_000).")
     parser.add_argument("--val-size", type=int, default=2 * 2_000,
                         help="Desired size of the validation set. (default: 4_000).")
     parser.add_argument("--batch-size", type=int, default=2048,
                         help="The batch_size used for image conversion. (default: 2048).")
-    parser.add_argument("--packets", "-p", help="Save image data as wavelet packets.", action="store_true")
-
+    parser.add_argument("--packets", "-p", help="Save image data as wavelet packets.",
+                        action="store_true")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
     print(args)
-
     feature = 'packets' if args.packets else 'raw'
-    pre_process_folder(args.directory, args.batch_size, args.train_size, args.val_size, args.test_size, feature)
-
+    pre_process_folder(args.directory, args.batch_size, args.train_size,
+                       args.val_size, args.test_size, feature)
+    # pre_process_folder('data/source_data/', args.batch_size, args.train_size,
+    #                    args.val_size, args.test_size, 'packets')

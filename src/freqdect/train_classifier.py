@@ -88,8 +88,8 @@ def main():
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
-        mean = torch.cuda.FloatTensor(args.normalize[:num_of_norm_vals//2])
-        std = torch.cuda.FloatTensor(args.normalize[num_of_norm_vals//2:])
+        mean = torch.cuda.FloatTensor(args.normalize[:num_of_norm_vals // 2])
+        std = torch.cuda.FloatTensor(args.normalize[(num_of_norm_vals // 2):])
     elif args.calc_normalization:
         # load train data and compute mean and std
         train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
