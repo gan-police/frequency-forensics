@@ -1,9 +1,11 @@
-import torch
-import pickle
 import argparse
+import pickle
+
 import numpy as np
-from data_loader import LoadNumpyDataset
+import torch
 from torch.utils.data import DataLoader
+
+from data_loader import LoadNumpyDataset
 
 
 class Regression(torch.nn.Module):

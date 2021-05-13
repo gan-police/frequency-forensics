@@ -2,7 +2,14 @@
 As found at:
 https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/src/math.py
 """
+
 import numpy as np
+
+__all__ = [
+    "welford",
+    "welford_multidimensional",
+    "log_scale",
+]
 
 
 def _welford_update(existing_aggregate, new_value):

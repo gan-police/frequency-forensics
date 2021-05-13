@@ -2,15 +2,17 @@
 processing and is, therefore, quite slow. This module
 is an attempt to fix this.
 """
-import os
-import argparse
-from pathlib import Path
-import random
 
-# import torch
+import argparse
+import os
+import random
+from pathlib import Path
+from typing import Optional
+
 import numpy as np
 from PIL import Image
-from wavelet_math import batch_packet_preprocessing, identity_processing
+
+from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def get_label(path_to_image: Path) -> int:
@@ -81,7 +83,7 @@ def pre_process_folder(
     train_size: int,
     val_size: int,
     test_size: int,
-    feature: str = None,
+    feature: Optional[str] = None,
 ) -> None:
     """Preprocess a folder containing sub-directories with images from
     different sources. The sub-directories are expected to indicated the
@@ -96,19 +98,16 @@ def pre_process_folder(
         feature (str): The feature to pre-compute (choose packets or None).
     """
     data_dir = Path(data_folder)
-    target_dir = data_dir.parent / (data_dir.name + "_" + feature)
+    target_dir = data_dir.parent / f"{data_dir.name}_{feature}"
 
     if feature == "packets":
         processing_function = batch_packet_preprocessing
     else:
-        processing_function = identity_processing
+        processing_function = identity_processing  # type: ignore
 
     # find all files in the data_folders
     folder_list = data_dir.glob("./*")
-    file_list = []
-    for folder in folder_list:
-        files = folder.glob("./*.png")
-        file_list.extend(files)
+    file_list = [file for folder in folder_list for file in folder.glob("./*.png")]
 
     # shuffle the list and split it into training, validation and test
     # sub-lists.

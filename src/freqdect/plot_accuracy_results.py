@@ -1,9 +1,10 @@
 import pickle
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 
-def stack_list(dict_list: {}, key: str):
+def stack_list(dict_list, key: str):
     step_lst = []
     acc_lst = []
     for current_dictionary in dict_list:
@@ -19,7 +20,7 @@ def get_steps_mean_std(step_lst, cost_lst):
     return step_lst[0, :], mean, std
 
 
-def get_plot_tuple(dict_list: {}, key: str):
+def get_plot_tuple(dict_list, key: str):
     steps, loss = stack_list(dict_list, key)
     steps, mean, std = get_steps_mean_std(steps, loss)
     return steps, mean, std
