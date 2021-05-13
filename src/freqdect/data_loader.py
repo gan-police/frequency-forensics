@@ -1,5 +1,5 @@
 import torch
-import glob
+from pathlib import Path
 import numpy as np
 from torch.utils.data import Dataset
 
@@ -7,9 +7,9 @@ from torch.utils.data import Dataset
 class LoadNumpyDataset(Dataset):
     def __init__(self, data_dir, mean=None, std=None):
         self.data_dir = data_dir
-        self.file_lst = glob.glob(data_dir + '/*.npy')
-        self.file_lst.sort()
-        assert self.file_lst[-1].split('/')[-1] == 'labels.npy'
+        self.file_lst = sorted(Path(data_dir).glob('./*.npy'))
+        print("Loading ", data_dir)
+        assert self.file_lst[-1].name == 'labels.npy'
         self.labels = np.load(self.file_lst[-1])
         self.images = self.file_lst[:-1]
         self.mean = mean
@@ -23,7 +23,7 @@ class LoadNumpyDataset(Dataset):
         image = np.load(img_path)
         image = torch.from_numpy(image.astype(np.float32))
         # normalize the data.
-        if self.mean:
+        if self.mean is not None:
             image = (image - self.mean) / self.std
         label = self.labels[idx]
         label = torch.tensor(int(label))
@@ -32,13 +32,24 @@ class LoadNumpyDataset(Dataset):
 
 
 def main():
+    import argparse
     import matplotlib.pyplot as plt
     from torch.utils.data import DataLoader
 
+    parser = argparse.ArgumentParser(description='Calculate mean and std')
+    parser.add_argument('-r', '--raw', type=str, default="./data/source_data_raw_train",
+                        help='path of raw training images (default: ./data/source_data_raw_train)')
+    parser.add_argument('-p', '--packets', type=str, default="./data/source_data_packets_train",
+                        help='path of wavelet packets of training data (default: ./data/source_data_packets_train)')
+
+    args = parser.parse_args()
+
+    print(args)
+
     # raw images - use only the training set.
-    train_raw_set = LoadNumpyDataset('./data/source_data_raw_train')
+    train_raw_set = LoadNumpyDataset(args.raw)
     # packets - use only the training set.
-    train_packet_set = LoadNumpyDataset('./data/source_data_packets_train')
+    train_packet_set = LoadNumpyDataset(args.packets)
 
     # train_dataloader = DataLoader(
     #     train_raw_set, batch_size=64, shuffle=True)
@@ -55,11 +66,15 @@ def main():
         # compute mean and std
         img_lst = []
         for img_no in range(data_set.__len__()):
-            img_lst.append(data_set.__getitem__(img_no)["image"].numpy())
-        img_data = np.stack(img_lst, 0)
+            img_lst.append(data_set.__getitem__(img_no)["image"])
+        img_data = torch.stack(img_lst, 0)
 
-        mean = np.mean(img_data)
-        std = np.std(img_data)
+        # average all axis except the color channel
+        axis = tuple(np.arange(len(img_data.shape[:-1])))
+
+        # calculate mean and std in double to avoid precision problems
+        mean = torch.mean(img_data.double(), axis).float()
+        std = torch.std(img_data.double(), axis).float()
         return img_data, mean, std
 
     # packets
@@ -92,9 +107,6 @@ def main():
     print('raw norm test', np.mean(norm))
     print('raw std test', np.std(norm))
     del raw_data, norm
-
-
-
 
 
 if __name__ == '__main__':
