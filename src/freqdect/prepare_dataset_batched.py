@@ -92,9 +92,9 @@ def pre_process_folder(
     Args:
         data_folder (str): The folder with the real and gan generated image folders.
         preprocessing_batch_size (int): The batch_size used for image conversion.
-        train_size (int): Desired size of the test set.
-        val_size (int): Desired size of the validation set.
-        test_size (int): Desired size of the test set.
+        train_size (int): Desired size of the test subset of each folder.
+        val_size (int): Desired size of the validation subset of each folder.
+        test_size (int): Desired size of the test subset of each folder.
         feature (str): The feature to pre-compute (choose packets or None).
     """
     data_dir = Path(data_folder)
@@ -161,20 +161,20 @@ def parse_args():
     parser.add_argument(
         "--train-size",
         type=int,
-        default=2 * 63_000,
-        help="Desired size of the training set. (default: 126_000).",
+        default=63_000,
+        help="Desired size of the training subset of each folder. (default: 63_000).",
     )
     parser.add_argument(
         "--test-size",
         type=int,
-        default=2 * 5_000,
-        help="Desired size of the test set. (default: 10_000).",
+        default=5_000,
+        help="Desired size of the test subset of each folder. (default: 5_000).",
     )
     parser.add_argument(
         "--val-size",
         type=int,
-        default=2 * 2_000,
-        help="Desired size of the validation set. (default: 4_000).",
+        default=2_000,
+        help="Desired size of the validation subset of each folder. (default: 2_000).",
     )
     parser.add_argument(
         "--batch-size",
