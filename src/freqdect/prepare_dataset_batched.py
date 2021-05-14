@@ -12,7 +12,7 @@ from typing import Optional
 import numpy as np
 from PIL import Image
 
-from .wavelet_math import batch_packet_preprocessing, identity_processing
+from wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def get_label(path_to_image: Path) -> int:
@@ -121,13 +121,8 @@ def pre_process_folder(
     validation_list = file_list[train_size : (train_size + val_size)]
     test_list = file_list[(train_size + val_size) : (train_size + val_size + test_size)]
 
-    # group the train set into smaller batches to go easy on the memory.
-    print("processing training set")
-    load_process_store(
-        train_list, preprocessing_batch_size, processing_function, target_dir, "train"
-    )
-    print("training set stored.")
-
+    # group the sets into smaller batches to go easy on the memory.
+    print('processing validation set.')
     load_process_store(
         validation_list,
         preprocessing_batch_size,
@@ -142,6 +137,12 @@ def pre_process_folder(
     )
 
     print("test set stored")
+
+    print("processing training set")
+    load_process_store(
+        train_list, preprocessing_batch_size, processing_function, target_dir, "train"
+    )
+    print("training set stored.")
 
 
 def parse_args():

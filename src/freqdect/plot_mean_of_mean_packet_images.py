@@ -1,5 +1,3 @@
-from itertools import product
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,8 +11,10 @@ def _plot_mean_std(x, mean, std, color, label="", marker="."):
 
 def _generate_packet_image(packet_array):
     """ Arrange a  packet array  as an image for imshow.
+
     Args:
         packet_array ([np.array): The [packet_no, height, width] packets
+
     Returns:
         [np.array]: The image of shape [height, width]
     """
@@ -38,13 +38,15 @@ def _generate_packet_image(packet_array):
 
 
 def main():
-    import matplotlib.pyplot as plt
+    # https://en.wikipedia.org/wiki/Grand_mean
 
     # raw images - use only the training set.
     train_packet_set = LoadNumpyDataset("./data/ffhq_stylegan_large_packets_train_2")
 
     style_gan_list = []
     ffhq_list = []
+    gan_mean_packet_lst = []
+    ffhq_mean_packet_lst = []
     for img_no in range(train_packet_set.__len__()):
         train_element = train_packet_set.__getitem__(img_no)
         packets = train_element["image"].numpy()
@@ -56,58 +58,47 @@ def main():
         else:
             raise ValueError
 
+        if len(style_gan_list) >= train_packet_set.__len__() // 8:
+            print('pool gan', 'list lengths', len(style_gan_list), len(ffhq_list))
+            gan_mean_packet_lst.append(np.mean(np.array(style_gan_list), axis=(0, -1)))
+            style_gan_list = []
+
+        if len(ffhq_list) >= train_packet_set.__len__() // 8:
+            print('pool ffhq', 'list lengths', len(style_gan_list), len(ffhq_list))
+            ffhq_mean_packet_lst.append(np.mean(np.array(ffhq_list), axis=(0, -1)))
+            ffhq_list = []
+
     print("train set loaded.")
-    style_gan_array = np.array(style_gan_list)
-    del style_gan_list
-    ffhq_array = np.array(ffhq_list)
-    del ffhq_list
+    grand_gan_mean_packet = np.mean(np.stack(gan_mean_packet_lst, axis=0), axis=0)
+    grand_ffhq_mean_packet = np.mean(np.stack(ffhq_mean_packet_lst, axis=0), axis=0)
 
     # mean image plots
-    gan_mean_packet_image = _generate_packet_image(np.mean(style_gan_array, axis=(0, -1)))
-    ffhq_mean_packet_image = _generate_packet_image(np.mean(ffhq_array, axis=(0, -1)))
+    gan_mean_packet_image = _generate_packet_image(grand_gan_mean_packet)
+    ffhq_mean_packet_image = _generate_packet_image(grand_ffhq_mean_packet)
 
     fig = plt.figure(figsize=(8, 6))
     columns = 3
     rows = 1
     plot_count = 1
     cmap = 'cividis'  # 'magma'  #'inferno'  # 'viridis
+    vmin = np.min((np.min(gan_mean_packet_image), np.min(ffhq_mean_packet_image))) + 2e-4
+    vmax = np.max((np.max(gan_mean_packet_image), np.max(ffhq_mean_packet_image)))
 
-    def plot_image(image, title):
+    def plot_image(image, title, vmin=None, vmax=None):
         fig.add_subplot(rows, columns, plot_count)
-        plt.imshow(image, cmap=cmap)
+        plt.imshow(image, cmap=cmap, vmin=vmin, vmax=vmax)
         plt.xticks([], [])
         plt.yticks([], [])
         plt.title(title)
         plt.colorbar()
 
-    plot_image(gan_mean_packet_image, 'gan mean packets')
+    plot_image(gan_mean_packet_image, 'gan mean packets', vmin, vmax)
     plot_count += 1
-    plot_image(ffhq_mean_packet_image, 'ffhq mean packets')
+    plot_image(ffhq_mean_packet_image, 'ffhq mean packets', vmin, vmax)
     plot_count += 1
     plot_image(np.abs(gan_mean_packet_image - ffhq_mean_packet_image),
-               'absolute difference')
-    plot_count += 1
+               'absolute mean difference')
     plt.show()
-
-    # mean packet plots
-    style_gan_mean = np.mean(style_gan_array, axis=(0, 2, 3, 4))
-    style_gan_std = np.std(style_gan_array, axis=(0, 2, 3, 4))
-
-    ffhq_mean = np.mean(ffhq_array, axis=(0, 2, 3, 4))
-    ffhq_std = np.std(ffhq_array, axis=(0, 2, 3, 4))
-
-    colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-    x = np.array(range(len(style_gan_mean)))
-    wp_keys = list(product(["a", "d", "h", "v"], repeat=3))
-    wp_labels = ["".join(key) for key in wp_keys]
-    _plot_mean_std(x, ffhq_mean, ffhq_std, colors[0], "ffhq")
-    _plot_mean_std(x, style_gan_mean, style_gan_std, colors[1], "style gan")
-    plt.legend()
-    plt.xlabel("filter")
-    plt.xticks(x, labels=wp_labels)
-    plt.xticks(rotation=80)
-    plt.ylabel("mean absolute coefficient magnitude")
-    plt.title("Mean absolute coefficient comparison FFHQ-StyleGAN")
 
     if 0:
         import tikzplotlib
@@ -116,6 +107,7 @@ def main():
     else:
         plt.show()
     print('done')
+
 
 if __name__ == "__main__":
     main()
