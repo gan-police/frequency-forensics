@@ -105,21 +105,27 @@ def pre_process_folder(
     else:
         processing_function = identity_processing  # type: ignore
 
-    # find all files in the data_folders
-    folder_list = data_dir.glob("./*")
-    file_list = [file for folder in folder_list for file in folder.glob("./*.png")]
-
-    # shuffle the list and split it into training, validation and test
-    # sub-lists.
-    assert (
-        len(file_list) >= train_size + val_size + test_size
-    ), "Requested set sizes must be smaller or equal to the number of\
-         images available."
     random.seed(42)
-    random.shuffle(file_list)
-    train_list = file_list[:train_size]
-    validation_list = file_list[train_size : (train_size + val_size)]
-    test_list = file_list[(train_size + val_size) : (train_size + val_size + test_size)]
+
+    # split the files in all data_folders into training/validation/testing
+    train_list = []
+    validation_list = []
+    test_list = []
+
+    # find all files in the data_folders
+    folder_list = sorted(data_dir.glob("./*"))
+    for folder in folder_list:
+        file_list = list(folder.glob("./*.png"))
+
+        assert (
+            len(file_list) >= train_size + val_size + test_size
+        ), "Requested set sizes must be smaller or equal to the number of images available."
+
+        # shuffle the list and split it into training, validation and test sub-lists.
+        random.shuffle(file_list)
+        train_list.extend(file_list[:train_size])
+        validation_list.extend(file_list[train_size: (train_size + val_size)])
+        test_list.extend(file_list[(train_size + val_size): (train_size + val_size + test_size)])
 
     # group the train set into smaller batches to go easy on the memory.
     print("processing training set")
