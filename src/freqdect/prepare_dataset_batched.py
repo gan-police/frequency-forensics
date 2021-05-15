@@ -14,7 +14,7 @@ from typing import Optional
 import numpy as np
 from PIL import Image
 
-from wavelet_math import batch_packet_preprocessing, identity_processing
+from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def get_label(path_to_image: Path) -> int:
@@ -47,7 +47,7 @@ def save_to_disk(
 ) -> int:
     # loop over the batch dimension
     if not os.path.exists(directory):
-        print("creating", directory)
+        print("creating", directory, flush=True)
         os.mkdir(directory)
     file_count = previous_file_count
     for pre_processed_image in data_set:
@@ -72,7 +72,7 @@ def load_process_store(
         all_labels.extend(labels)
         processed_batch = process(image_batch)
         file_count = save_to_disk(processed_batch, directory, file_count)
-        print(file_count, label_string, "files processed")
+        print(file_count, label_string, "files processed", flush=True)
 
     # save labels
     with open(f"{directory}/labels.npy", "wb") as label_file:
@@ -140,23 +140,23 @@ def pre_process_folder(
     random.shuffle(test_list)
 
     # group the sets into smaller batches to go easy on the memory.
-    print('processing validation set.')
+    print('processing validation set.', flush=True)
     load_process_store(
         validation_list, preprocessing_batch_size, processing_function, target_dir, "val",
     )
     print("validation set stored")
 
+    print("processing test set", flush=True)
     load_process_store(
         test_list, preprocessing_batch_size, processing_function, target_dir, "test"
     )
-
     print("test set stored")
 
-    print("processing training set")
+    print("processing training set", flush=True)
     load_process_store(
         train_list, preprocessing_batch_size, processing_function, target_dir, "train"
     )
-    print("training set stored.")
+    print("training set stored.", flush=True)
 
 
 def parse_args():

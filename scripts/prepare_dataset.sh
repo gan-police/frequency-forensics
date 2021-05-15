@@ -10,34 +10,45 @@
 #SBATCH --gres gpu:v100:1
 #SBATCH --cpus-per-task=16
 
+echo prepare_dataset.sh started at `date +"%T"`
+
 ANACONDA_ENV="$HOME/myconda-env"
 
 DATASETS="/home/ndv/projects/wavelets/datasets"
-DATESET="lsun_bedroom_200k_png"
+DATASET="lsun_bedroom_200k_png"
+DATA_PREFIX="${DATASETS}/${DATASET}"
 
-if [ -f "${DATASETS}/${DATASET}.tar" ]; then
-  echo "Tarred input folder exists, copying to $TMPDIR"
-  cp "${DATASETS}/${DATASET}.tar" "$TMPDIR"/
-  cd "$TMPDIR"
-  tar xf "${DATASET}.tar"
-  DATASET="${TMPDIR}/$DATASET"
-fi
+# save working directory
+ORIG_PWD=${PWD}
 
 module load PyTorch
 module load Pillow
 module load Anaconda3
-module load Python
 source activate "$ANACONDA_ENV"
 
 pip install -q -e .
 
-python -m freqdect.prepare_dataset_batched "$DATASET" \
+if [ -f ${DATASETS}/${DATASET}.tar ]; then
+  echo "Tarred input folder exists, copying to $TMPDIR"
+  cp "${DATASETS}/${DATASET}.tar" "$TMPDIR"/
+  cd "$TMPDIR"
+  echo "Unpacking tarred input folder"
+  tar xf "${DATASET}.tar"
+  DATA_PREFIX="${TMPDIR}/${DATASET}"
+fi
+
+cd $ORIG_PWD
+
+echo "Preparing data"
+python -m freqdect.prepare_dataset_batched "$DATA_PREFIX" \
   --train-size 100000 \
   --test-size 30000 \
   --val-size 20000 \
-  -p
+  --packets
 
-#if [ -d "${TMPDIR}/${DATASET}_raw_train" ]; then
-if ls "${TMPDIR}/${DATASET}_*" > /dev/null 2>&1; then
-  cp "${TMPDIR}/${DATASET}_*" "${DATASETS}"
+if ls ${TMPDIR}/${DATASET}_* > /dev/null 2>&1; then
+  echo "Copying results back to ${DATASETS}"
+  cp -r ${TMPDIR}/${DATASET}_* ${DATASETS}
 fi
+
+echo prepare_dataset.sh finished at `date +"%T"`
