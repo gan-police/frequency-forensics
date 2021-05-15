@@ -79,18 +79,14 @@ def load_process_store(
         np.save(label_file, np.array(all_labels))
 
 
-def load_folder(packed: (int,Path), train_size: int, val_size: int, test_size: int):
-    label, folder = packed
+def load_folder(folder: Path, train_size: int, val_size: int, test_size: int):
     file_list = list(folder.glob("./*.png"))
-    random.shuffle(file_list)
-    #file_list = np.asarray(file_list)
 
     assert (
             len(file_list) >= train_size + val_size + test_size
     ), "Requested set sizes must be smaller or equal to the number of images available."
 
-    # shuffle the list and split it into training, validation and test sub-lists.
-
+    # split the list into training, validation and test sub-lists.
     train_list = file_list[:train_size]
     validation_list = file_list[train_size: (train_size + val_size)]
     test_list = file_list[(train_size + val_size): (train_size + val_size + test_size)]
@@ -126,28 +122,23 @@ def pre_process_folder(
     else:
         processing_function = identity_processing  # type: ignore
 
-    random.seed(42)
-
-    # split the files in all data_folders into training/validation/testing
-
-    # find all files in the data_folders
     folder_list = sorted(data_dir.glob("./*"))
-    import time
 
-    t0 = time.time()
+    # split files in folders into training/validation/test
     func_load_folder = functools.partial(load_folder, train_size=train_size, val_size=val_size, test_size=test_size)
     with ThreadPoolExecutor(max_workers=len(folder_list)) as pool:
-        results = list(pool.map(func_load_folder, enumerate(folder_list)))
+        results = list(pool.map(func_load_folder, folder_list))
     results = np.array(results)
 
     train_list = [img for folder in results[:, 0] for img in folder]
     validation_list = [img for folder in results[:, 1] for img in folder]
     test_list = [img for folder in results[:, 2] for img in folder]
 
-    t1 = time.time()
+    random.seed(42)
+    random.shuffle(train_list)
+    random.shuffle(validation_list)
+    random.shuffle(test_list)
 
-    total=t1-t0
-    print("time: ", total)
     # group the train set into smaller batches to go easy on the memory.
     print("processing training set")
     load_process_store(
@@ -156,11 +147,7 @@ def pre_process_folder(
     print("training set stored.")
 
     load_process_store(
-        validation_list,
-        preprocessing_batch_size,
-        processing_function,
-        target_dir,
-        "val",
+        validation_list, preprocessing_batch_size, processing_function, target_dir, "val",
     )
     print("validation set stored")
 
