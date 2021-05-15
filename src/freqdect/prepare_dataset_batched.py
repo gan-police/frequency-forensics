@@ -4,8 +4,10 @@ is an attempt to fix this.
 """
 
 import argparse
+import functools
 import os
 import random
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Optional
 
@@ -77,6 +79,21 @@ def load_process_store(
         np.save(label_file, np.array(all_labels))
 
 
+def load_folder(folder: Path, train_size: int, val_size: int, test_size: int):
+    file_list = list(folder.glob("./*.png"))
+
+    assert (
+            len(file_list) >= train_size + val_size + test_size
+    ), "Requested set sizes must be smaller or equal to the number of images available."
+
+    # split the list into training, validation and test sub-lists.
+    train_list = file_list[:train_size]
+    validation_list = file_list[train_size: (train_size + val_size)]
+    test_list = file_list[(train_size + val_size): (train_size + val_size + test_size)]
+
+    return np.asarray([train_list, validation_list, test_list], dtype=object)
+
+
 def pre_process_folder(
     data_folder: str,
     preprocessing_batch_size: int,
@@ -92,9 +109,9 @@ def pre_process_folder(
     Args:
         data_folder (str): The folder with the real and gan generated image folders.
         preprocessing_batch_size (int): The batch_size used for image conversion.
-        train_size (int): Desired size of the test set.
-        val_size (int): Desired size of the validation set.
-        test_size (int): Desired size of the test set.
+        train_size (int): Desired size of the test subset of each folder.
+        val_size (int): Desired size of the validation subset of each folder.
+        test_size (int): Desired size of the test subset of each folder.
         feature (str): The feature to pre-compute (choose packets or None).
     """
     data_dir = Path(data_folder)
@@ -105,30 +122,27 @@ def pre_process_folder(
     else:
         processing_function = identity_processing  # type: ignore
 
-    # find all files in the data_folders
-    folder_list = data_dir.glob("./*")
-    file_list = [file for folder in folder_list for file in folder.glob("./*.png")]
+    folder_list = sorted(data_dir.glob("./*"))
 
-    # shuffle the list and split it into training, validation and test
-    # sub-lists.
-    assert (
-        len(file_list) >= train_size + val_size + test_size
-    ), "Requested set sizes must be smaller or equal to the number of\
-         images available."
+    # split files in folders into training/validation/test
+    func_load_folder = functools.partial(load_folder, train_size=train_size, val_size=val_size, test_size=test_size)
+    with ThreadPoolExecutor(max_workers=len(folder_list)) as pool:
+        results = list(pool.map(func_load_folder, folder_list))
+    results = np.array(results)
+
+    train_list = [img for folder in results[:, 0] for img in folder]
+    validation_list = [img for folder in results[:, 1] for img in folder]
+    test_list = [img for folder in results[:, 2] for img in folder]
+
     random.seed(42)
-    random.shuffle(file_list)
-    train_list = file_list[:train_size]
-    validation_list = file_list[train_size : (train_size + val_size)]
-    test_list = file_list[(train_size + val_size) : (train_size + val_size + test_size)]
+    random.shuffle(train_list)
+    random.shuffle(validation_list)
+    random.shuffle(test_list)
 
     # group the sets into smaller batches to go easy on the memory.
     print('processing validation set.')
     load_process_store(
-        validation_list,
-        preprocessing_batch_size,
-        processing_function,
-        target_dir,
-        "val",
+        validation_list, preprocessing_batch_size, processing_function, target_dir, "val",
     )
     print("validation set stored")
 
@@ -156,20 +170,20 @@ def parse_args():
     parser.add_argument(
         "--train-size",
         type=int,
-        default=2 * 63_000,
-        help="Desired size of the training set. (default: 126_000).",
+        default=63_000,
+        help="Desired size of the training subset of each folder. (default: 63_000).",
     )
     parser.add_argument(
         "--test-size",
         type=int,
-        default=2 * 5_000,
-        help="Desired size of the test set. (default: 10_000).",
+        default=5_000,
+        help="Desired size of the test subset of each folder. (default: 5_000).",
     )
     parser.add_argument(
         "--val-size",
         type=int,
-        default=2 * 2_000,
-        help="Desired size of the validation set. (default: 4_000).",
+        default=2_000,
+        help="Desired size of the validation subset of each folder. (default: 2_000).",
     )
     parser.add_argument(
         "--batch-size",
