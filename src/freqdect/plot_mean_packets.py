@@ -56,43 +56,70 @@ def main():
         else:
             raise ValueError
 
-    print("train set loaded.")
+        if img_no % 500 == 0 and img_no > 0:
+            print(img_no, 'of', train_packet_set.__len__(), 'loaded')
+            # break
+
     style_gan_array = np.array(style_gan_list)
     del style_gan_list
     ffhq_array = np.array(ffhq_list)
     del ffhq_list
+    print("train set loaded.", style_gan_array.shape, ffhq_array.shape)
 
     # mean image plots
-    gan_mean_packet_image = _generate_packet_image(np.mean(style_gan_array, axis=(0, -1)))
-    ffhq_mean_packet_image = _generate_packet_image(np.mean(ffhq_array, axis=(0, -1)))
+    gan_mean_packet_image = _generate_packet_image(
+        np.mean(style_gan_array, axis=(0, -1)))
+    ffhq_mean_packet_image = _generate_packet_image(
+        np.mean(ffhq_array, axis=(0, -1)))
+    # std image plots
+    gan_std_packet_image = _generate_packet_image(
+        np.std(style_gan_array, axis=(0, -1)))
+    ffhq_std_packet_image = _generate_packet_image(
+        np.std(ffhq_array, axis=(0, -1)))
 
     fig = plt.figure(figsize=(8, 6))
     columns = 3
-    rows = 1
+    rows = 2
     plot_count = 1
     cmap = 'cividis'  # 'magma'  #'inferno'  # 'viridis
 
-    def plot_image(image, title):
+    mean_vmin = np.min((np.min(gan_mean_packet_image), np.min(ffhq_mean_packet_image)))
+    mean_vmax = np.max((np.max(gan_mean_packet_image), np.max(ffhq_mean_packet_image)))
+    std_vmin = np.min((np.min(gan_std_packet_image), np.min(ffhq_std_packet_image)))
+    std_vmax = np.max((np.max(gan_std_packet_image), np.max(ffhq_std_packet_image)))
+
+    def plot_image(image, title, vmax=None, vmin=None):
         fig.add_subplot(rows, columns, plot_count)
-        plt.imshow(image, cmap=cmap)
+        plt.imshow(image, cmap=cmap, vmax=vmax, vmin=vmin)
         plt.xticks([], [])
         plt.yticks([], [])
         plt.title(title)
         plt.colorbar()
 
-    plot_image(gan_mean_packet_image, 'gan mean packets')
+    plot_image(gan_mean_packet_image, 'gan mean packets', mean_vmax, mean_vmin)
     plot_count += 1
-    plot_image(ffhq_mean_packet_image, 'ffhq mean packets')
+    plot_image(ffhq_mean_packet_image, 'ffhq mean packets', mean_vmax, mean_vmin)
     plot_count += 1
     plot_image(np.abs(gan_mean_packet_image - ffhq_mean_packet_image),
-               'absolute difference')
+               'absolute mean difference')
     plot_count += 1
+    plot_image(gan_std_packet_image, 'gan std packets', std_vmax, std_vmin)
+    plot_count += 1
+    plot_image(ffhq_std_packet_image, 'ffhq std packets', std_vmax, std_vmin)
+    plot_count += 1
+    plot_image(np.abs(gan_std_packet_image - ffhq_std_packet_image),
+               'absolute std difference')
+    plot_count += 1
+
+    if 1:
+        import tikzplotlib
+        tikzplotlib.save("packet_mean_std_plot.tex", standalone=True)
     plt.show()
+    print('first plot done')
 
     # mean packet plots
     style_gan_mean = np.mean(style_gan_array, axis=(0, 2, 3, 4))
     style_gan_std = np.std(style_gan_array, axis=(0, 2, 3, 4))
-
     ffhq_mean = np.mean(ffhq_array, axis=(0, 2, 3, 4))
     ffhq_std = np.std(ffhq_array, axis=(0, 2, 3, 4))
 
@@ -109,13 +136,12 @@ def main():
     plt.ylabel("mean absolute coefficient magnitude")
     plt.title("Mean absolute coefficient comparison FFHQ-StyleGAN")
 
-    if 0:
+    if 1:
         import tikzplotlib
-
         tikzplotlib.save("mean_absolute_coeff_comparison.tex", standalone=True)
-    else:
-        plt.show()
+    plt.show()
     print('done')
+
 
 if __name__ == "__main__":
     main()
