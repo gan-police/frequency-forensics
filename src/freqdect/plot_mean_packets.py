@@ -1,5 +1,5 @@
 from itertools import product
-
+import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -11,7 +11,7 @@ def _plot_mean_std(x, mean, std, color, label="", marker="."):
     plt.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
 
 
-def _generate_packet_image(packet_array):
+def generate_packet_image(packet_array: np.array):
     """ Arrange a  packet array  as an image for imshow.
     Args:
         packet_array ([np.array): The [packet_no, height, width] packets
@@ -34,6 +34,32 @@ def _generate_packet_image(packet_array):
             img.append(img_rows)
             img_rows = None
     img = np.concatenate(img, axis=0)
+    return img
+
+
+def generate_packet_image_tensor(packet_array: torch.tensor):
+    """ Arrange a  packet tensor  as an image for imshow.
+    Args:
+        packet_array ([torch.tensor): The [bach_size, packet_no, height, width, channels] packets
+    Returns:
+        [torch.tensor]: The image of shape [batch_size, height, width, channels]
+    """
+    packet_count = packet_array.shape[1]
+    count = 0
+    img_rows = None
+    img = []
+    for node_no in range(packet_count):
+        packet = packet_array[:, node_no]
+        if img_rows is not None:
+            img_rows = torch.cat([img_rows, packet], axis=2)
+        else:
+            img_rows = packet
+        count += 1
+        if count >= np.sqrt(packet_count):
+            count = 0
+            img.append(img_rows)
+            img_rows = None
+    img = torch.cat(img, axis=1)
     return img
 
 
@@ -67,14 +93,14 @@ def main():
     print("train set loaded.", style_gan_array.shape, ffhq_array.shape)
 
     # mean image plots
-    gan_mean_packet_image = _generate_packet_image(
+    gan_mean_packet_image = generate_packet_image(
         np.mean(style_gan_array, axis=(0, -1)))
-    ffhq_mean_packet_image = _generate_packet_image(
+    ffhq_mean_packet_image = generate_packet_image(
         np.mean(ffhq_array, axis=(0, -1)))
     # std image plots
-    gan_std_packet_image = _generate_packet_image(
+    gan_std_packet_image = generate_packet_image(
         np.std(style_gan_array, axis=(0, -1)))
-    ffhq_std_packet_image = _generate_packet_image(
+    ffhq_std_packet_image = generate_packet_image(
         np.std(ffhq_array, axis=(0, -1)))
 
     fig = plt.figure(figsize=(8, 6))
