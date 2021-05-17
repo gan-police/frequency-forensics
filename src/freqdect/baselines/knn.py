@@ -2,7 +2,6 @@
 As found at:
 https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/baselines/knn.py
 """
-from concurrent.futures import ProcessPoolExecutor
 from .classifier import Classifier, read_dataset
 from sklearn.neighbors import KNeighborsClassifier
 from .utils import PersistentDefaultDict
@@ -33,25 +32,22 @@ class KNNClassifier(Classifier):
         train_data, train_labels = read_dataset(datasets_dir, f'{dataset_name}_train')
         val_data, val_labels = read_dataset(datasets_dir, f'{dataset_name}_val')
 
-        def grid_search_step(n_neighbors: int):
+        for n_neighbors in knn_grid:
             knn_params_str = f'n_neighbors.{n_neighbors}'
             print(f"[+] {knn_params_str}")
 
             # skip if result already exists
             if dataset_name in results.as_dict() and \
                     knn_params_str in results.as_dict()[dataset_name]:
-                return None
+                continue
 
             # train and test classifier
             knn = KNNClassifier(n_neighbors, n_jobs)
             knn.fit(train_data, train_labels)
-            return knn.score(val_data, val_labels)
+            score = knn.score(val_data, val_labels)
 
-        # start multiple processes to run the classifier in parallel for different parameters
-        with ProcessPoolExecutor() as executor:
-            for n_neighbors, score in zip(knn_grid, executor.map(grid_search_step, knn_grid)):
-                if score is not None:
-                    results[dataset_name, n_neighbors] = score
+            # store result
+            results[dataset_name, knn_params_str] = score
 
         return results
 
