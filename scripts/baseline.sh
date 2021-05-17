@@ -12,7 +12,7 @@
 
 echo baseline.sh started at `date +"%T"`
 
-ANACONDA_ENV="$HOME/env/intel"
+ANACONDA_ENV="$HOME/env/intel38"
 
 OUTPUT_DIR="baselines/results"
 DATASETS_DIR="/home/ndv/projects/wavelets/frequency-forensics_felix/data"
@@ -45,11 +45,7 @@ finalize_job()
 # Call finalize_job function as soon as we receive USR1 signal (2 min before timeout)
 trap 'finalize_job' USR1
 
-module load Anaconda3
 source activate "$ANACONDA_ENV"
-
-# patch sklearn with daal4py for performance improvements
-export USE_DAAL4PY_SKLEARN=YES python
 
 if [ -f ${DATASETS_DIR}/${TAR_NAME} ]; then
   echo "Tarred raw input folder exists, copying to $TMPDIR"
@@ -80,7 +76,7 @@ python -u -m freqdect.baselines.baselines \
   --command grid_search \
   --output_dir $OUTPUT_DIR \
   --datasets_dir $DATASETS_DIR \
-  --datasets $LSUN_DATASET_RAW \
+  --datasets $LSUN_DATASET_PACKETS \
   --n_jobs 32 \
   $BASELINE
 
