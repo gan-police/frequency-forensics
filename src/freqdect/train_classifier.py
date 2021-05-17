@@ -2,11 +2,21 @@ import argparse
 import pickle
 
 import numpy as np
-from numpy.core.numeric import outer
+# from numpy.core.numeric import outer
 import torch
 from torch.nn.modules import linear
 from torch.utils.data import DataLoader
 from data_loader import LoadNumpyDataset
+from plot_mean_packets import generate_packet_image_tensor
+
+
+def compute_parameter_total(net):
+    total = 0
+    for p in net.parameters():
+        if p.requires_grad:
+            print(p.shape)
+            total += np.prod(p.shape)
+    return total
 
 
 class CNN(torch.nn.Module):
@@ -16,15 +26,14 @@ class CNN(torch.nn.Module):
 
         if self.packets:
             self.layers = torch.nn.Sequential(
-                torch.nn.Conv2d(192, 32, 3),
+                torch.nn.Conv2d(192, 8, 8),
                 torch.nn.ReLU(),
-                torch.nn.Conv2d(32, 64, 3),
+                torch.nn.Conv2d(8, 8, 9),
                 torch.nn.ReLU(),
-                torch.nn.Conv2d(64, 64, 3),
-                torch.nn.ReLU(),
-                torch.nn.Conv2d(64, 256, 3),
-                torch.nn.ReLU())
-            self.linear = torch.nn.Linear(8 * 8 * 256, classes)
+                # torch.nn.Conv2d(256, 256, 3),
+                # torch.nn.ReLU()
+            )
+            self.linear = torch.nn.Linear(8, classes)
         else:
             self.layers = torch.nn.Sequential(
                 torch.nn.Conv2d(3, 8, 3, 1),
@@ -37,11 +46,11 @@ class CNN(torch.nn.Module):
                 torch.nn.AvgPool2d(2, 2),
                 torch.nn.Conv2d(16, 32, 3),
                 torch.nn.ReLU())
-            self.linear = torch.nn.Linear(32*28*28, classes)
+            self.linear = torch.nn.Linear(32 * 28 * 28, classes)
         self.logsoftmax = torch.nn.LogSoftmax(dim=-1)
 
     def forward(self, x):
-
+        # x = generate_packet_image_tensor(x)
         if self.packets:
             # batch_size, packets, height, width, channels
             shape = x.shape
@@ -161,9 +170,11 @@ def main():
     torch.manual_seed(args.seed)
 
     if args.features == "packets":
+        # ffhq-stylegan defaults
         default_mean = torch.tensor([1.2739, 1.2591, 1.2542])
         default_std = torch.tensor([3.0472, 2.9926, 3.0297])
     elif args.features == "raw":
+        # ffhq-stylegan defaults
         default_mean = torch.tensor([132.6314, 108.3550, 96.8289])
         default_std = torch.tensor([71.1634, 64.5999, 64.9532])
     else:
@@ -215,6 +226,8 @@ def main():
         model = Regression(args.nclasses).cuda()
     else:
         model = CNN(args.nclasses, args.features == 'packets').cuda()
+
+    print('model parameter count:', compute_parameter_total(model))
 
     loss_fun = torch.nn.NLLLoss()
     optimizer = torch.optim.Adam(

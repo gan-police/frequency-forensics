@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
 from data_loader import LoadNumpyDataset
+from plot_mean_packets import generate_packet_image
 
 
 def _plot_mean_std(x, mean, std, color, label="", marker="."):
@@ -9,37 +9,8 @@ def _plot_mean_std(x, mean, std, color, label="", marker="."):
     plt.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
 
 
-def _generate_packet_image(packet_array):
-    """ Arrange a  packet array  as an image for imshow.
-
-    Args:
-        packet_array ([np.array): The [packet_no, height, width] packets
-
-    Returns:
-        [np.array]: The image of shape [height, width]
-    """
-    packet_count = packet_array.shape[0]
-    count = 0
-    img_rows = None
-    img = []
-    for node_no in range(packet_count):
-        packet = packet_array[node_no]
-        if img_rows is not None:
-            img_rows = np.concatenate([img_rows, packet], axis=1)
-        else:
-            img_rows = packet
-        count += 1
-        if count >= np.sqrt(packet_count):
-            count = 0
-            img.append(img_rows)
-            img_rows = None
-    img = np.concatenate(img, axis=0)
-    return img
-
-
 def main():
     # https://en.wikipedia.org/wiki/Grand_mean
-
     # raw images - use only the training set.
     train_packet_set = LoadNumpyDataset("./data/ffhq_stylegan_large_packets_train_2")
 
@@ -73,8 +44,8 @@ def main():
     grand_ffhq_mean_packet = np.mean(np.stack(ffhq_mean_packet_lst, axis=0), axis=0)
 
     # mean image plots
-    gan_mean_packet_image = _generate_packet_image(grand_gan_mean_packet)
-    ffhq_mean_packet_image = _generate_packet_image(grand_ffhq_mean_packet)
+    gan_mean_packet_image = generate_packet_image(grand_gan_mean_packet)
+    ffhq_mean_packet_image = generate_packet_image(grand_ffhq_mean_packet)
 
     fig = plt.figure(figsize=(8, 6))
     columns = 3
