@@ -100,4 +100,6 @@ def parse_args():
 
 
 if __name__ == "__main__":
+    import sklearnex
+    sklearnex.patch_sklearn()
     main(**vars(parse_args()))
