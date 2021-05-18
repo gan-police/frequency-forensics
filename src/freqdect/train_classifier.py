@@ -26,14 +26,14 @@ class CNN(torch.nn.Module):
 
         if self.packets:
             self.layers = torch.nn.Sequential(
-                torch.nn.Conv2d(192, 8, 8),
+                torch.nn.Conv2d(192, 24, 3),
                 torch.nn.ReLU(),
-                torch.nn.Conv2d(8, 8, 9),
+                torch.nn.Conv2d(24, 24, 6),
                 torch.nn.ReLU(),
-                # torch.nn.Conv2d(256, 256, 3),
-                # torch.nn.ReLU()
+                torch.nn.Conv2d(24, 24, 9),
+                torch.nn.ReLU()
             )
-            self.linear = torch.nn.Linear(8, classes)
+            self.linear = torch.nn.Linear(24, classes)
         else:
             self.layers = torch.nn.Sequential(
                 torch.nn.Conv2d(3, 8, 3, 1),
@@ -62,7 +62,6 @@ class CNN(torch.nn.Module):
         x = x.permute([0, 3, 1, 2])
 
         out = self.layers(x)
-        # print(out.shape)
         out = torch.reshape(out, [out.shape[0], -1])
         out = self.linear(out)
         return self.logsoftmax(out)
@@ -184,7 +183,7 @@ def main():
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
         mean = torch.tensor(args.normalize[: num_of_norm_vals // 2])
-        std = torch.tensor(args.normalize[(num_of_norm_vals // 2) :])
+        std = torch.tensor(args.normalize[(num_of_norm_vals // 2):])
     elif args.calc_normalization:
         # load train data and compute mean and std
         train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
@@ -258,7 +257,7 @@ def main():
             if step_total % 100 == 0:
                 print("validating....")
                 validation_list.append(
-                    [step_total, val_test_loop(val_data_loader, model, loss_fun)]
+                    [step_total, e, val_test_loop(val_data_loader, model, loss_fun)]
                 )
                 if validation_list[-1] == 1.0:
                     print("val acc ideal stopping training.")
@@ -292,6 +291,7 @@ def main():
             "val_acc": validation_list,
             "test_acc": test_acc,
             "args": args,
+            "iterations_per_epoch": len(iter(train_data_loader))
         }
     )
     pickle.dump(res, open(stats_file, "wb"))
