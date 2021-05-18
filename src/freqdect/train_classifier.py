@@ -273,7 +273,8 @@ def main():
         test_acc = val_test_loop(test_data_loader, model, loss_fun)
         print("test acc", test_acc)
 
-    stats_file = "./log/" + args.data_prefix.split("/")[-1] + ".pkl"
+    stats_file = "./log/" + args.data_prefix.split("/")[-1] \
+        + '_' + str(args.model) + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
     except (OSError, IOError) as e:
