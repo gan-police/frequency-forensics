@@ -7,7 +7,7 @@ import torch
 from torch.nn.modules import linear
 from torch.utils.data import DataLoader
 from data_loader import LoadNumpyDataset
-from plot_mean_packets import generate_packet_image_tensor
+#from plot_mean_packets import generate_packet_image_tensor
 
 
 def compute_parameter_total(net):
