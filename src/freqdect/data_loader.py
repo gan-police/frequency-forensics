@@ -56,6 +56,12 @@ def main():
         default="./data/source_data_packets_train",
         help="path of wavelet packets of training data (default: ./data/source_data_packets_train)",
     )
+    parser.add_argument(
+        "-c",
+        "-channelwise",
+        action="store_true",
+        help="calculate the mean and std for each channel of the data separately"
+    )
 
     args = parser.parse_args()
 
@@ -74,11 +80,17 @@ def main():
         img_data = torch.stack(img_lst, 0)
 
         # average all axis except the color channel
-        axis = tuple(np.arange(len(img_data.shape[:-1])))
+        if args.channelwise:
+            axis = tuple(np.arange(len(img_data.shape[:-1])))
 
-        # calculate mean and std in double to avoid precision problems
-        mean = torch.mean(img_data.double(), axis).float()
-        std = torch.std(img_data.double(), axis).float()
+            # calculate mean and std in double to avoid precision problems
+            mean = torch.mean(img_data.double(), axis).float()
+            std = torch.std(img_data.double(), axis).float()
+        else:
+            # calculate mean and std in double to avoid precision problems
+            mean = torch.mean(img_data.double()).float()
+            std = torch.std(img_data.double()).float()
+
         return img_data, mean, std
 
     # packets
