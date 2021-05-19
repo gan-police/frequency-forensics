@@ -51,18 +51,19 @@ class Classifier(object):
         return instance
 
 
-def read_dataset(datasets_dir, dataset_name, subset_to_size=None, flatten=True):
+def read_dataset(datasets_dir, dataset_name, subset_to_size=None, flatten=True, mean=None, std=None):
     print(f"[+] Read from {dataset_name}")
     dataset_dir = datasets_dir / dataset_name
 
     labels = np.load(dataset_dir.joinpath("labels.npy"))
-
     if not subset_to_size:
         # read full dataset
         imgs = []
         for idx in tqdm(range(labels.size), bar_format='    {l_bar}{bar:30}{r_bar}'):
             img_path = dataset_dir.joinpath(f'{idx:06}.npy')
             img = np.load(img_path)
+            if mean is not None:
+                img = (img-mean)/std
             imgs.append(img)
         imgs = np.stack(imgs, 0)
         if flatten:
@@ -82,7 +83,10 @@ def read_dataset(datasets_dir, dataset_name, subset_to_size=None, flatten=True):
 
             if sizes_per_label[label] < size_per_label:
                 img_path = dataset_dir.joinpath(f'{idx:06}.npy')
-                subset_data.append(np.load(img_path))
+                img = np.load(img_path)
+                if mean is not None:
+                    img = (img - mean) / std
+                subset_data.append(img)
                 subset_labels.append(label) 
                 p_bar.update(1)
                 sizes_per_label[label] += 1

@@ -48,7 +48,7 @@ class PCAClassifier(Classifier):
                 yield params
 
     @staticmethod
-    def grid_search(dataset_name, datasets_dir, output_dir, n_jobs):
+    def grid_search(dataset_name, datasets_dir, output_dir, n_jobs, mean=None, std=None):
         # hyperparameter grid
         pca_target_variances = [0.25, 0.5, 0.75, 0.95]
         svm_grid = [
@@ -59,8 +59,8 @@ class PCAClassifier(Classifier):
         results = PersistentDefaultDict(output_dir.joinpath(f'eigenfaces_grid_search.json'))
 
         # load data
-        train_data, train_labels = read_dataset(datasets_dir, f'{dataset_name}_train')
-        val_data, val_labels = read_dataset(datasets_dir, f'{dataset_name}_val')
+        train_data, train_labels = read_dataset(datasets_dir, f'{dataset_name}_train', mean=mean, std=std)
+        val_data, val_labels = read_dataset(datasets_dir, f'{dataset_name}_val', mean=mean, std=std)
 
         for pca_target_variance in pca_target_variances:
             # enumerate svm params
@@ -75,7 +75,7 @@ class PCAClassifier(Classifier):
                     continue
 
                 # load training data for PCA
-                train_data_pca, _ = read_dataset(datasets_dir, f'{dataset_name}_train', subset_to_size=10000)
+                train_data_pca, _ = read_dataset(datasets_dir, f'{dataset_name}_train', subset_to_size=10000, mean=mean, std=std)
 
                 # train and test classifier
                 pca = PCAClassifier(pca_target_variance, svm_params)
@@ -89,12 +89,12 @@ class PCAClassifier(Classifier):
         return results
 
     @staticmethod
-    def train_classifier(dataset_name, datasets_dir, output_dir, n_jobs, pca_target_variance, C):
+    def train_classifier(dataset_name, datasets_dir, output_dir, n_jobs, pca_target_variance, C, mean=None, std=None):
         # classifier name
         classifier_name = f'classifier_{dataset_name}_eigenfaces_v.{pca_target_variance}_c.{C}'
         # load data
-        train_data, train_labels = read_dataset(datasets_dir, f'{dataset_name}_train')
-        train_data_pca, _ = read_dataset(datasets_dir, f'{dataset_name}_train', subset_to_size=10000)
+        train_data, train_labels = read_dataset(datasets_dir, f'{dataset_name}_train', mean=mean, std=std)
+        train_data_pca, _ = read_dataset(datasets_dir, f'{dataset_name}_train', subset_to_size=10000, mean=mean, std=std)
         # train
         pca = PCAClassifier(pca_target_variance=pca_target_variance, svm_params={'C': C})
         pca.fit_pca(train_data_pca)
@@ -104,10 +104,10 @@ class PCAClassifier(Classifier):
         PCAClassifier.test_classifier(classifier_name, dataset_name, datasets_dir, output_dir, n_jobs)
 
     @staticmethod
-    def test_classifier(classifier_name, dataset_name, datasets_dir, output_dir, n_jobs):
+    def test_classifier(classifier_name, dataset_name, datasets_dir, output_dir, n_jobs, mean=None, std=None):
         results = PersistentDefaultDict(output_dir.joinpath(f'eigenfaces_test.json'))
         # load data
-        test_data, test_labels = read_dataset(datasets_dir, f'{dataset_name}_test')
+        test_data, test_labels = read_dataset(datasets_dir, f'{dataset_name}_test', mean=mean, std=std)
         # load classifier
         pca = PCAClassifier.load(output_dir.joinpath(f'{classifier_name}.pickle'))
         # score

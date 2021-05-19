@@ -20,7 +20,7 @@ class KNNClassifier(Classifier):
         return self.knn.score(test_data, test_labels)
 
     @staticmethod
-    def grid_search(dataset_name, datasets_dir, output_dir, n_jobs):
+    def grid_search(dataset_name, datasets_dir, output_dir, n_jobs, mean=None, std=None):
 
         # hyperparameter grid
         knn_grid = [1] + [(2 ** x) + 1 for x in range(1, 11)]
@@ -29,8 +29,8 @@ class KNNClassifier(Classifier):
         results = PersistentDefaultDict(output_dir.joinpath(f'knn_grid_search.json'))
 
         # load data
-        train_data, train_labels = read_dataset(datasets_dir, f'{dataset_name}_train')
-        val_data, val_labels = read_dataset(datasets_dir, f'{dataset_name}_val')
+        train_data, train_labels = read_dataset(datasets_dir, f'{dataset_name}_train', mean=mean, std=std)
+        val_data, val_labels = read_dataset(datasets_dir, f'{dataset_name}_val', mean=mean, std=std)
 
         for n_neighbors in knn_grid:
             knn_params_str = f'n_neighbors.{n_neighbors}'
@@ -52,13 +52,13 @@ class KNNClassifier(Classifier):
         return results
 
     @staticmethod
-    def train_classifier(dataset_name, datasets_dir, output_dir, n_jobs, n_neighbors):
+    def train_classifier(dataset_name, datasets_dir, output_dir, n_jobs, n_neighbors, mean=None, std=None):
         results = PersistentDefaultDict(output_dir.joinpath(f'knn_test.json'))
         # classifier name
         classifier_name = f'classifier_{dataset_name}_knn_n_neighbors.{n_neighbors}'
         # load data
-        train_data, train_labels = read_dataset(datasets_dir, f'{dataset_name}_train')
-        test_data, test_labels = read_dataset(datasets_dir, f'{dataset_name}_test')
+        train_data, train_labels = read_dataset(datasets_dir, f'{dataset_name}_train', mean=mean, std=std)
+        test_data, test_labels = read_dataset(datasets_dir, f'{dataset_name}_test', mean=mean, std=std)
         # train classifier
         knn = KNNClassifier(n_neighbors, n_jobs)
         knn.fit(train_data, train_labels)

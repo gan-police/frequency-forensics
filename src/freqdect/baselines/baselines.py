@@ -3,12 +3,14 @@ As found at:
 https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/baselines/baselines.py
 """
 import argparse
+import numpy as np
 from multiprocessing import cpu_count
 from pathlib import Path
 
 from .eigenface import PCAClassifier
 from .knn import KNNClassifier
 from .prnu import PRNUClassifier
+from .classifier import read_dataset
 
 CLASSIFIER_CLS = {
     'prnu': PRNUClassifier,
@@ -18,7 +20,7 @@ CLASSIFIER_CLS = {
 
 
 def main(command, baseline, datasets, datasets_dir, output_dir, n_jobs,
-         classifier_name, **classifier_args):
+         classifier_name, normalize, calc_normalization, **classifier_args):
     print("[+] ARGUMENTS")
     print(f"    -> command      @ {command}")
     print(f"    -> baseline     @ {baseline}")
@@ -44,7 +46,30 @@ def main(command, baseline, datasets, datasets_dir, output_dir, n_jobs,
         best_results = {}
         for dataset_name in datasets:
             print(f'\n{dataset_name.upper()}')
-            results = classifier_cls.grid_search(dataset_name, datasets_dir, output_dir, n_jobs)
+
+            if normalize:
+                num_of_norm_vals = len(normalize)
+                assert num_of_norm_vals == 2 or num_of_norm_vals == 6
+                mean = np.array(normalize[: num_of_norm_vals // 2])
+                std = np.array(normalize[(num_of_norm_vals // 2) :])
+            elif calc_normalization:
+                # load train data and compute mean and std
+                train_data_set = read_dataset(datasets_dir, f'{dataset_name}_train', flatten=False)
+
+                # average all axis except the color channel
+                axis = tuple(np.arange(len(train_data_set.shape[:-1])))
+
+                # calculate mean and std in double to avoid precision problems
+                mean = np.mean(train_data_set.double(), axis).float()
+                std = np.std(train_data_set.double(), axis).float()
+            else:
+                mean = None
+                std = None
+
+            print(f'\t\tmean: {mean}')
+            print(f'\t\tstd: {std}')
+
+            results = classifier_cls.grid_search(dataset_name, datasets_dir, output_dir, n_jobs, mean=mean, std=std)
             # get best result
             best_results[dataset_name] = sorted(results.as_dict()[dataset_name].items(),
                                                 key=lambda e: e[1]).pop()
@@ -76,6 +101,20 @@ def parse_args():
     parser.add_argument("--datasets_dir", help="Directory containing the dataset(s).", type=Path, required=True)
     parser.add_argument("--output_dir", help="Working directory containing results and classifiers.", type=Path,
                         required=True)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--normalize",
+        nargs="+",
+        type=float,
+        metavar=("MEAN", "STD"),
+        help="normalize with specified values for mean and standard deviation (either 2 or 6 values "
+        "are accepted)",
+    )
+    group.add_argument(
+        "--calc-normalization",
+        action="store_true",
+        help="calculates mean and standard deviation used in normalization from the training data",
+    )
 
     parser.add_argument("--classifier_name",
                         help="Name of classifier (located within output directory). Only used when command set to "
