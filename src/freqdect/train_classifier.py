@@ -141,7 +141,7 @@ def main():
     )
 
     parser.add_argument(
-        "--model", 
+        "--model",
         choices=["regression", "CNN"],
         default="regression",
         help="The model type chosse regression or CNN. Default: Regression."
@@ -250,8 +250,8 @@ def main():
             loss.backward()
             optimizer.step()
             step_total += 1
-            loss_list.append([step_total, loss.item()])
-            accuracy_list.append([step_total, acc.item()])
+            loss_list.append([step_total, e, loss.item()])
+            accuracy_list.append([step_total, e, acc.item()])
 
             # iterate over val batches.
             if step_total % 100 == 0:
@@ -284,7 +284,6 @@ def main():
             "stats.pickle does not exist, \
               creating a new file.",
         )
-
     res.append(
         {
             "train_loss": loss_list,
