@@ -199,6 +199,7 @@ def main():
         # calculate mean and std in double to avoid precision problems
         mean = torch.mean(img_data.double(), axis).float()
         std = torch.std(img_data.double(), axis).float()
+        del img_data
     else:
         mean = default_mean
         std = default_std
