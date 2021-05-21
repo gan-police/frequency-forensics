@@ -14,7 +14,7 @@ from typing import Optional
 import numpy as np
 from PIL import Image
 
-from wavelet_math import batch_packet_preprocessing, identity_processing
+from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def get_label(path_to_image: Path) -> int:
@@ -28,6 +28,8 @@ def get_label(path_to_image: Path) -> int:
         label = 2
     elif label_str == "D":
         label = 3
+    elif label_str == "E":
+        label = 4
     else:
         raise NotImplementedError(label_str)
     return label
