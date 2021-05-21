@@ -57,7 +57,7 @@ class PRNUClassifier(Classifier):
         return score
 
     @staticmethod
-    def grid_search(dataset_name, datasets_dir, output_dir, n_jobs):
+    def grid_search(dataset_name, datasets_dir, output_dir, n_jobs, mean=None, std=None):
         # init results
         results = PersistentDefaultDict(output_dir.joinpath(f'prnu_grid_search.json'))
 

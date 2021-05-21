@@ -3,7 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
-from data_loader import LoadNumpyDataset
+from .data_loader import LoadNumpyDataset
 
 
 def _plot_mean_std(x, mean, std, color, label="", marker="."):
