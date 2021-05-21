@@ -60,10 +60,21 @@ def compute_pytorch_packet_representation_2d_image(
     return wp_pt
 
 
-def compute_pytorch_packet_representation_2d_tensor(
-    pt_data, wavelet_str: str = "db5", max_lev: int = 5
-):
-    """Create a multichannel packet tensor."""
+def compute_pytorch_packet_representation_2d_tensor(pt_data, wavelet_str: str = "db5",
+                                                    max_lev: int = 5):
+    """Compute the wavelet packet representation tensor for
+       a batch of input images.
+
+    Args:
+        pt_data (torch.tensor): Image tensor of shape [batch, height, width]
+        wavelet_str (str, optional): Wavelet description string. Must be Pywt compatible.
+                                     Defaults to "db5".
+        max_lev (int, optional): The maximum decomposition level to compute. Defaults to 5.
+
+    Returns:
+        [torch.tensor]: The packet tensor of shape [batch_size, packet_no,
+                        packet_height, packet_widht]
+    """
     wavelet = pywt.Wavelet(wavelet_str)
     ptwt_wp_tree = ptwt.WaveletPacket2D(data=pt_data, wavelet=wavelet, mode="reflect")
 
@@ -79,7 +90,8 @@ def compute_pytorch_packet_representation_2d_tensor(
     return wp_pt
 
 
-def batch_packet_preprocessing(image_batch, wavelet="db1", max_lev=3, eps=1e-12):
+def batch_packet_preprocessing(image_batch, wavelet="db1", max_lev=3, eps=1e-12,
+                               log_scale=False):
     """Preprosess image batches by computing the wavelet packet
        representation as well as log scaling their absolute value.
 
@@ -90,6 +102,9 @@ def batch_packet_preprocessing(image_batch, wavelet="db1", max_lev=3, eps=1e-12)
         max_lev (int, optional): The number of decomposition scales
             to use. Defaults to 3.
         eps: A small number to stabilize the logarithm.
+        log_scale: Use log-scaling if True.
+                   Log-scaled coefficients aren't invertible.
+                   Default: False.
 
     Returns:
         [np.array]: The wavelet packets [B, N, H, W, C].
@@ -105,8 +120,9 @@ def batch_packet_preprocessing(image_batch, wavelet="db1", max_lev=3, eps=1e-12)
         channels.append(channel_packets)
     packets = torch.stack(channels, -1)
     del channels
-    packets = torch.abs(packets)
-    packets = torch.log(packets + eps)
+    if log_scale:
+        packets = torch.abs(packets)
+        packets = torch.log(packets + eps)
     return packets.cpu().numpy()
 
 

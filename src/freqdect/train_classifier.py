@@ -7,7 +7,7 @@ import torch
 from torch.nn.modules import linear
 from torch.utils.data import DataLoader
 from .data_loader import LoadNumpyDataset
-from .plot_mean_packets import generate_packet_image_tensor
+#from .plot_mean_packets import generate_packet_image_tensor
 
 
 def compute_parameter_total(net):
@@ -26,14 +26,14 @@ class CNN(torch.nn.Module):
 
         if self.packets:
             self.layers = torch.nn.Sequential(
-                torch.nn.Conv2d(192, 8, 8),
+                torch.nn.Conv2d(192, 24, 3),
                 torch.nn.ReLU(),
-                torch.nn.Conv2d(8, 8, 9),
+                torch.nn.Conv2d(24, 24, 6),
                 torch.nn.ReLU(),
-                # torch.nn.Conv2d(256, 256, 3),
-                # torch.nn.ReLU()
+                torch.nn.Conv2d(24, 24, 9),
+                torch.nn.ReLU()
             )
-            self.linear = torch.nn.Linear(8, classes)
+            self.linear = torch.nn.Linear(24, classes)
         else:
             self.layers = torch.nn.Sequential(
                 torch.nn.Conv2d(3, 8, 3, 1),
@@ -62,7 +62,6 @@ class CNN(torch.nn.Module):
         x = x.permute([0, 3, 1, 2])
 
         out = self.layers(x)
-        # print(out.shape)
         out = torch.reshape(out, [out.shape[0], -1])
         out = self.linear(out)
         return self.logsoftmax(out)
@@ -142,7 +141,7 @@ def main():
     )
 
     parser.add_argument(
-        "--model", 
+        "--model",
         choices=["regression", "CNN"],
         default="regression",
         help="The model type chosse regression or CNN. Default: Regression."
@@ -184,7 +183,7 @@ def main():
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
         mean = torch.tensor(args.normalize[: num_of_norm_vals // 2])
-        std = torch.tensor(args.normalize[(num_of_norm_vals // 2) :])
+        std = torch.tensor(args.normalize[(num_of_norm_vals // 2):])
     elif args.calc_normalization:
         # load train data and compute mean and std
         train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
@@ -200,6 +199,7 @@ def main():
         # calculate mean and std in double to avoid precision problems
         mean = torch.mean(img_data.double(), axis).float()
         std = torch.std(img_data.double(), axis).float()
+        del img_data
     else:
         mean = default_mean
         std = default_std
@@ -251,14 +251,14 @@ def main():
             loss.backward()
             optimizer.step()
             step_total += 1
-            loss_list.append([step_total, loss.item()])
-            accuracy_list.append([step_total, acc.item()])
+            loss_list.append([step_total, e, loss.item()])
+            accuracy_list.append([step_total, e, acc.item()])
 
             # iterate over val batches.
             if step_total % 100 == 0:
                 print("validating....")
                 validation_list.append(
-                    [step_total, val_test_loop(val_data_loader, model, loss_fun)]
+                    [step_total, e, val_test_loop(val_data_loader, model, loss_fun)]
                 )
                 if validation_list[-1] == 1.0:
                     print("val acc ideal stopping training.")
@@ -274,7 +274,8 @@ def main():
         test_acc = val_test_loop(test_data_loader, model, loss_fun)
         print("test acc", test_acc)
 
-    stats_file = "./log/" + args.data_prefix.split("/")[-1] + ".pkl"
+    stats_file = "./log/" + args.data_prefix.split("/")[-1] \
+        + '_' + str(args.model) + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
     except (OSError, IOError) as e:
@@ -284,7 +285,6 @@ def main():
             "stats.pickle does not exist, \
               creating a new file.",
         )
-
     res.append(
         {
             "train_loss": loss_list,
@@ -292,6 +292,7 @@ def main():
             "val_acc": validation_list,
             "test_acc": test_acc,
             "args": args,
+            "iterations_per_epoch": len(iter(train_data_loader))
         }
     )
     pickle.dump(res, open(stats_file, "wb"))

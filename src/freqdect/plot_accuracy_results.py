@@ -8,7 +8,10 @@ def stack_list(dict_list, key: str):
     step_lst = []
     acc_lst = []
     for current_dictionary in dict_list:
-        steps, acc = zip(*current_dictionary[key])
+        if len(current_dictionary[key][0]) == 2:
+            steps, acc = zip(*current_dictionary[key])
+        elif len(current_dictionary[key][0]) == 3:
+            steps, epochs, acc = zip(*current_dictionary[key])
         step_lst.append(steps)
         acc_lst.append(acc)
     return np.stack(step_lst), np.stack(acc_lst)
@@ -39,12 +42,11 @@ def get_test_acc_mean_std(dict_list: dict, key: str):
 
 
 def main():
-    raw_logs = pickle.load(open("./log/celeba_align_png_cropped_raw2.pkl", "rb"))
-    packet_logs = pickle.load(open("./log/celeba_align_png_cropped_packets2.pkl", "rb"))
+    packet_logs = pickle.load(open("./log/celeba_align_png_cropped_packets_regression.pkl", "rb"))
+    raw_logs = pickle.load(open("./log/celeba_align_png_cropped_raw_regression.pkl", "rb"))
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
     steps, mean, std = get_plot_tuple(raw_logs, "train_acc")
-
     steps, mean, std = get_plot_tuple(raw_logs, "val_acc")
     plot_mean_std(steps, mean, std, color=colors[0], label="raw validation acc")
 
