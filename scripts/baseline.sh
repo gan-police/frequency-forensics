@@ -3,13 +3,13 @@
 #SBATCH --nodes=1
 # Use all CPUs on the node
 #SBATCH --cpus-per-task=32
-#SBATCH --job-name=baselines
-#SBATCH --output=baselines-%j.out
-#SBATCH --error=baselines-%j.err
+#SBATCH --job-name=l-eigenfaces-lsun
+#SBATCH --output=l-eigenfaces-lsun-%j.out
+#SBATCH --error=l-eigenfaces-lsun-%j.err
 # Send the USR1 signal 120 seconds before end of time limit
 #SBATCH --signal=B:USR1@120
 # Set time limit to override default limit
-#SBATCH --time=24:00:00
+#SBATCH --time=48:00:00
 
 
 echo baseline.sh started at `date +"%T"`
@@ -18,21 +18,35 @@ ANACONDA_ENV="$HOME/env/intel38"
 
 OUTPUT_DIR="baselines/results"
 DATASETS_DIR="/home/ndv/projects/wavelets/frequency-forensics_felix/data"
-LSUN_DATASET_RAW="lsun_bedroom_200k_png_raw_baseline"
-LSUN_DATASET_PACKETS="lsun_bedroom_200k_png_packets_baseline"
-LSUN_DATASET_TEST="ex_lsun_bedroom_200k_png_packets"
-TAR_NAME="lsun_bedroom_200k_png_baseline.tar"
+
+LSUN_DATASET_LOGPACKETS="lsun_bedroom_200k_png_baseline_logpackets"
+LSUN_DATASET_PACKETS="lsun_bedroom_200k_png_baseline_packets"
+LSUN_DATASET_RAW="lsun_bedroom_200k_png_baseline_raw"
+
+CELEBA_DATASET_LOGPACKETS="celeba_align_png_cropped_baselines_logpackets"
+CELEBA_DATASET_PACKETS="celeba_align_png_cropped_baselines_packets"
+CELEBA_DATASET_RAW="celeba_align_png_cropped_baselines_raw"
+
 
 # select baseline to compute from {"knn", "prnu", "eigenfaces"}
-BASELINE="knn"
+BASELINE="eigenfaces"
 
 # first three are channelwise mean, last three channelwise std
 MEAN_STD_RAW_CHANNELWISE="175.4984 163.5837 152.6461 56.3215 60.2467 64.2528"
 MEAN_STD_PACKETS_CHANNELWISE="0.1826 0.2155 0.2154 4.4256 4.3896 4.3595"
 
 # first is overall mean, last is overall std
-MEAN_STD_PACKETS="0.2045 4.3917"
-MEAN_STD_RAW="163.9094 61.0777"
+LSUN_MEAN_STD_LOGPACKETS="0.3281 4.2175"
+LSUN_MEAN_STD_PACKETS="19.8486 168.9453"
+LSUN_MEAN_STD_RAW="157.9363 63.1872"
+
+CELEBA_MEAN_STD_LOGPACKETS="0.7375 3.4890"
+CELEBA_MEAN_STD_PACKETS="17.5999 155.5985"
+CELEBA_MEAN_STD_RAW="140.8967 68.3285"
+
+CHOSEN_DATASET=$LSUN_DATASET_LOGPACKETS
+CHOSEN_NORMALIZATION=$LSUN_MEAN_STD_LOGPACKETS
+
 
 cp_results_from_tmp()
 {
@@ -59,16 +73,16 @@ trap 'finalize_job' USR1
 module load Anaconda3
 source activate "$ANACONDA_ENV"
 
-if [ -f ${DATASETS_DIR}/${TAR_NAME} ]; then
+if [ -f ${DATASETS_DIR}/${CHOSEN_DATASET}.tar ]; then
   echo "Tarred raw input folder exists, copying to $TMPDIR"
-  cp "${DATASETS_DIR}/${TAR_NAME}" "$TMPDIR"/
+  cp "${DATASETS_DIR}/${CHOSEN_DATASET}.tar" "$TMPDIR"/
   cd "$TMPDIR"
   echo "Unpacking tarred input folder"
-  tar xf ${TAR_NAME}
+  tar xf ${CHOSEN_DATASET}.tar
   DATASETS_DIR=${TMPDIR}
 
   # delete .tar file, which is not needed anymore
-  rm ${TAR_NAME}
+  rm ${CHOSEN_DATASET}.tar
 fi
 
 # work on scratch dir
@@ -88,8 +102,8 @@ python -u -m freqdect.baselines.baselines \
   --command grid_search \
   --output_dir $OUTPUT_DIR \
   --datasets_dir $DATASETS_DIR \
-  --datasets $LSUN_DATASET_PACKETS \
-  --normalize $MEAN_STD_PACKETS \
+  --datasets $CHOSEN_DATASET \
+  --normalize $CHOSEN_NORMALIZATION \
   --n_jobs 32 \
   $BASELINE
 

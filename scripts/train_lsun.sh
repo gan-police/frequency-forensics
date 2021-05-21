@@ -2,81 +2,55 @@
 #
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
-#SBATCH --job-name=train_lsun
-#SBATCH --output=train_lsun-%j.out
-#SBATCH --error=train_lsun-%j.err
+#SBATCH --job-name=regression-lsun
+#SBATCH --output=regression-lsun-%j.out
+#SBATCH --error=regression-lsun-%j.err
 #SBATCH --ntasks=1
 #SBATCH -p gpu
 #SBATCH --gres gpu:v100:1
 #SBATCH --cpus-per-task=16
+# Set time limit to override default limit
+#SBATCH --time=48:00:00
 
-DATASETS="/home/ndv/projects/wavelets/datasets"
-DATASET_RAW="lsun_bedroom_200k_png_raw"
-DATASET_PACKETS="lsun_bedroom_200k_png_packets"
+ANACONDA_ENV="$HOME/env/intel38"
 
-ANACONDA_ENV="$HOME/myconda-env"
+DATASETS_DIR="/home/ndv/projects/wavelets/frequency-forensics_felix/data"
 
-# save working directory
-ORIG_PWD=${PWD}
+LSUN_DATASET_LOGPACKETS="lsun_bedroom_200k_png_logpackets"
+LSUN_DATASET_PACKETS="lsun_bedroom_200k_png_packets"
+LSUN_DATASET_RAW="lsun_bedroom_200k_png_raw"
 
-RAW_PREFIX=$DATASETS
-PACKETS_PREFIX=$DATASETS
+CELEBA_DATASET_LOGPACKETS="celeba_align_png_cropped_logpackets"
+CELEBA_DATASET_PACKETS="celeba_align_png_cropped_packets"
+CELEBA_DATASET_RAW="celeba_align_png_cropped_raw"
 
 module load CUDA
 module load Anaconda3
-module load PyTorch
 source activate "$ANACONDA_ENV"
 
-pip install -q -e .
+train_on_dataset() {
+  # $1 : dataset name
+  # $2 : feature
+  echo "training for $1 started at `date +"%T"`"
 
-if [ -f ${DATASETS}/${DATASET_PACKETS}.tar ]; then
-  echo "Tarred packets input folder exists, copying to $TMPDIR"
-  cp "${DATASETS}/${DATASET_PACKETS}.tar" "${TMPDIR}"
-  cd "$TMPDIR"
-  tar -xf "${DATASET_PACKETS}.tar"
-  PACKETS_PREFIX="${TMPDIR}/${DATASET_PACKETS}"
-  rm "${DATASET_PACKETS}.tar"
-fi
+  for i in 0 1 2 3 4
+  do
+    echo "$1 experiment no: $i "
+    python -m freqdect.train_classifier \
+      --features $2 \
+      --seed $i \
+      --data-prefix ${DATASETS_DIR}/$1 \
+      --nclasses 5 \
+      --calc-normalization
+  done
 
-cd "$ORIG_PWD"
+  echo "training for $1 ended at `date +"%T"`"
+}
 
-for i in 0 1 2 3 4
-do
-  echo "packet experiment no: $i "
-  python -m freqdect.train_classifier \
-	  --features packets \
-	  --seed $i \
-	  --data-prefix "$PACKETS_PREFIX" \
-	  --nclasses 4 \
-	  --calc-normalization
-done
+train_on_dataset $LSUN_DATASET_LOGPACKETS "packets"
 
-if [ -f ${DATASETS}/${DATASET_PACKETS}.tar ]; then
-  rm -r "${TMPDIR}/${DATASET_PACKETS}_*"
-fi
+train_on_dataset $LSUN_DATASET_PACKETS "packets"
 
-if [ -f ${DATASETS}/${DATASET_RAW}.tar ]; then
-  echo "Tarred raw input folder exists, copying to $TMPDIR"
-  cp "${DATASETS}/${DATASET_RAW}.tar" "${TMPDIR}"
-  cd "$TMPDIR"
-  tar -xf "${DATASET_RAW}.tar"
-  RAW_PREFIX="${TMPDIR}/${DATASET_RAW}"
-  rm "${DATASET_RAW}.tar"
-fi
+train_on_dataset $LSUN_DATASET_RAW "raw"
 
-cd "$ORIG_PWD"
-
-for i in 0 1 2 3 4
-do
-  echo "raw experiment no: $i "
-  python -m freqdect.train_classifier \
-    --features raw \
-    --seed $i \
-    --data-prefix "$RAW_PREFIX" \
-    --nclasses 4 \
-    --calc-normalization
-done
-
-if [ -f ${DATASETS}/${DATASET_RAW}.tar ]; then
-  rm -r "${TMPDIR}/${DATASET_RAW}_*"
-fi
+exit
