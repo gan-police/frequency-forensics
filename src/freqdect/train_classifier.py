@@ -7,81 +7,12 @@ import torch
 from torch.nn.modules import linear
 from torch.utils.data import DataLoader
 from data_loader import LoadNumpyDataset
-#from plot_mean_packets import generate_packet_image_tensor
+from models import CNN, Regression, MLP, compute_parameter_total
 
 
-def compute_parameter_total(net):
-    total = 0
-    for p in net.parameters():
-        if p.requires_grad:
-            print(p.shape)
-            total += np.prod(p.shape)
-    return total
-
-
-class CNN(torch.nn.Module):
-    def __init__(self, classes, packets):
-        super().__init__()
-        self.packets = packets
-
-        if self.packets:
-            self.layers = torch.nn.Sequential(
-                torch.nn.Conv2d(192, 24, 3),
-                torch.nn.ReLU(),
-                torch.nn.Conv2d(24, 24, 6),
-                torch.nn.ReLU(),
-                torch.nn.Conv2d(24, 24, 9),
-                torch.nn.ReLU()
-            )
-            self.linear = torch.nn.Linear(24, classes)
-        else:
-            self.layers = torch.nn.Sequential(
-                torch.nn.Conv2d(3, 8, 3, 1),
-                torch.nn.ReLU(),
-                torch.nn.Conv2d(8, 8, 3),
-                torch.nn.ReLU(),
-                torch.nn.AvgPool2d(2, 2),
-                torch.nn.Conv2d(8, 16, 3),
-                torch.nn.ReLU(),
-                torch.nn.AvgPool2d(2, 2),
-                torch.nn.Conv2d(16, 32, 3),
-                torch.nn.ReLU())
-            self.linear = torch.nn.Linear(32 * 28 * 28, classes)
-        self.logsoftmax = torch.nn.LogSoftmax(dim=-1)
-
-    def forward(self, x):
-        # x = generate_packet_image_tensor(x)
-        if self.packets:
-            # batch_size, packets, height, width, channels
-            shape = x.shape
-            # batch_size, height, width, packets, channels
-            x = x.permute([0, 2, 3, 1, 4])
-            # batch_size, height, width, packets*channels
-            x = x.reshape([shape[0], shape[2], shape[3], shape[1]*shape[4]])
-            # batch_size, packets*channels, height, width
-        x = x.permute([0, 3, 1, 2])
-
-        out = self.layers(x)
-        out = torch.reshape(out, [out.shape[0], -1])
-        out = self.linear(out)
-        return self.logsoftmax(out)
-
-
-class Regression(torch.nn.Module):
-    def __init__(self, classes):
-        super().__init__()
-        self.linear = torch.nn.Linear(49152, classes)
-
-        # self.activation = torch.nn.Sigmoid()
-        self.activation = torch.nn.LogSoftmax(dim=-1)
-
-    def forward(self, x):
-        x_flat = torch.reshape(x, [x.shape[0], -1])
-        return self.activation(self.linear(x_flat))
-
-
-def val_test_loop(data_loader, model, loss_fun):
+def val_test_loop(data_loader, model):
     with torch.no_grad():
+        model.eval()
         val_total = 0
         val_ok = 0
         for val_batch in iter(data_loader):
@@ -142,7 +73,7 @@ def main():
 
     parser.add_argument(
         "--model",
-        choices=["regression", "CNN"],
+        choices=["regression", "cnn", "mlp"],
         default="regression",
         help="The model type chosse regression or CNN. Default: Regression."
     )
@@ -222,10 +153,13 @@ def main():
     accuracy_list = []
     step_total = 0
 
-    if args.model == 'regression':
-        model = Regression(args.nclasses).cuda()
-    else:
+    if args.model == 'mlp':
+        model = MLP(args.nclasses).cuda()
+    elif args.model == 'cnn':
         model = CNN(args.nclasses, args.features == 'packets').cuda()
+    else:
+        model = Regression(args.nclasses).cuda()
+
 
     print('model parameter count:', compute_parameter_total(model))
 
@@ -237,6 +171,7 @@ def main():
     for e in range(args.epochs):
         # iterate over training data.
         for it, batch in enumerate(iter(train_data_loader)):
+            model.train()
             optimizer.zero_grad()
             batch_images = batch["image"].cuda(non_blocking=True)
             batch_labels = batch["label"].cuda(non_blocking=True)
@@ -255,10 +190,10 @@ def main():
             accuracy_list.append([step_total, e, acc.item()])
 
             # iterate over val batches.
-            if step_total % 100 == 0:
+            if step_total % 200 == 0:
                 print("validating....")
                 validation_list.append(
-                    [step_total, e, val_test_loop(val_data_loader, model, loss_fun)]
+                    [step_total, e, val_test_loop(val_data_loader, model)]
                 )
                 if validation_list[-1] == 1.0:
                     print("val acc ideal stopping training.")
@@ -271,7 +206,7 @@ def main():
         test_data_set, args.batch_size, shuffle=False, num_workers=2
     )
     with torch.no_grad():
-        test_acc = val_test_loop(test_data_loader, model, loss_fun)
+        test_acc = val_test_loop(test_data_loader, model)
         print("test acc", test_acc)
 
     stats_file = "./log/" + args.data_prefix.split("/")[-1] \
