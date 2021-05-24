@@ -59,6 +59,9 @@ def main():
         "--epochs", type=int, default=10, help="number of epochs (default: 10)"
     )
     parser.add_argument(
+        "--validation-interval", type=int, default=200, help="number of epochs (default: 10)"
+    )
+    parser.add_argument(
         "--data-prefix",
         type=str,
         default="./data/source_data_packets",
@@ -159,7 +162,6 @@ def main():
         model = CNN(args.nclasses, args.features == 'packets').cuda()
     else:
         model = Regression(args.nclasses).cuda()
-
 
     print('model parameter count:', compute_parameter_total(model))
 
