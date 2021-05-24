@@ -42,13 +42,13 @@ def get_test_acc_mean_std_max(dict_list: dict, key: str):
 
 
 def main():
-    packet_logs = pickle.load(open("./log/celeba_align_png_cropped_packets_regression.pkl", "rb"))
-    raw_logs = pickle.load(open("./log/celeba_align_png_cropped_raw_regression.pkl", "rb"))
+    packet_logs = pickle.load(open("./log/source_data_packets.pkl", "rb"))
+    raw_logs = pickle.load(open("./log/source_data_raw.pkl", "rb"))
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
     steps, mean, std = get_plot_tuple(raw_logs, "train_acc")
     steps, mean, std = get_plot_tuple(raw_logs, "val_acc")
-    plot_mean_std(steps, mean, std, color=colors[0], label="raw validation acc")
+    plot_mean_std(steps, mean, std, color=colors[0], label="pixel validation acc")
 
     steps, mean, std = get_plot_tuple(packet_logs, "val_acc")
     plot_mean_std(steps, mean, std, color=colors[1], label="packet validation acc")
@@ -61,17 +61,16 @@ def main():
         steps[-1], pt_mean, pt_std, color=colors[2], label="packet test acc", marker="."
     )
     plt.errorbar(
-        steps[-1], rt_mean, rt_std, color=colors[3], label="raw test acc", marker="."
+        steps[-1], rt_mean, rt_std, color=colors[3], label="pixel test acc", marker="."
     )
 
     plt.ylabel("mean accuracy")
     plt.xlabel("training steps")
-    plt.title("Accuracy Celeba-GAN source identification")
+    plt.title("FFHQ-Stylegan Source Identification")
     plt.legend()
-    if 0:
+    if 1:
         import tikzplotlib
-
-        tikzplotlib.save("celeba_source_identification.tex", standalone=True)
+        tikzplotlib.save("ffhq_style_gan.tex", standalone=True)
     else:
         plt.show()
 

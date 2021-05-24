@@ -93,7 +93,7 @@ def main():
     print("packet std", packet_std)
 
     # packet mean = 1.2623962
-    # packet str = 3.023255
+    # packet std = 3.023255
     norm = (packet_data - packet_mean) / packet_std
     print("packet norm test", torch.mean(norm))
     print("packet std test", torch.std(norm))
