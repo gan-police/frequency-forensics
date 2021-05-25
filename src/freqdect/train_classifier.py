@@ -192,7 +192,7 @@ def main():
             accuracy_list.append([step_total, e, acc.item()])
 
             # iterate over val batches.
-            if step_total % 200 == 0:
+            if step_total % args.validation_interval == 0:
                 print("validating....")
                 validation_list.append(
                     [step_total, e, val_test_loop(val_data_loader, model)]

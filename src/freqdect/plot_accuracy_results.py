@@ -68,7 +68,7 @@ def main():
     plt.xlabel("training steps")
     plt.title("FFHQ-Stylegan Source Identification")
     plt.legend()
-    if 1:
+    if 0:
         import tikzplotlib
         tikzplotlib.save("ffhq_style_gan.tex", standalone=True)
     else:
