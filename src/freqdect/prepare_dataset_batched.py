@@ -114,13 +114,15 @@ def pre_process_folder(
         train_size (int): Desired size of the test subset of each folder.
         val_size (int): Desired size of the validation subset of each folder.
         test_size (int): Desired size of the test subset of each folder.
-        feature (str): The feature to pre-compute (choose packets or None).
+        feature (str): The feature to pre-compute (choose packets, log_packets or None).
     """
     data_dir = Path(data_folder)
     target_dir = data_dir.parent / f"{data_dir.name}_{feature}"
 
     if feature == "packets":
         processing_function = batch_packet_preprocessing
+    if feature == "log_packets":
+        processing_function = functools.partial(batch_packet_preprocessing, log_scale=True)
     else:
         processing_function = identity_processing  # type: ignore
 
@@ -199,13 +201,25 @@ def parse_args():
         help="Save image data as wavelet packets.",
         action="store_true",
     )
+    parser.add_argument(
+        "--log-packets",
+        "-lp",
+        help="Save image data as wavelet packets.",
+        action="store_true",
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
     print(args)
-    feature = "packets" if args.packets else "raw"
+    if args.packets:
+        feature = "packets"
+    elif args.log_packets:
+        feature = "log_packets"
+    else:
+        feature = "raw"
+
     pre_process_folder(
         args.directory,
         args.batch_size,

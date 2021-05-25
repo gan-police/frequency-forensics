@@ -59,6 +59,9 @@ def main():
         "--epochs", type=int, default=10, help="number of epochs (default: 10)"
     )
     parser.add_argument(
+        "--validation-interval", type=int, default=200, help="number of epochs (default: 10)"
+    )
+    parser.add_argument(
         "--data-prefix",
         type=str,
         default="./data/source_data_packets",
@@ -160,7 +163,6 @@ def main():
     else:
         model = Regression(args.nclasses).cuda()
 
-
     print('model parameter count:', compute_parameter_total(model))
 
     loss_fun = torch.nn.NLLLoss()
@@ -190,7 +192,7 @@ def main():
             accuracy_list.append([step_total, e, acc.item()])
 
             # iterate over val batches.
-            if step_total % 200 == 0:
+            if step_total % args.validation_interval == 0:
                 print("validating....")
                 validation_list.append(
                     [step_total, e, val_test_loop(val_data_loader, model)]
