@@ -1,5 +1,6 @@
 import argparse
 import torch
+import numpy as np
 from torch.utils.data import DataLoader
 from sklearn.metrics import confusion_matrix
 
@@ -80,5 +81,6 @@ def calculate_confusion_matrix():
 
 
 if __name__ == "__main__":
-    confusion_matrix=calculate_confusion_matrix()
+    confusion_matrix = calculate_confusion_matrix()
+    print('accuracy: ', np.trace(confusion_matrix)/confusion_matrix.sum())
     print(confusion_matrix)
