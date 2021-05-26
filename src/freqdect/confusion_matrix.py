@@ -10,10 +10,18 @@ from .data_loader import LoadNumpyDataset
 
 def calculate_confusion_matrix():
     parser = argparse.ArgumentParser(description="Calculate the confusion matrix")
-    parser.add_argument("classifier_path", type=str, help="path to classifier model file")
-    parser.add_argument("data", type=str, help="path of folder containing the test data")
     parser.add_argument(
-        "model",
+        "--classifier_path",
+        type=str,
+        help="path to classifier model file"
+    )
+    parser.add_argument(
+        "--data",
+        type=str,
+        help="path of folder containing the test data"
+    )
+    parser.add_argument(
+        "--model",
         choices=["regression", "CNN"],
         help="The model type. Choose regression or CNN."
     )
