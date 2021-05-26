@@ -68,16 +68,17 @@ def calculate_confusion_matrix():
     with torch.no_grad():
         for test_batch in iter(test_data_loader):
             batch_images = test_batch["image"].cuda(non_blocking=True)
-            batch_labels = test_batch["label"].cuda(non_blocking=True)
+            batch_labels = test_batch["label"]
 
             out = model(batch_images)
             out_labels = torch.max(out, dim=-1)[1]
 
-            correct_labels.extend(batch_labels)
-            predicted_labels.extend(out_labels)
+            correct_labels.extend(batch_labels.cpu())
+            predicted_labels.extend(out_labels.cpu())
 
     return confusion_matrix(correct_labels, predicted_labels)
 
 
 if __name__ == "__main__":
-    calculate_confusion_matrix()
+    confusion_matrix=calculate_confusion_matrix()
+    print(confusion_matrix)
