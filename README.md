@@ -95,3 +95,11 @@ LSUN:
 The lsun repository has python 2 to 3 conversion problems, the solution proposed in
 https://github.com/fyu/lsun/issues/11#issuecomment-567390245
 works.
+
+## Plotting the accuracy
+
+To plot the accuracy results, run
+```shell
+$ python -m freqdect.plot_accuracy_results {shared, lsun, celeba} {regression, CNN} ...
+```
+For a list of all optional arguments, open the help page via the `-h` argument.
