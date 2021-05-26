@@ -8,9 +8,10 @@ from torch.nn.modules import linear
 from torch.utils.data import DataLoader
 from data_loader import LoadNumpyDataset
 from models import CNN, Regression, MLP, compute_parameter_total
+from torch.utils.tensorboard.writer import SummaryWriter
 
 
-def val_test_loop(data_loader, model):
+def val_test_loop(data_loader, model, loss_fun):
     with torch.no_grad():
         model.eval()
         val_total = 0
@@ -21,12 +22,13 @@ def val_test_loop(data_loader, model):
             # batch_labels = torch.nn.functional.one_hot(batch_labels)
             # batch_images = (batch_images - 112.52875) / 68.63312
             out = model(batch_images)
+            val_loss = loss_fun(torch.squeeze(out), batch_labels)
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             val_ok += torch.sum(ok_mask).item()
             val_total += batch_labels.shape[0]
         val_acc = val_ok / val_total
         print("acc", val_acc, "ok", val_ok, "total", val_total)
-    return val_acc
+    return val_acc, val_loss
 
 
 def main():
@@ -79,6 +81,12 @@ def main():
         choices=["regression", "cnn", "mlp"],
         default="regression",
         help="The model type chosse regression or CNN. Default: Regression."
+    )
+
+    parser.add_argument(
+        "--tensorboard",
+        action="store_true",
+        help="enables a tensorboard visualization."
     )
 
     # one should not specify normalization parameters and request their calculation at the same time
@@ -165,6 +173,9 @@ def main():
 
     print('model parameter count:', compute_parameter_total(model))
 
+    if args.tensorboard:
+        writer = SummaryWriter()
+
     loss_fun = torch.nn.NLLLoss()
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
@@ -191,15 +202,30 @@ def main():
             loss_list.append([step_total, e, loss.item()])
             accuracy_list.append([step_total, e, acc.item()])
 
+            if args.tensorboard:
+                writer.add_scalar('train_loss', loss.item(), step_total)
+                if it == 0:
+                    writer.add_graph(model, batch_images)
+
             # iterate over val batches.
             if step_total % args.validation_interval == 0:
                 print("validating....")
+                val_acc, val_loss = val_test_loop(val_data_loader, model, loss_fun)
                 validation_list.append(
-                    [step_total, e, val_test_loop(val_data_loader, model)]
+                    [step_total, e, val_acc]
                 )
                 if validation_list[-1] == 1.0:
                     print("val acc ideal stopping training.")
                     break
+
+                if args.tensorboard:
+                    writer.add_scalar('validation_loss', val_loss, step_total)
+                    writer.add_scalar('validation_accuracy', val_acc, step_total)
+
+        
+        if args.tensorboard:
+            writer.add_scalar('epochs', e, step_total)
+
     print(validation_list)
 
     # Run over the test set.
@@ -208,11 +234,16 @@ def main():
         test_data_set, args.batch_size, shuffle=False, num_workers=2
     )
     with torch.no_grad():
-        test_acc = val_test_loop(test_data_loader, model)
+        test_acc, test_loss = val_test_loop(test_data_loader, model, loss_fun)
         print("test acc", test_acc)
 
-    stats_file = "./log/" + args.data_prefix.split("/")[-1] \
-        + '_' + str(args.model) + ".pkl"
+    if args.tensorboard:
+        writer.add_scalar('test_accuracy', test_acc, step_total)
+        writer.add_scalar('test_loss', test_loss, step_total)
+        
+    log_name = "./log/" + args.data_prefix.split("/")[-1] \
+        + '_' + str(args.model)
+    stats_file = log_name + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
     except (OSError, IOError) as e:
@@ -234,7 +265,7 @@ def main():
     )
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, " saved.")
-
+    torch.save(model.state_dict(), log_name + '.pt')
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,5 @@
 import pickle
-
+import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -41,14 +41,14 @@ def get_test_acc_mean_std_max(dict_list: dict, key: str):
     return np.mean(test_accs), np.std(test_accs), np.max(test_accs)
 
 
-def main():
-    packet_logs = pickle.load(open("./log/source_data_log_packets_regression.pkl", "rb"))
-    raw_logs = pickle.load(open("./log/source_data_raw_regression.pkl", "rb"))
+def main(args):
+    packet_logs = pickle.load(open(args.PACKETFILE, "rb"))
+    raw_logs = pickle.load(open(args.PIXELFILE, "rb"))
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
     steps, mean, std = get_plot_tuple(raw_logs, "train_acc")
     steps, mean, std = get_plot_tuple(raw_logs, "val_acc")
-    plot_mean_std(steps, mean, std, color=colors[0], label="pixel validation acc")
+    plot_mean_std(steps, mean, std, color=colors[0], label="raw validation acc")
 
     steps, mean, std = get_plot_tuple(packet_logs, "val_acc")
     plot_mean_std(steps, mean, std, color=colors[1], label="packet validation acc")
@@ -58,22 +58,37 @@ def main():
     print('packet_mean', pt_mean, 'packet_std', pt_std, 'packet_max', pt_max)
     print('raw_mean', rt_mean, 'raw_std', rt_std, 'raw_max', rt_max)
     plt.errorbar(
-        steps[-1], pt_mean, pt_std, color=colors[2], label="packet test acc", marker="."
+        steps[-1], pt_mean, pt_std, color=colors[2], label="packet test acc", marker="x"
     )
     plt.errorbar(
-        steps[-1], rt_mean, rt_std, color=colors[3], label="pixel test acc", marker="."
+        steps[-1], rt_mean, rt_std, color=colors[3], label="raw test acc", marker="x"
     )
 
     plt.ylabel("mean accuracy")
     plt.xlabel("training steps")
-    plt.title("FFHQ-Stylegan Source Identification")
+    plt.title("Accuracy Celeba-GAN source identification")
     plt.legend()
-    if 0:
+    if args.tikz:
         import tikzplotlib
-        tikzplotlib.save("ffhq_style_gan.tex", standalone=True)
+        tikzplotlib.save("celeba_source_identification.tex", standalone=True)
     else:
         plt.show()
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+
+    # "./log/celeba_align_png_cropped_packets_regression.pkl"
+    parser.add_argument("PACKETFILE", help="packet log to plot.",
+                        type=str)
+    # "./log/celeba_align_png_cropped_raw_regression.pkl"
+    parser.add_argument("PIXELFILE", help="packet log to plot.",
+                        type=str)
+    parser.add_argument("TITLE", help="the plot title",
+                        type=str)    
+    parser.add_argument("--tikz", action='store_true',
+                        help='use tikz output imstead of plt.show()')
+    return parser.parse_args()
+
 if __name__ == "__main__":
-    main()
+    main(parse_args())
