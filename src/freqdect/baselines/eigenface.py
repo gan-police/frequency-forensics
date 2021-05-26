@@ -101,7 +101,7 @@ class PCAClassifier(Classifier):
         pca.fit(train_data, train_labels)
         pca.save(output_dir.joinpath(f'{classifier_name}.pickle'))
         # test
-        PCAClassifier.test_classifier(classifier_name, dataset_name, datasets_dir, output_dir, n_jobs)
+        PCAClassifier.test_classifier(classifier_name, dataset_name, datasets_dir, output_dir, n_jobs, mean=mean, std=std)
 
     @staticmethod
     def test_classifier(classifier_name, dataset_name, datasets_dir, output_dir, n_jobs, mean=None, std=None):
