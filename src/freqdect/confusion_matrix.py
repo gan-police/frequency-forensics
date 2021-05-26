@@ -46,7 +46,6 @@ def calculate_confusion_matrix():
              "are accepted)",
     )
     args = parser.parse_args()
-    print(args)
 
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
