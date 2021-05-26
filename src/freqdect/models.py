@@ -19,14 +19,16 @@ class CNN(torch.nn.Module):
 
         if self.packets:
             self.layers = torch.nn.Sequential(
-                torch.nn.Conv2d(192, 24, 3),
+                torch.nn.Conv2d(192, 192, 3),
                 torch.nn.ReLU(),
-                torch.nn.Conv2d(24, 24, 6),
+                torch.nn.Conv2d(192, 128, 3),
                 torch.nn.ReLU(),
-                torch.nn.Conv2d(24, 24, 9),
+                torch.nn.Conv2d(128, 64, 3),
+                torch.nn.ReLU(),
+                torch.nn.Conv2d(64, 24, 3),
                 torch.nn.ReLU()
             )
-            self.linear = torch.nn.Linear(24, classes)
+            self.linear = torch.nn.Linear(1536, classes)
         else:
             self.layers = torch.nn.Sequential(
                 torch.nn.Conv2d(3, 8, 3, 1),
