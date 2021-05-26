@@ -81,11 +81,11 @@ class MLP(torch.nn.Module):
             torch.nn.Sequential(
                 torch.nn.Linear(49152, 2048, bias=True),
                 torch.nn.ReLU(inplace=True),
-                torch.nn.Dropout(p=0.5, inplace=False),
-                torch.nn.Linear(2048, 1024, bias=True),
-                torch.nn.ReLU(inplace=True),
-                torch.nn.Dropout(p=0.5, inplace=False),
-                torch.nn.Linear(1024, classes, bias=True),
+                # torch.nn.Dropout(p=0.5, inplace=False),
+                torch.nn.Linear(2048, classes, bias=True),
+                # torch.nn.ReLU(inplace=True),
+                # torch.nn.Dropout(p=0.5, inplace=False),
+                # torch.nn.Linear(1024, classes, bias=True),
             )
 
         # self.activation = torch.nn.Sigmoid()

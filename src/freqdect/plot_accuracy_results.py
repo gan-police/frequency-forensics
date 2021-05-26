@@ -1,5 +1,5 @@
 import pickle
-
+import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -41,9 +41,9 @@ def get_test_acc_mean_std_max(dict_list: dict, key: str):
     return np.mean(test_accs), np.std(test_accs), np.max(test_accs)
 
 
-def main():
-    packet_logs = pickle.load(open("./log/celeba_align_png_cropped_packets_regression.pkl", "rb"))
-    raw_logs = pickle.load(open("./log/celeba_align_png_cropped_raw_regression.pkl", "rb"))
+def main(args):
+    packet_logs = pickle.load(open(args.PACKETFILE, "rb"))
+    raw_logs = pickle.load(open(args.PIXELFILE, "rb"))
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
     steps, mean, std = get_plot_tuple(raw_logs, "train_acc")
@@ -68,12 +68,27 @@ def main():
     plt.xlabel("training steps")
     plt.title("Accuracy Celeba-GAN source identification")
     plt.legend()
-    if 1:
+    if args.tikz:
         import tikzplotlib
         tikzplotlib.save("celeba_source_identification.tex", standalone=True)
     else:
         plt.show()
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+
+    # "./log/celeba_align_png_cropped_packets_regression.pkl"
+    parser.add_argument("PACKETFILE", help="packet log to plot.",
+                        type=str)
+    # "./log/celeba_align_png_cropped_raw_regression.pkl"
+    parser.add_argument("PIXELFILE", help="packet log to plot.",
+                        type=str)
+    parser.add_argument("TITLE", help="the plot title",
+                        type=str)    
+    parser.add_argument("--tikz", action='store_true',
+                        help='use tikz output imstead of plt.show()')
+    return parser.parse_args()
+
 if __name__ == "__main__":
-    main()
+    main(parse_args())
