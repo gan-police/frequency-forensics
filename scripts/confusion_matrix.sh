@@ -4,7 +4,7 @@
 #SBATCH --tasks-per-node=1
 #SBATCH --job-name=confusion-matrix-celeba-CNN-packet
 #SBATCH --output=confusion-matrix-celeba-CNN-packet-%j.out
-#SBATCH --error=confusion-matrix-celeba-CNN--packet-%j.err
+#SBATCH --error=confusion-matrix-celeba-CNN-packet-%j.err
 #SBATCH --ntasks=1
 #SBATCH -p gpu
 #SBATCH --gres gpu:v100:1
@@ -48,9 +48,10 @@ do
   echo "confusion matrix for: $i "
   python -m freqdect.confusion_matrix \
     --features packets \
-    --classifier_path log/models/${MODEL}/${CHOSEN_DATASET}_${MODEL}_${i}_${SUFFIX}.pt \
+    --classifier-path log/models/${MODEL}/${CHOSEN_DATASET}_${MODEL}_${i}_${SUFFIX}.pt \
     --data ${DATASETS_DIR}/${CHOSEN_DATASET}_test \
     --normalize ${CHOSEN_NORMALIZATION} \
     --batch-size $BATCH_SIZE \
     --model $MODEL
 done
+echo "ended at `date +"%T"`"
