@@ -59,7 +59,7 @@ def calculate_confusion_matrix():
     else:
         model = CNN(n_classes, args.features == 'packets').cuda()
 
-    initialize_model(model, args.classifier)
+    initialize_model(model, args.classifier_path)
     model.eval()
 
     correct_labels = []
