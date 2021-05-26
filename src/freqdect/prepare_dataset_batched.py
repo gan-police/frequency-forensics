@@ -45,7 +45,7 @@ def load_and_stack(path_list: list) -> tuple:
 
 
 def save_to_disk(
-    data_set: np.array, directory: str, previous_file_count: int = 0
+    data_set: np.array, directory: str, previous_file_count: int = 0, dir_suffix: str = ""
 ) -> int:
     # loop over the batch dimension
     if not os.path.exists(directory):
@@ -53,7 +53,7 @@ def save_to_disk(
         os.mkdir(directory)
     file_count = previous_file_count
     for pre_processed_image in data_set:
-        with open(f"{directory}/{file_count:06}.npy", "wb") as numpy_file:
+        with open(f"{directory}{dir_suffix}/{file_count:06}.npy", "wb") as numpy_file:
             np.save(numpy_file, pre_processed_image)
         file_count += 1
 
@@ -61,7 +61,7 @@ def save_to_disk(
 
 
 def load_process_store(
-    file_list, preprocessing_batch_size, process, target_dir, label_string
+    file_list, preprocessing_batch_size, process, target_dir, label_string, dir_suffix=""
 ):
     splits = int(len(file_list) / preprocessing_batch_size)
     batched_files = np.array_split(file_list, splits)
@@ -73,7 +73,7 @@ def load_process_store(
         image_batch, labels = load_and_stack(current_file_batch)
         all_labels.extend(labels)
         processed_batch = process(image_batch)
-        file_count = save_to_disk(processed_batch, directory, file_count)
+        file_count = save_to_disk(processed_batch, directory, file_count, dir_suffix)
         print(file_count, label_string, "files processed", flush=True)
 
     # save labels
@@ -81,7 +81,7 @@ def load_process_store(
         np.save(label_file, np.array(all_labels))
 
 
-def load_folder(folder: Path, train_size: int, val_size: int, test_size: int, missing_label: int=None):
+def load_folder(folder: Path, train_size: int, val_size: int, test_size: int, missing_label: int = None):
     file_list = list(folder.glob("./*.png"))
 
     if missing_label is not None and get_label(file_list[0]) == missing_label:
@@ -153,22 +153,27 @@ def pre_process_folder(
     random.shuffle(validation_list)
     random.shuffle(test_list)
 
+    if missing_label is not None:
+        dir_suffix = f"_missing_{missing_label}"
+    else:
+        dir_suffix = ""
+
     # group the sets into smaller batches to go easy on the memory.
     print('processing validation set.', flush=True)
     load_process_store(
-        validation_list, preprocessing_batch_size, processing_function, target_dir, "val",
+        validation_list, preprocessing_batch_size, processing_function, target_dir, "val", dir_suffix=dir_suffix
     )
     print("validation set stored")
 
     print("processing test set", flush=True)
     load_process_store(
-        test_list, preprocessing_batch_size, processing_function, target_dir, "test"
+        test_list, preprocessing_batch_size, processing_function, target_dir, "test", dir_suffix=dir_suffix
     )
     print("test set stored")
 
     print("processing training set", flush=True)
     load_process_store(
-        train_list, preprocessing_batch_size, processing_function, target_dir, "train"
+        train_list, preprocessing_batch_size, processing_function, target_dir, "train", dir_suffix=dir_suffix
     )
     print("training set stored.", flush=True)
 
