@@ -81,9 +81,13 @@ def load_process_store(
         np.save(label_file, np.array(all_labels))
 
 
-def load_folder(folder: Path, train_size: int, val_size: int, test_size: int):
+def load_folder(folder: Path, train_size: int, val_size: int, test_size: int, missing_label: int=None):
     file_list = list(folder.glob("./*.png"))
 
+    if missing_label is not None and get_label(file_list[0]) == missing_label:
+        # data with this label should be left out of train and validation set
+        train_size = 0
+        val_size = 0
     assert (
             len(file_list) >= train_size + val_size + test_size
     ), "Requested set sizes must be smaller or equal to the number of images available."
@@ -103,6 +107,7 @@ def pre_process_folder(
     val_size: int,
     test_size: int,
     feature: Optional[str] = None,
+    missing_label: int = None
 ) -> None:
     """Preprocess a folder containing sub-directories with images from
     different sources. The sub-directories are expected to indicated the
@@ -115,6 +120,7 @@ def pre_process_folder(
         val_size (int): Desired size of the validation subset of each folder.
         test_size (int): Desired size of the test subset of each folder.
         feature (str): The feature to pre-compute (choose packets or None).
+        missing_label (int): label to leave out of training and validation set (choose from {0, 1, 2, 3, 4, None})
     """
     data_dir = Path(data_folder)
     target_dir = data_dir.parent / f"{data_dir.name}_{feature}"
@@ -127,7 +133,13 @@ def pre_process_folder(
     folder_list = sorted(data_dir.glob("./*"))
 
     # split files in folders into training/validation/test
-    func_load_folder = functools.partial(load_folder, train_size=train_size, val_size=val_size, test_size=test_size)
+    func_load_folder = functools.partial(
+        load_folder,
+        train_size=train_size,
+        val_size=val_size,
+        test_size=test_size,
+        missing_label=missing_label
+    )
     with ThreadPoolExecutor(max_workers=len(folder_list)) as pool:
         results = list(pool.map(func_load_folder, folder_list))
     results = np.array(results)
@@ -198,6 +210,14 @@ def parse_args():
         "-p",
         help="Save image data as wavelet packets.",
         action="store_true",
+    )
+    parser.add_argument(
+        "--missing-label",
+        type=int,
+        choices=[0, 1, 2, 3, 4],
+        default=None,
+        help="leave this label out of the training and validation set. Used to test how the models generalize to new "
+             "GANs."
     )
     return parser.parse_args()
 
