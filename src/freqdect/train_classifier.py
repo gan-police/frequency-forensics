@@ -11,7 +11,7 @@ from .data_loader import LoadNumpyDataset
 from .models import CNN, Regression, compute_parameter_total, save_model
 
 
-def val_test_loop(data_loader, model, loss_fun):
+def val_test_loop(data_loader, model, loss_fun, make_binary_labels=False):
     with torch.no_grad():
         val_total = 0
         val_ok = 0
@@ -21,6 +21,8 @@ def val_test_loop(data_loader, model, loss_fun):
             # batch_labels = torch.nn.functional.one_hot(batch_labels)
             # batch_images = (batch_images - 112.52875) / 68.63312
             out = model(batch_images)
+            if make_binary_labels:
+                batch_labels[batch_labels > 0] = 1
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             val_ok += torch.sum(ok_mask).item()
             val_total += batch_labels.shape[0]
@@ -196,13 +198,18 @@ def main():
                     break
     print(validation_list)
 
+    model_file = "./log/" + args.data_prefix.split("/")[-1] \
+        + '_' + str(args.model) + '_' + str(args.seed) + ".pt"
+    save_model(model, model_file)
+    print(model_file, " saved.")
+
     # Run over the test set.
     print("Training done testing....")
     test_data_loader = DataLoader(
         test_data_set, args.batch_size, shuffle=False, num_workers=2
     )
     with torch.no_grad():
-        test_acc = val_test_loop(test_data_loader, model, loss_fun)
+        test_acc = val_test_loop(test_data_loader, model, loss_fun, make_binary_labels=args.nclasses == 2)
         print("test acc", test_acc)
 
     stats_file = "./log/" + args.data_prefix.split("/")[-1] \
@@ -228,11 +235,6 @@ def main():
     )
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, " saved.")
-
-    model_file = "./log/" + args.data_prefix.split("/")[-1] \
-        + '_' + str(args.model) + '_' + str(args.seed) + ".pt"
-    save_model(model, model_file)
-    print(model_file, " saved.")
 
 
 if __name__ == "__main__":
