@@ -17,39 +17,46 @@ from PIL import Image
 from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
-def get_label_of_folder(path_of_folder: Path) -> int:
-    # the the label based on the path, As are 0s, Bs are 1, etc.
+def get_label_of_folder(path_of_folder: Path, binary_classification: bool = False) -> int:
     label_str = path_of_folder.name.split("_")[0]
-    if label_str == "A":
-        label = 0
-    elif label_str == "B":
-        label = 1
-    elif label_str == "C":
-        label = 2
-    elif label_str == "D":
-        label = 3
-    elif label_str == "E":
-        label = 4
+    if binary_classification:
+        # differentiate original and generated data
+        if label_str == "A":
+            return 0
+        else:
+            return 1
     else:
-        raise NotImplementedError(label_str)
-    return label
+        # the the label based on the path, As are 0s, Bs are 1, etc.
+        if label_str == "A":
+            label = 0
+        elif label_str == "B":
+            label = 1
+        elif label_str == "C":
+            label = 2
+        elif label_str == "D":
+            label = 3
+        elif label_str == "E":
+            label = 4
+        else:
+            raise NotImplementedError(label_str)
+        return label
 
 
-def get_label(path_to_image: Path) -> int:
-    return get_label_of_folder(path_to_image.parent)
+def get_label(path_to_image: Path, binary_classification: bool) -> int:
+    return get_label_of_folder(path_to_image.parent, binary_classification)
 
 
-def load_and_stack(path_list: list) -> tuple:
+def load_and_stack(path_list: list, binary_classification: bool = False) -> tuple:
     image_list = []
     label_list = []
     for path_to_image in path_list:
         image_list.append(np.array(Image.open(path_to_image)))
-        label_list.append(np.array(get_label(path_to_image)))
+        label_list.append(np.array(get_label(path_to_image, binary_classification)))
     return np.stack(image_list), label_list
 
 
 def save_to_disk(
-    data_set: np.array, directory: str, previous_file_count: int = 0, dir_suffix: str = ""
+        data_set: np.array, directory: str, previous_file_count: int = 0, dir_suffix: str = ""
 ) -> int:
     # loop over the batch dimension
     if not os.path.exists(f"{directory}{dir_suffix}"):
@@ -65,7 +72,9 @@ def save_to_disk(
 
 
 def load_process_store(
-    file_list, preprocessing_batch_size, process, target_dir, label_string, dir_suffix=""
+        file_list,
+        preprocessing_batch_size,
+        process, target_dir, label_string, dir_suffix="", binary_classification: bool = False
 ):
     splits = int(len(file_list) / preprocessing_batch_size)
     batched_files = np.array_split(file_list, splits)
@@ -74,7 +83,7 @@ def load_process_store(
     all_labels = []
     for current_file_batch in batched_files:
         # load, process and store the current batch training set.
-        image_batch, labels = load_and_stack(current_file_batch)
+        image_batch, labels = load_and_stack(current_file_batch, binary_classification=binary_classification)
         all_labels.extend(labels)
         processed_batch = process(image_batch)
         file_count = save_to_disk(processed_batch, directory, file_count, dir_suffix)
@@ -101,13 +110,14 @@ def load_folder(folder: Path, train_size: int, val_size: int, test_size: int):
 
 
 def pre_process_folder(
-    data_folder: str,
-    preprocessing_batch_size: int,
-    train_size: int,
-    val_size: int,
-    test_size: int,
-    feature: Optional[str] = None,
-    missing_label: int = None
+        data_folder: str,
+        preprocessing_batch_size: int,
+        train_size: int,
+        val_size: int,
+        test_size: int,
+        feature: Optional[str] = None,
+        missing_label: int = None,
+        gan_split_factor: float = 1.0
 ) -> None:
     """Preprocess a folder containing sub-directories with images from
     different sources. The sub-directories are expected to indicated the
@@ -121,6 +131,8 @@ def pre_process_folder(
         test_size (int): Desired size of the test subset of each folder.
         feature (str): The feature to pre-compute (choose packets or None).
         missing_label (int): label to leave out of training and validation set (choose from {0, 1, 2, 3, 4, None})
+        gan_split_factor (float): factor by which the training and validation subset sizes are scaled for each GAN, if
+            a missing label is specified.
     """
     data_dir = Path(data_folder)
     target_dir = data_dir.parent / f"{data_dir.name}_{feature}"
@@ -132,26 +144,47 @@ def pre_process_folder(
 
     folder_list = sorted(data_dir.glob("./*"))
 
-    missing_folder = None
     if missing_label is not None:
+        # split files in folders into training/validation/test
+        func_load_folder = functools.partial(load_folder, train_size=train_size, val_size=val_size,
+                                             test_size=test_size)
+
+        train_list = []
+        validation_list = []
+        test_list = []
+
         for folder in folder_list:
-            if(get_label_of_folder(folder) == missing_label):
-                folder_list.remove(folder)
-                missing_folder = folder
-                break
+            if get_label_of_folder(folder) == missing_label:
+                test_list.extend(load_folder(folder, train_size=0, val_size=0, test_size=test_size)[2])
 
-    # split files in folders into training/validation/test
-    func_load_folder = functools.partial(load_folder, train_size=train_size, val_size=val_size, test_size=test_size)
-    with ThreadPoolExecutor(max_workers=len(folder_list)) as pool:
-        results = list(pool.map(func_load_folder, folder_list))
-    results = np.array(results)
+            else:
+                # real data
+                if get_label_of_folder(folder, binary_classification=True) == 0:
+                    train_result, val_result, test_result = load_folder(folder,
+                                                                        train_size=train_size,
+                                                                        val_size=val_size,
+                                                                        test_size=test_size)
+                # generated data
+                else:
+                    train_result, val_result, test_result = load_folder(folder,
+                                                                        train_size=int(train_size * gan_split_factor),
+                                                                        val_size=int(val_size * gan_split_factor),
+                                                                        test_size=test_size)
+                train_list.extend(train_result)
+                validation_list.extend(val_result)
+                test_list.extend(test_result)
 
-    train_list = [img for folder in results[:, 0] for img in folder]
-    validation_list = [img for folder in results[:, 1] for img in folder]
-    test_list = [img for folder in results[:, 2] for img in folder]
+    else:
 
-    if missing_folder is not None:
-        test_list.extend(load_folder(missing_folder, train_size=0, val_size=0, test_size=test_size)[2])
+        # split files in folders into training/validation/test
+        func_load_folder = functools.partial(load_folder, train_size=train_size, val_size=val_size, test_size=test_size)
+        with ThreadPoolExecutor(max_workers=len(folder_list)) as pool:
+            results = list(pool.map(func_load_folder, folder_list))
+        results = np.array(results)
+
+        train_list = [img for folder in results[:, 0] for img in folder]
+        validation_list = [img for folder in results[:, 1] for img in folder]
+        test_list = [img for folder in results[:, 2] for img in folder]
 
     random.seed(42)
     random.shuffle(train_list)
@@ -163,22 +196,27 @@ def pre_process_folder(
     else:
         dir_suffix = ""
 
+    binary_classification = missing_label is not None
+
     # group the sets into smaller batches to go easy on the memory.
     print('processing validation set.', flush=True)
     load_process_store(
-        validation_list, preprocessing_batch_size, processing_function, target_dir, "val", dir_suffix=dir_suffix
+        validation_list, preprocessing_batch_size, processing_function, target_dir, "val", dir_suffix=dir_suffix,
+        binary_classification=binary_classification
     )
     print("validation set stored")
 
     print("processing test set", flush=True)
     load_process_store(
-        test_list, preprocessing_batch_size, processing_function, target_dir, "test", dir_suffix=dir_suffix
+        test_list, preprocessing_batch_size, processing_function, target_dir, "test", dir_suffix=dir_suffix,
+        binary_classification=binary_classification
     )
     print("test set stored")
 
     print("processing training set", flush=True)
     load_process_store(
-        train_list, preprocessing_batch_size, processing_function, target_dir, "train", dir_suffix=dir_suffix
+        train_list, preprocessing_batch_size, processing_function, target_dir, "train", dir_suffix=dir_suffix,
+        binary_classification=binary_classification
     )
     print("training set stored.", flush=True)
 
@@ -229,6 +267,16 @@ def parse_args():
         help="leave this label out of the training and validation set. Used to test how the models generalize to new "
              "GANs."
     )
+    parser.add_argument(
+        "--gan-split-factor",
+        type=float,
+        default=1 / 3,
+        help="scaling factor for GAN subsets in the binary classification split. If a missing label is specified, the "
+             "classification task changes to classifying whether the data was generated or not. In this case, the share"
+             " of the GAN subsets in the split sets should be reduced to balance both classes (i.e. real and generated "
+             "data). So, for each GAN the training and validation split subset sizes are then calculated as the general"
+             " subset size in the split (i.e. the size specified by '--train-size' etc.) times this factor."
+    )
     return parser.parse_args()
 
 
@@ -243,7 +291,8 @@ if __name__ == "__main__":
         args.val_size,
         args.test_size,
         feature,
-        missing_label=args.missing_label
+        missing_label=args.missing_label,
+        gan_split_factor=args.gan_split_factor
     )
     # pre_process_folder('data/source_data/', args.batch_size, args.train_size,
     #                    args.val_size, args.test_size, 'packets')
