@@ -206,10 +206,11 @@ def pre_process_folder(
     )
     print("validation set stored")
 
+    # do not use binary label in test set to make performance measurements on the different classes possible
     print("processing test set", flush=True)
     load_process_store(
         test_list, preprocessing_batch_size, processing_function, target_dir, "test", dir_suffix=dir_suffix,
-        binary_classification=binary_classification
+        binary_classification=False
     )
     print("test set stored")
 
