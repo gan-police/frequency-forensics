@@ -17,9 +17,9 @@ from PIL import Image
 from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
-def get_label(path_to_image: Path) -> int:
-    # the the label based on the path, As are 0s and Bs are 1.
-    label_str = path_to_image.parent.name.split("_")[0]
+def get_label_of_folder(path_of_folder: Path) -> int:
+    # the the label based on the path, As are 0s, Bs are 1, etc.
+    label_str = path_of_folder.name.split("_")[0]
     if label_str == "A":
         label = 0
     elif label_str == "B":
@@ -35,6 +35,10 @@ def get_label(path_to_image: Path) -> int:
     return label
 
 
+def get_label(path_to_image: Path) -> int:
+    return get_label_of_folder(path_to_image.parent)
+
+
 def load_and_stack(path_list: list) -> tuple:
     image_list = []
     label_list = []
@@ -48,9 +52,9 @@ def save_to_disk(
     data_set: np.array, directory: str, previous_file_count: int = 0, dir_suffix: str = ""
 ) -> int:
     # loop over the batch dimension
-    if not os.path.exists(directory):
-        print("creating", directory, flush=True)
-        os.mkdir(directory)
+    if not os.path.exists(f"{directory}{dir_suffix}"):
+        print("creating", f"{directory}{dir_suffix}", flush=True)
+        os.mkdir(f"{directory}{dir_suffix}")
     file_count = previous_file_count
     for pre_processed_image in data_set:
         with open(f"{directory}{dir_suffix}/{file_count:06}.npy", "wb") as numpy_file:
@@ -77,17 +81,13 @@ def load_process_store(
         print(file_count, label_string, "files processed", flush=True)
 
     # save labels
-    with open(f"{directory}/labels.npy", "wb") as label_file:
+    with open(f"{directory}{dir_suffix}/labels.npy", "wb") as label_file:
         np.save(label_file, np.array(all_labels))
 
 
-def load_folder(folder: Path, train_size: int, val_size: int, test_size: int, missing_label: int = None):
+def load_folder(folder: Path, train_size: int, val_size: int, test_size: int):
     file_list = list(folder.glob("./*.png"))
 
-    if missing_label is not None and get_label(file_list[0]) == missing_label:
-        # data with this label should be left out of train and validation set
-        train_size = 0
-        val_size = 0
     assert (
             len(file_list) >= train_size + val_size + test_size
     ), "Requested set sizes must be smaller or equal to the number of images available."
@@ -132,14 +132,16 @@ def pre_process_folder(
 
     folder_list = sorted(data_dir.glob("./*"))
 
+    missing_folder = None
+    if missing_label is not None:
+        for folder in folder_list:
+            if(get_label_of_folder(folder) == missing_label):
+                folder_list.remove(folder)
+                missing_folder = folder
+                break
+
     # split files in folders into training/validation/test
-    func_load_folder = functools.partial(
-        load_folder,
-        train_size=train_size,
-        val_size=val_size,
-        test_size=test_size,
-        missing_label=missing_label
-    )
+    func_load_folder = functools.partial(load_folder, train_size=train_size, val_size=val_size, test_size=test_size)
     with ThreadPoolExecutor(max_workers=len(folder_list)) as pool:
         results = list(pool.map(func_load_folder, folder_list))
     results = np.array(results)
@@ -147,6 +149,9 @@ def pre_process_folder(
     train_list = [img for folder in results[:, 0] for img in folder]
     validation_list = [img for folder in results[:, 1] for img in folder]
     test_list = [img for folder in results[:, 2] for img in folder]
+
+    if missing_folder is not None:
+        test_list.extend(load_folder(missing_folder, train_size=0, val_size=0, test_size=test_size)[2])
 
     random.seed(42)
     random.shuffle(train_list)
@@ -238,6 +243,7 @@ if __name__ == "__main__":
         args.val_size,
         args.test_size,
         feature,
+        missing_label=args.missing_label
     )
     # pre_process_folder('data/source_data/', args.batch_size, args.train_size,
     #                    args.val_size, args.test_size, 'packets')
