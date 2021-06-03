@@ -2,6 +2,7 @@ import argparse
 import pickle
 
 import numpy as np
+
 # from numpy.core.numeric import outer
 import torch
 from torch.nn.modules import linear
@@ -61,7 +62,10 @@ def main():
         "--epochs", type=int, default=10, help="number of epochs (default: 10)"
     )
     parser.add_argument(
-        "--validation-interval", type=int, default=200, help="number of epochs (default: 10)"
+        "--validation-interval",
+        type=int,
+        default=200,
+        help="number of epochs (default: 10)",
     )
     parser.add_argument(
         "--data-prefix",
@@ -80,13 +84,13 @@ def main():
         "--model",
         choices=["regression", "cnn", "mlp"],
         default="regression",
-        help="The model type chosse regression or CNN. Default: Regression."
+        help="The model type chosse regression or CNN. Default: Regression.",
     )
 
     parser.add_argument(
         "--tensorboard",
         action="store_true",
-        help="enables a tensorboard visualization."
+        help="enables a tensorboard visualization.",
     )
 
     # one should not specify normalization parameters and request their calculation at the same time
@@ -125,7 +129,7 @@ def main():
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
         mean = torch.tensor(args.normalize[: num_of_norm_vals // 2])
-        std = torch.tensor(args.normalize[(num_of_norm_vals // 2):])
+        std = torch.tensor(args.normalize[(num_of_norm_vals // 2) :])
     elif args.calc_normalization:
         # load train data and compute mean and std
         train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
@@ -164,14 +168,14 @@ def main():
     accuracy_list = []
     step_total = 0
 
-    if args.model == 'mlp':
+    if args.model == "mlp":
         model = MLP(args.nclasses).cuda()
-    elif args.model == 'cnn':
-        model = CNN(args.nclasses, args.features == 'packets').cuda()
+    elif args.model == "cnn":
+        model = CNN(args.nclasses, args.features == "packets").cuda()
     else:
         model = Regression(args.nclasses).cuda()
 
-    print('model parameter count:', compute_parameter_total(model))
+    print("model parameter count:", compute_parameter_total(model))
 
     if args.tensorboard:
         writer = SummaryWriter()
@@ -195,7 +199,18 @@ def main():
             acc = torch.sum(ok_mask.type(torch.float32)) / len(batch_labels)
 
             if it % 10 == 0:
-                print("e", e, "it", it, "total", step_total, "loss", loss.item(), "acc", acc.item())
+                print(
+                    "e",
+                    e,
+                    "it",
+                    it,
+                    "total",
+                    step_total,
+                    "loss",
+                    loss.item(),
+                    "acc",
+                    acc.item(),
+                )
             loss.backward()
             optimizer.step()
             step_total += 1
@@ -203,7 +218,7 @@ def main():
             accuracy_list.append([step_total, e, acc.item()])
 
             if args.tensorboard:
-                writer.add_scalar('train_loss', loss.item(), step_total)
+                writer.add_scalar("train_loss", loss.item(), step_total)
                 if it == 0:
                     writer.add_graph(model, batch_images)
 
@@ -211,20 +226,17 @@ def main():
             if step_total % args.validation_interval == 0:
                 print("validating....")
                 val_acc, val_loss = val_test_loop(val_data_loader, model, loss_fun)
-                validation_list.append(
-                    [step_total, e, val_acc]
-                )
+                validation_list.append([step_total, e, val_acc])
                 if validation_list[-1] == 1.0:
                     print("val acc ideal stopping training.")
                     break
 
                 if args.tensorboard:
-                    writer.add_scalar('validation_loss', val_loss, step_total)
-                    writer.add_scalar('validation_accuracy', val_acc, step_total)
+                    writer.add_scalar("validation_loss", val_loss, step_total)
+                    writer.add_scalar("validation_accuracy", val_acc, step_total)
 
-        
         if args.tensorboard:
-            writer.add_scalar('epochs', e, step_total)
+            writer.add_scalar("epochs", e, step_total)
 
     print(validation_list)
 
@@ -238,11 +250,10 @@ def main():
         print("test acc", test_acc)
 
     if args.tensorboard:
-        writer.add_scalar('test_accuracy', test_acc, step_total)
-        writer.add_scalar('test_loss', test_loss, step_total)
-        
-    log_name = "./log/" + args.data_prefix.split("/")[-1] \
-        + '_' + str(args.model)
+        writer.add_scalar("test_accuracy", test_acc, step_total)
+        writer.add_scalar("test_loss", test_loss, step_total)
+
+    log_name = "./log/" + args.data_prefix.split("/")[-1] + "_" + str(args.model)
     stats_file = log_name + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
@@ -260,12 +271,13 @@ def main():
             "val_acc": validation_list,
             "test_acc": test_acc,
             "args": args,
-            "iterations_per_epoch": len(iter(train_data_loader))
+            "iterations_per_epoch": len(iter(train_data_loader)),
         }
     )
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, " saved.")
-    torch.save(model.state_dict(), log_name + '.pt')
+    torch.save(model.state_dict(), log_name + ".pt")
+
 
 if __name__ == "__main__":
     main()

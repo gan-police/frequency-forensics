@@ -14,7 +14,9 @@ import torch
 import ptwt
 
 
-def compute_packet_rep_2d(image, wavelet_str: str = "haar", max_lev: int = 3) -> np.array:
+def compute_packet_rep_2d(
+    image, wavelet_str: str = "haar", max_lev: int = 3
+) -> np.array:
     """Numpy based computation of a 2d full-packet representation.
 
     Args:
@@ -24,7 +26,7 @@ def compute_packet_rep_2d(image, wavelet_str: str = "haar", max_lev: int = 3) ->
             Defaults to 3.
 
     Returns:
-        np.array: A ready to plot wavelet packet image. 
+        np.array: A ready to plot wavelet packet image.
     """
     wavelet = pywt.Wavelet(wavelet_str)
     wp_tree = pywt.WaveletPacket2D(data=image, wavelet=wavelet, mode="reflect")
@@ -77,8 +79,9 @@ def compute_pytorch_packet_representation_2d_image(
     return wp_pt
 
 
-def compute_pytorch_packet_representation_2d_tensor(pt_data, wavelet_str: str = "db5",
-                                                    max_lev: int = 5):
+def compute_pytorch_packet_representation_2d_tensor(
+    pt_data, wavelet_str: str = "db5", max_lev: int = 5
+):
     """Compute the wavelet packet representation tensor for
        a batch of input images.
 
@@ -107,8 +110,9 @@ def compute_pytorch_packet_representation_2d_tensor(pt_data, wavelet_str: str = 
     return wp_pt
 
 
-def batch_packet_preprocessing(image_batch, wavelet="db1", max_lev=3, eps=1e-12,
-                               log_scale=False):
+def batch_packet_preprocessing(
+    image_batch, wavelet="db1", max_lev=3, eps=1e-12, log_scale=False
+):
     """Preprosess image batches by computing the wavelet packet
        representation as well as log scaling their absolute value.
 
@@ -144,5 +148,5 @@ def batch_packet_preprocessing(image_batch, wavelet="db1", max_lev=3, eps=1e-12,
 
 
 def identity_processing(image_batch):
-    """ Returns the input unchanged. """
+    """Returns the input unchanged."""
     return image_batch

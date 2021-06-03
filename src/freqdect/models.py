@@ -26,7 +26,7 @@ class CNN(torch.nn.Module):
                 torch.nn.Conv2d(128, 64, 3),
                 torch.nn.ReLU(),
                 torch.nn.Conv2d(64, 24, 3),
-                torch.nn.ReLU()
+                torch.nn.ReLU(),
             )
             self.linear = torch.nn.Linear(1536, classes)
         else:
@@ -40,7 +40,8 @@ class CNN(torch.nn.Module):
                 torch.nn.ReLU(),
                 torch.nn.AvgPool2d(2, 2),
                 torch.nn.Conv2d(16, 32, 3),
-                torch.nn.ReLU())
+                torch.nn.ReLU(),
+            )
             self.linear = torch.nn.Linear(32 * 28 * 28, classes)
         self.logsoftmax = torch.nn.LogSoftmax(dim=-1)
 
@@ -52,7 +53,7 @@ class CNN(torch.nn.Module):
             # batch_size, height, width, packets, channels
             x = x.permute([0, 2, 3, 1, 4])
             # batch_size, height, width, packets*channels
-            x = x.reshape([shape[0], shape[2], shape[3], shape[1]*shape[4]])
+            x = x.reshape([shape[0], shape[2], shape[3], shape[1] * shape[4]])
             # batch_size, packets*channels, height, width
         x = x.permute([0, 3, 1, 2])
 
@@ -63,7 +64,7 @@ class CNN(torch.nn.Module):
 
 
 class Regression(torch.nn.Module):
-    def __init__(self, classes:int):
+    def __init__(self, classes: int):
         super().__init__()
         self.linear = torch.nn.Linear(49152, classes)
 
@@ -76,19 +77,18 @@ class Regression(torch.nn.Module):
 
 
 class MLP(torch.nn.Module):
-    def __init__(self, classes:int):
+    def __init__(self, classes: int):
         super().__init__()
 
-        self.classifier = \
-            torch.nn.Sequential(
-                torch.nn.Linear(49152, 2048, bias=True),
-                torch.nn.ReLU(inplace=True),
-                # torch.nn.Dropout(p=0.5, inplace=False),
-                torch.nn.Linear(2048, classes, bias=True),
-                # torch.nn.ReLU(inplace=True),
-                # torch.nn.Dropout(p=0.5, inplace=False),
-                # torch.nn.Linear(1024, classes, bias=True),
-            )
+        self.classifier = torch.nn.Sequential(
+            torch.nn.Linear(49152, 2048, bias=True),
+            torch.nn.ReLU(inplace=True),
+            # torch.nn.Dropout(p=0.5, inplace=False),
+            torch.nn.Linear(2048, classes, bias=True),
+            # torch.nn.ReLU(inplace=True),
+            # torch.nn.Dropout(p=0.5, inplace=False),
+            # torch.nn.Linear(1024, classes, bias=True),
+        )
 
         # self.activation = torch.nn.Sigmoid()
         self.activation = torch.nn.LogSoftmax(dim=-1)

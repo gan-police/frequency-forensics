@@ -55,8 +55,8 @@ def main(args):
 
     pt_mean, pt_std, pt_max = get_test_acc_mean_std_max(packet_logs, "test_acc")
     rt_mean, rt_std, rt_max = get_test_acc_mean_std_max(raw_logs, "test_acc")
-    print('packet_mean', pt_mean, 'packet_std', pt_std, 'packet_max', pt_max)
-    print('raw_mean', rt_mean, 'raw_std', rt_std, 'raw_max', rt_max)
+    print("packet_mean", pt_mean, "packet_std", pt_std, "packet_max", pt_max)
+    print("raw_mean", rt_mean, "raw_std", rt_std, "raw_max", rt_max)
     plt.errorbar(
         steps[-1], pt_mean, pt_std, color=colors[2], label="packet test acc", marker="x"
     )
@@ -70,6 +70,7 @@ def main(args):
     plt.legend()
     if args.tikz:
         import tikzplotlib
+
         tikzplotlib.save("celeba_source_identification.tex", standalone=True)
     else:
         plt.show()
@@ -79,16 +80,15 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     # "./log/celeba_align_png_cropped_packets_regression.pkl"
-    parser.add_argument("PACKETFILE", help="packet log to plot.",
-                        type=str)
+    parser.add_argument("PACKETFILE", help="packet log to plot.", type=str)
     # "./log/celeba_align_png_cropped_raw_regression.pkl"
-    parser.add_argument("PIXELFILE", help="packet log to plot.",
-                        type=str)
-    parser.add_argument("TITLE", help="the plot title",
-                        type=str)    
-    parser.add_argument("--tikz", action='store_true',
-                        help='use tikz output imstead of plt.show()')
+    parser.add_argument("PIXELFILE", help="packet log to plot.", type=str)
+    parser.add_argument("TITLE", help="the plot title", type=str)
+    parser.add_argument(
+        "--tikz", action="store_true", help="use tikz output imstead of plt.show()"
+    )
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     main(parse_args())

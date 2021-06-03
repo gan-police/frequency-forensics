@@ -12,7 +12,7 @@ def _plot_mean_std(x, mean, std, color, label="", marker="."):
 
 
 def generate_packet_image(packet_array: np.array):
-    """ Arrange a  packet array  as an image for imshow.
+    """Arrange a  packet array  as an image for imshow.
     Args:
         packet_array ([np.array): The [packet_no, height, width] packets
     Returns:
@@ -38,7 +38,7 @@ def generate_packet_image(packet_array: np.array):
 
 
 def generate_packet_image_tensor(packet_array: torch.tensor):
-    """ Arrange a  packet tensor  as an image for imshow.
+    """Arrange a  packet tensor  as an image for imshow.
     Args:
         packet_array ([torch.tensor): The [bach_size, packet_no, height, width, channels] packets
     Returns:
@@ -68,8 +68,9 @@ def main():
 
     # raw images - use only the training set.
     # train_packet_set = LoadNumpyDataset("/home/ndv/projects/wavelets/frequency-forensics_felix/data/lsun_bedroom_200k_png_baseline_logpackets_train/")
-    train_packet_set = LoadNumpyDataset("/home/ndv/projects/wavelets/frequency-forensics_felix/data/celeba_align_png_cropped_baselines_logpackets_train/")
-
+    train_packet_set = LoadNumpyDataset(
+        "/home/ndv/projects/wavelets/frequency-forensics_felix/data/celeba_align_png_cropped_baselines_logpackets_train/"
+    )
 
     style_gan_list = []
     ffhq_list = []
@@ -82,10 +83,10 @@ def main():
         elif label == 0:
             ffhq_list.append(packets)
         else:
-            print('skipping label', label)
+            print("skipping label", label)
 
         if img_no % 500 == 0 and img_no > 0:
-            print(img_no, 'of', train_packet_set.__len__(), 'loaded')
+            print(img_no, "of", train_packet_set.__len__(), "loaded")
             # break
 
     style_gan_array = np.array(style_gan_list)
@@ -96,20 +97,18 @@ def main():
 
     # mean image plots
     gan_mean_packet_image = generate_packet_image(
-        np.mean(style_gan_array, axis=(0, -1)))
-    ffhq_mean_packet_image = generate_packet_image(
-        np.mean(ffhq_array, axis=(0, -1)))
+        np.mean(style_gan_array, axis=(0, -1))
+    )
+    ffhq_mean_packet_image = generate_packet_image(np.mean(ffhq_array, axis=(0, -1)))
     # std image plots
-    gan_std_packet_image = generate_packet_image(
-        np.std(style_gan_array, axis=(0, -1)))
-    ffhq_std_packet_image = generate_packet_image(
-        np.std(ffhq_array, axis=(0, -1)))
+    gan_std_packet_image = generate_packet_image(np.std(style_gan_array, axis=(0, -1)))
+    ffhq_std_packet_image = generate_packet_image(np.std(ffhq_array, axis=(0, -1)))
 
     fig = plt.figure(figsize=(8, 6))
     columns = 3
     rows = 2
     plot_count = 1
-    cmap = 'cividis'  # 'magma'  #'inferno'  # 'viridis
+    cmap = "cividis"  # 'magma'  #'inferno'  # 'viridis
 
     mean_vmin = np.min((np.min(gan_mean_packet_image), np.min(ffhq_mean_packet_image)))
     mean_vmax = np.max((np.max(gan_mean_packet_image), np.max(ffhq_mean_packet_image)))
@@ -124,26 +123,30 @@ def main():
         plt.title(title)
         plt.colorbar()
 
-    plot_image(gan_mean_packet_image, 'gan mean packets', mean_vmax, mean_vmin)
+    plot_image(gan_mean_packet_image, "gan mean packets", mean_vmax, mean_vmin)
     plot_count += 1
-    plot_image(ffhq_mean_packet_image, 'data-set mean packets', mean_vmax, mean_vmin)
+    plot_image(ffhq_mean_packet_image, "data-set mean packets", mean_vmax, mean_vmin)
     plot_count += 1
-    plot_image(np.abs(gan_mean_packet_image - ffhq_mean_packet_image),
-               'absolute mean difference')
+    plot_image(
+        np.abs(gan_mean_packet_image - ffhq_mean_packet_image),
+        "absolute mean difference",
+    )
     plot_count += 1
-    plot_image(gan_std_packet_image, 'gan std packets', std_vmax, std_vmin)
+    plot_image(gan_std_packet_image, "gan std packets", std_vmax, std_vmin)
     plot_count += 1
-    plot_image(ffhq_std_packet_image, 'data-set std packets', std_vmax, std_vmin)
+    plot_image(ffhq_std_packet_image, "data-set std packets", std_vmax, std_vmin)
     plot_count += 1
-    plot_image(np.abs(gan_std_packet_image - ffhq_std_packet_image),
-               'absolute std difference')
+    plot_image(
+        np.abs(gan_std_packet_image - ffhq_std_packet_image), "absolute std difference"
+    )
     plot_count += 1
 
     if 1:
         import tikzplotlib
+
         tikzplotlib.save("celeba_packet_mean_std_plot.tex", standalone=True)
     plt.show()
-    print('first plot done')
+    print("first plot done")
 
     # mean packet plots
     style_gan_mean = np.mean(style_gan_array, axis=(0, 2, 3, 4))
@@ -166,9 +169,10 @@ def main():
 
     if 1:
         import tikzplotlib
+
         tikzplotlib.save("celeba_mean_absolute_coeff_comparison.tex", standalone=True)
     plt.show()
-    print('done')
+    print("done")
 
 
 if __name__ == "__main__":

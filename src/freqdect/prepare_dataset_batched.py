@@ -16,7 +16,7 @@ from wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def get_label(path_to_image: Path) -> int:
-    """ Get the label based on the image path.
+    """Get the label based on the image path.
         We assume:
             A: Orignal data, B: First gan,
             C: Second gan, D: Third gan, E: Fourth gan.
@@ -53,7 +53,7 @@ def get_label(path_to_image: Path) -> int:
 
 
 def load_and_stack(path_list: list) -> tuple:
-    """ Transform a lists of paths into a batches of
+    """Transform a lists of paths into a batches of
     numpy arrays and record their labels.
 
     Args:
@@ -77,7 +77,7 @@ def load_and_stack(path_list: list) -> tuple:
 def save_to_disk(
     data_batch: np.array, directory: str, previous_file_count: int = 0
 ) -> int:
-    """ Save images to disk using their position on the dataset as filename.
+    """Save images to disk using their position on the dataset as filename.
 
     Args:
         data_batch (np.array): The image batch to store.
@@ -132,7 +132,9 @@ def load_process_store(
         np.save(label_file, np.array(all_labels))
 
 
-def load_folder(folder: Path, train_size: int, val_size: int, test_size: int) -> np.array:
+def load_folder(
+    folder: Path, train_size: int, val_size: int, test_size: int
+) -> np.array:
     """Given a folder containing portable network graphics (*.png) files
        this functions will create Posix-path lists. A train, test, and
        validation set list is created.
@@ -151,13 +153,13 @@ def load_folder(folder: Path, train_size: int, val_size: int, test_size: int) ->
     file_list = list(folder.glob("./*.png"))
 
     assert (
-            len(file_list) >= train_size + val_size + test_size
+        len(file_list) >= train_size + val_size + test_size
     ), "Requested set sizes must be smaller or equal to the number of images available."
 
     # split the list into training, validation and test sub-lists.
     train_list = file_list[:train_size]
-    validation_list = file_list[train_size: (train_size + val_size)]
-    test_list = file_list[(train_size + val_size): (train_size + val_size + test_size)]
+    validation_list = file_list[train_size : (train_size + val_size)]
+    test_list = file_list[(train_size + val_size) : (train_size + val_size + test_size)]
 
     return np.asarray([train_list, validation_list, test_list], dtype=object)
 
@@ -189,14 +191,18 @@ def pre_process_folder(
     if feature == "packets":
         processing_function = batch_packet_preprocessing
     if feature == "log_packets":
-        processing_function = functools.partial(batch_packet_preprocessing, log_scale=True)
+        processing_function = functools.partial(
+            batch_packet_preprocessing, log_scale=True
+        )
     else:
         processing_function = identity_processing  # type: ignore
 
     folder_list = sorted(data_dir.glob("./*"))
 
     # split files in folders into training/validation/test
-    func_load_folder = functools.partial(load_folder, train_size=train_size, val_size=val_size, test_size=test_size)
+    func_load_folder = functools.partial(
+        load_folder, train_size=train_size, val_size=val_size, test_size=test_size
+    )
     with ThreadPoolExecutor(max_workers=len(folder_list)) as pool:
         results = list(pool.map(func_load_folder, folder_list))
     results = np.array(results)
@@ -212,9 +218,13 @@ def pre_process_folder(
     random.shuffle(test_list)
 
     # group the sets into smaller batches to go easy on the memory.
-    print('processing validation set.', flush=True)
+    print("processing validation set.", flush=True)
     load_process_store(
-        validation_list, preprocessing_batch_size, processing_function, target_dir, "val",
+        validation_list,
+        preprocessing_batch_size,
+        processing_function,
+        target_dir,
+        "val",
     )
     print("validation set stored")
 
@@ -232,7 +242,7 @@ def pre_process_folder(
 
 
 def parse_args():
-    """ Parse command line arguments. """
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
