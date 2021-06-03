@@ -1,3 +1,10 @@
+"""
+The wavelet math module implements functionality to make the
+packet transfrom useful for image analysis and gan-content
+recognition.
+"""
+
+
 from itertools import product
 
 import numpy as np
@@ -7,8 +14,18 @@ import torch
 import ptwt
 
 
-def compute_packet_rep_2d(image, wavelet_str: str = "db5", max_lev: int = 5):
+def compute_packet_rep_2d(image, wavelet_str: str = "haar", max_lev: int = 3) -> np.array:
+    """Numpy based computation of a 2d full-packet representation.
 
+    Args:
+        image (np.aray): Image of shape [height, width].
+        wavelet_str (str, optional): The wavelet to use. Defaults to "haar".
+        max_lev (int, optional): The number of levels in the representation.
+            Defaults to 3.
+
+    Returns:
+        np.array: A ready to plot wavelet packet image. 
+    """
     wavelet = pywt.Wavelet(wavelet_str)
     wp_tree = pywt.WaveletPacket2D(data=image, wavelet=wavelet, mode="reflect")
     # Get the full decomposition
@@ -127,4 +144,5 @@ def batch_packet_preprocessing(image_batch, wavelet="db1", max_lev=3, eps=1e-12,
 
 
 def identity_processing(image_batch):
+    """ Returns the input unchanged. """
     return image_batch
