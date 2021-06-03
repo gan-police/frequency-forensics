@@ -232,6 +232,7 @@ def pre_process_folder(
 
 
 def parse_args():
+    """ Parse command line arguments. """
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
