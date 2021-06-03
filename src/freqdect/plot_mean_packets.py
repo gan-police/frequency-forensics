@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
 from itertools import product
 import torch
-import matplotlib.pyplot as plt
 import numpy as np
 
 from data_loader import LoadNumpyDataset
@@ -67,7 +67,9 @@ def main():
     import matplotlib.pyplot as plt
 
     # raw images - use only the training set.
-    train_packet_set = LoadNumpyDataset("./data/ffhq_stylegan_large_packets_train_2")
+    # train_packet_set = LoadNumpyDataset("/home/ndv/projects/wavelets/frequency-forensics_felix/data/lsun_bedroom_200k_png_baseline_logpackets_train/")
+    train_packet_set = LoadNumpyDataset("/home/ndv/projects/wavelets/frequency-forensics_felix/data/celeba_align_png_cropped_baselines_logpackets_train/")
+
 
     style_gan_list = []
     ffhq_list = []
@@ -80,7 +82,7 @@ def main():
         elif label == 0:
             ffhq_list.append(packets)
         else:
-            raise ValueError
+            print('skipping label', label)
 
         if img_no % 500 == 0 and img_no > 0:
             print(img_no, 'of', train_packet_set.__len__(), 'loaded')
@@ -124,14 +126,14 @@ def main():
 
     plot_image(gan_mean_packet_image, 'gan mean packets', mean_vmax, mean_vmin)
     plot_count += 1
-    plot_image(ffhq_mean_packet_image, 'ffhq mean packets', mean_vmax, mean_vmin)
+    plot_image(ffhq_mean_packet_image, 'data-set mean packets', mean_vmax, mean_vmin)
     plot_count += 1
     plot_image(np.abs(gan_mean_packet_image - ffhq_mean_packet_image),
                'absolute mean difference')
     plot_count += 1
     plot_image(gan_std_packet_image, 'gan std packets', std_vmax, std_vmin)
     plot_count += 1
-    plot_image(ffhq_std_packet_image, 'ffhq std packets', std_vmax, std_vmin)
+    plot_image(ffhq_std_packet_image, 'data-set std packets', std_vmax, std_vmin)
     plot_count += 1
     plot_image(np.abs(gan_std_packet_image - ffhq_std_packet_image),
                'absolute std difference')
@@ -139,7 +141,7 @@ def main():
 
     if 1:
         import tikzplotlib
-        tikzplotlib.save("packet_mean_std_plot.tex", standalone=True)
+        tikzplotlib.save("celeba_packet_mean_std_plot.tex", standalone=True)
     plt.show()
     print('first plot done')
 
@@ -153,18 +155,18 @@ def main():
     x = np.array(range(len(style_gan_mean)))
     wp_keys = list(product(["a", "d", "h", "v"], repeat=3))
     wp_labels = ["".join(key) for key in wp_keys]
-    _plot_mean_std(x, ffhq_mean, ffhq_std, colors[0], "ffhq")
-    _plot_mean_std(x, style_gan_mean, style_gan_std, colors[1], "style gan")
+    _plot_mean_std(x, ffhq_mean, ffhq_std, colors[0], "real data")
+    _plot_mean_std(x, style_gan_mean, style_gan_std, colors[1], "gan")
     plt.legend()
     plt.xlabel("filter")
     plt.xticks(x, labels=wp_labels)
     plt.xticks(rotation=80)
     plt.ylabel("mean absolute coefficient magnitude")
-    plt.title("Mean absolute coefficient comparison FFHQ-StyleGAN")
+    plt.title("Mean absolute coefficient comparison real data-GAN")
 
     if 1:
         import tikzplotlib
-        tikzplotlib.save("mean_absolute_coeff_comparison.tex", standalone=True)
+        tikzplotlib.save("celeba_mean_absolute_coeff_comparison.tex", standalone=True)
     plt.show()
     print('done')
 

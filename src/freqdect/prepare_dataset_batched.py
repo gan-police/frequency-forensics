@@ -1,6 +1,4 @@
-""" The original prepare dataset code does not use batch
-processing and is, therefore, quite slow. This module
-is an attempt to fix this.
+""" Speedy preprocessing using batched PyTorch code.
 """
 
 import argparse
@@ -18,6 +16,25 @@ from wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def get_label(path_to_image: Path) -> int:
+    """ Get the label based on the image path.
+        We assume:
+            A: Orignal data, B: First gan,
+            C: Second gan, D: Third gan, E: Fourth gan.
+        A working folder structure could look like:
+            A_celeba  B_CramerGAN  C_MMDGAN  D_ProGAN  E_SNGAN
+        With each folder containing the images from the corresponding
+        source.    
+
+    Args:
+        path_to_image (Path): Image path string containing only a single
+            underscore direcrly after the label letter. 
+
+    Raises:
+        NotImplementedError: Raised if the label letter is unkown.
+
+    Returns:
+        int: The label encoded as integer.
+    """    
     # the the label based on the path, As are 0s and Bs are 1.
     label_str = path_to_image.parent.name.split("_")[0]
     if label_str == "A":
@@ -228,5 +245,6 @@ if __name__ == "__main__":
         args.test_size,
         feature,
     )
+
     # pre_process_folder('data/source_data/', args.batch_size, args.train_size,
     #                    args.val_size, args.test_size, 'packets')
