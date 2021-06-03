@@ -23,18 +23,18 @@ def get_label(path_to_image: Path) -> int:
         A working folder structure could look like:
             A_celeba  B_CramerGAN  C_MMDGAN  D_ProGAN  E_SNGAN
         With each folder containing the images from the corresponding
-        source.    
+        source.
 
     Args:
         path_to_image (Path): Image path string containing only a single
-            underscore direcrly after the label letter. 
+            underscore direcrly after the label letter.
 
     Raises:
         NotImplementedError: Raised if the label letter is unkown.
 
     Returns:
         int: The label encoded as integer.
-    """    
+    """
     # the the label based on the path, As are 0s and Bs are 1.
     label_str = path_to_image.parent.name.split("_")[0]
     if label_str == "A":
@@ -53,6 +53,19 @@ def get_label(path_to_image: Path) -> int:
 
 
 def load_and_stack(path_list: list) -> tuple:
+    """ Transform a lists of paths into a batches of
+    numpy arrays and record their labels.
+
+    Args:
+        path_list (list): A list of Poxis paths strings.
+            The stings must follow the convention outlined
+            in the get_label function.
+
+    Returns:
+        tuple: A numpy array of size
+            (preprocessing_batch_size, height, width, 3)
+            and a list of length preprocessing_batch_size.
+    """
     image_list = []
     label_list = []
     for path_to_image in path_list:
@@ -62,14 +75,25 @@ def load_and_stack(path_list: list) -> tuple:
 
 
 def save_to_disk(
-    data_set: np.array, directory: str, previous_file_count: int = 0
+    data_batch: np.array, directory: str, previous_file_count: int = 0
 ) -> int:
+    """ Save images to disk using their position on the dataset as filename.
+
+    Args:
+        data_batch (np.array): The image batch to store.
+        directory (str): The place to store the images at.
+        previous_file_count (int, optional): The number of previously stored images.
+            Defaults to 0.
+
+    Returns:
+        int: The new total of storage images.
+    """
     # loop over the batch dimension
     if not os.path.exists(directory):
         print("creating", directory, flush=True)
         os.mkdir(directory)
     file_count = previous_file_count
-    for pre_processed_image in data_set:
+    for pre_processed_image in data_batch:
         with open(f"{directory}/{file_count:06}.npy", "wb") as numpy_file:
             np.save(numpy_file, pre_processed_image)
         file_count += 1
@@ -80,6 +104,16 @@ def save_to_disk(
 def load_process_store(
     file_list, preprocessing_batch_size, process, target_dir, label_string
 ):
+    """Loads processes and stores a file list according to a processing function.
+
+    Args:
+        file_list (list): PosixPath objects leading to source images.
+        preprocessing_batch_size (int): The number of files processed at once.
+        process (function): The function to use for the preprocessing.
+            I.e. a wavelet packet encoding.
+        target_dir (string): A directory where to save the processed files.
+        label_string (string): A label we add to the target folder.
+    """
     splits = int(len(file_list) / preprocessing_batch_size)
     batched_files = np.array_split(file_list, splits)
     file_count = 0
@@ -98,7 +132,22 @@ def load_process_store(
         np.save(label_file, np.array(all_labels))
 
 
-def load_folder(folder: Path, train_size: int, val_size: int, test_size: int):
+def load_folder(folder: Path, train_size: int, val_size: int, test_size: int) -> np.array:
+    """Given a folder containing portable network graphics (*.png) files
+       this functions will create Posix-path lists. A train, test, and
+       validation set list is created.
+
+    Args:
+        folder (Path): Path to a folder with images from the same source.
+            I.e. A_ffhq .
+        train_size (int): Desired size of the training set.
+        val_size (int): Desired size of the validation set.
+        test_size (int): Desired size of the test set.
+
+    Returns:
+        np.array: Numpy array with the train, validation and test lists,
+            in this order.
+    """
     file_list = list(folder.glob("./*.png"))
 
     assert (
@@ -122,8 +171,9 @@ def pre_process_folder(
     feature: Optional[str] = None,
 ) -> None:
     """Preprocess a folder containing sub-directories with images from
-    different sources. The sub-directories are expected to indicated the
-    label in their name. A - for real and B - for GAN generated imagery.
+    different sources. All images are expected to have the same size.
+    The sub-directories are expected to indicate to label their source in
+    their name. For example,  A - for real and B - for GAN generated imagery.
 
     Args:
         data_folder (str): The folder with the real and gan generated image folders.
@@ -155,6 +205,7 @@ def pre_process_folder(
     validation_list = [img for folder in results[:, 1] for img in folder]
     test_list = [img for folder in results[:, 2] for img in folder]
 
+    # fix the seed to make results reproducible.
     random.seed(42)
     random.shuffle(train_list)
     random.shuffle(validation_list)
