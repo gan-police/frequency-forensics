@@ -40,7 +40,7 @@ Store all images in a `data` folder. Use i.e
 
 Afterwards run:
 ```shell
-$ CUDA_VISIBLE_DEVICES=0 python -m freqdect.prepare_dataset ./data/source_data/ --packets
+$ python -m freqdect.prepare_dataset ./data/source_data/ --packets
 $ python -m freqdect.prepare_dataset ./data/source_data/ --raw
 ```
 now you should be able to train a classifier using
