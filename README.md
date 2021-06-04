@@ -56,79 +56,14 @@ $ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/ --log-packets
 $ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/
 ```
 The data-set preperation script accepts additional arguments. For example it is possible
-to change the sizes of the train, test or validation sets. For all options see:
-```
-usage: prepare_dataset.py [-h] [--train-size TRAIN_SIZE] [--test-size TEST_SIZE]
-    [--val-size VAL_SIZE] [--batch-size BATCH_SIZE] [--packets]
-    [--log-packets] directory
-
-positional arguments:
-  directory             The folder with the real and gan generated image folders.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --train-size TRAIN_SIZE
-                        Desired size of the training subset of each folder. (default: 63_000).
-  --test-size TEST_SIZE
-                        Desired size of the test subset of each folder. (default: 5_000).
-  --val-size VAL_SIZE   Desired size of the validation subset of each folder. (default: 2_000).
-  --batch-size BATCH_SIZE
-                        The batch_size used for image conversion. (default: 2048).
-  --packets, -p         Save image data as wavelet packets.
-  --log-packets, -lp    Save image data as log-scaled wavelet packets.
-
-  Example: python -m freqdect.prepare_dataset ./data/source_data/ --packets
-```
+to change the sizes of the train, test or validation sets. For a list of all optional arguments, open the help page via the `-h` argument.
 
 ## Training the classifier
 Now you should be able to train a classifier using for example:
 ```shell
 $ python -m freqdect.train_classifier --data-prefix ./data/source_data_packets --calc-normalization --features packets
 ```
-This trains a regression classifier using default hyperparameters. The training, validation and test accuracy and loss values are stored in a file placed in a `log` folder. The state dict of the trained model is stored there as well.
-For reference other options are:
-```
-usage: train_classifier.py [-h] [--features {raw,packets}]
-                           [--batch-size BATCH_SIZE]
-                           [--learning-rate LEARNING_RATE]
-                           [--weight-decay WEIGHT_DECAY] [--epochs EPOCHS]
-                           [--validation-interval VALIDATION_INTERVAL]
-                           [--data-prefix DATA_PREFIX] [--nclasses NCLASSES]
-                           [--seed SEED] [--model {regression,cnn,mlp}]
-                           [--tensorboard] [--normalize MEAN [STD ...] |
-                           --calc-normalization]
-
-Train an image classifier
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --features {raw,packets}
-                        the representation type
-  --batch-size BATCH_SIZE
-                        input batch size for testing (default: 512)
-  --learning-rate LEARNING_RATE
-                        learning rate for optimizer (default: 1e-3)
-  --weight-decay WEIGHT_DECAY
-                        weight decay for optimizer (default: 0)
-  --epochs EPOCHS       number of epochs (default: 10)
-  --validation-interval VALIDATION_INTERVAL
-                        number of training steps after which the model is
-                        tested on the validation data set (default: 200)
-  --data-prefix DATA_PREFIX
-                        shared prefix of the data paths (default:
-                        ./data/source_data_packets)
-  --nclasses NCLASSES   number of classes (default: 2)
-  --seed SEED           the random seed pytorch works with.
-  --model {regression,cnn,mlp}
-                        The model type chosse regression or CNN. Default:
-                        Regression.
-  --tensorboard         enables a tensorboard visualization.
-  --normalize MEAN [STD ...]
-                        normalize with specified values for mean and standard
-                        deviation (either 2 or 6 values are accepted)
-  --calc-normalization  calculates mean and standard deviation used in
-                        normalizationfrom the training data
-```
+This trains a regression classifier using default hyperparameters. The training, validation and test accuracy and loss values are stored in a file placed in a `log` folder. The state dict of the trained model is stored there as well. For a list of all optional arguments, open the help page via the `-h` argument.
 
 ## Evaluating the classifier
 ### Plotting the accuracies
@@ -141,30 +76,4 @@ For a list of all optional arguments, open the help page via the `-h` argument.
 
 ### Calculating the confusion matrix
 
-To calculate the confusion matrix, run `freqdect.confusion_matrix`.
-
-```
-usage: confusion_matrix.py [-h] [--classifier-path CLASSIFIER_PATH] [--data DATA] [--model {regression,CNN}] [--features {raw,packets}] [--batch-size BATCH_SIZE] [--normalize MEAN [STD ...]] [--label-names LABEL_NAMES [LABEL_NAMES ...]]
-                           [--plot] [--nclasses NCLASSES] [--generalized]
-
-Calculate the confusion matrix
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --classifier-path CLASSIFIER_PATH
-                        path to classifier model file
-  --data DATA           path of folder containing the test data
-  --model {regression,CNN}
-                        The model type. Choose regression or CNN.
-  --features {raw,packets}
-                        the representation type
-  --batch-size BATCH_SIZE
-                        input batch size for testing (default: 512)
-  --normalize MEAN [STD ...]
-                        normalize with specified values for mean and standard deviation (either 2 or 6 values are accepted)
-  --label-names LABEL_NAMES [LABEL_NAMES ...]
-                        string representation of the class labels. Only used when '--generalized' is not selected.
-  --plot                plot the confusion matrix and store the plot as png. Does only have an effect when '--generalized' is not selected.
-  --nclasses NCLASSES   number of classes (default: 2)
-  --generalized         Calculates a generalized confusion matrix for the binary classification task differentiating fake from real images.
-```
+To calculate the confusion matrix, run `freqdect.confusion_matrix`. For a list of all arguments, open the help page via the `-h` argument.
