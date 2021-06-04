@@ -453,6 +453,7 @@ def _parse_args():
 
 
 def main(args):
+    """Plot the accuracy results, as specified in the cmd line args."""
     args.func(args)
 
 
