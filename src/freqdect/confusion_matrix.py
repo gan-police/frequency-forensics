@@ -133,7 +133,7 @@ def calculate_generalized_confusion_matrix(args):
     return matrix
 
 
-def output_confusion_matrix_stats(matrix, label_names: List[str],  plot: bool = False):
+def output_confusion_matrix_stats(matrix, label_names: List[str], plot: bool = False):
     """Outputs stats about the confusion matrix.
 
     Args:
@@ -217,7 +217,7 @@ def _parse_args():
     parser.add_argument(
         "--generalized",
         action="store_true",
-        help="Calculates a generalized confusion matrix for the binary classification task differentiating fake from real images."
+        help="Calculates a generalized confusion matrix for the binary classification task differentiating fake from real images.",
     )
     return parser.parse_args()
 
