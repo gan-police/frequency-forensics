@@ -10,7 +10,9 @@ from .models import CNN, Regression, MLP, compute_parameter_total
 from torch.utils.tensorboard.writer import SummaryWriter
 
 
-def val_test_loop(data_loader: DataLoader, model: torch.nn.Module, loss_fun) -> Tuple[float, Any]:
+def val_test_loop(
+    data_loader: DataLoader, model: torch.nn.Module, loss_fun
+) -> Tuple[float, Any]:
     """Tests the performance of a model on a data set by calculating the prediction accuracy and loss of the model.
 
     Args:

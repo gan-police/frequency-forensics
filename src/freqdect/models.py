@@ -23,9 +23,10 @@ def compute_parameter_total(net: torch.nn.Module) -> int:
 
 
 class CNN(torch.nn.Module):
-    """ CNN code for packet or pixel classification """
+    """CNN code for packet or pixel classification"""
+
     def __init__(self, classes: int, packets: bool):
-        """ Create a convolutional neural network (CNN) model.
+        """Create a convolutional neural network (CNN) model.
 
         Args:
             classes (int): The number of classes or sources to classify.
@@ -41,7 +42,7 @@ class CNN(torch.nn.Module):
                 torch.nn.Conv2d(24, 24, 6),
                 torch.nn.ReLU(),
                 torch.nn.Conv2d(24, 24, 9),
-                torch.nn.ReLU()
+                torch.nn.ReLU(),
             )
             self.linear = torch.nn.Linear(24, classes)
         else:
@@ -55,12 +56,13 @@ class CNN(torch.nn.Module):
                 torch.nn.ReLU(),
                 torch.nn.AvgPool2d(2, 2),
                 torch.nn.Conv2d(16, 32, 3),
-                torch.nn.ReLU())
+                torch.nn.ReLU(),
+            )
             self.linear = torch.nn.Linear(32 * 28 * 28, classes)
         self.logsoftmax = torch.nn.LogSoftmax(dim=-1)
 
     def forward(self, x: torch.tensor) -> torch.tensor:
-        """ Compute the CNN forward pass.
+        """Compute the CNN forward pass.
 
         Args:
             x (torch.tensor): An input image of shape
@@ -80,7 +82,7 @@ class CNN(torch.nn.Module):
             # batch_size, height, width, packets, channels
             x = x.permute([0, 2, 3, 1, 4])
             # batch_size, height, width, packets*channels
-            x = x.reshape([shape[0], shape[2], shape[3], shape[1]*shape[4]])
+            x = x.reshape([shape[0], shape[2], shape[3], shape[1] * shape[4]])
             # batch_size, packets*channels, height, width
         x = x.permute([0, 3, 1, 2])
 
@@ -91,9 +93,10 @@ class CNN(torch.nn.Module):
 
 
 class Regression(torch.nn.Module):
-    """ A shallow linear-regression model. """
+    """A shallow linear-regression model."""
+
     def __init__(self, classes: int):
-        """ Create the regression model
+        """Create the regression model
         Args:
             classes (int): The number of classes or sources to classify.
         """
@@ -104,7 +107,7 @@ class Regression(torch.nn.Module):
         self.logsoftmax = torch.nn.LogSoftmax(dim=-1)
 
     def forward(self, x: torch.tensor) -> torch.tensor:
-        """ Compute the regression forward pass.
+        """Compute the regression forward pass.
 
         Args:
             x (torch.tensor): An input tensor of shape
@@ -119,14 +122,15 @@ class Regression(torch.nn.Module):
 
 
 class MLP(torch.nn.Module):
-    """ Create a more involved Multi Layer Perceptron.
+    """Create a more involved Multi Layer Perceptron.
         - We did not end up using ths MLP in the paper -.
 
     Args:
         torch ([type]): [description]
     """
+
     def __init__(self, classes: int):
-        """ Create the MLP.
+        """Create the MLP.
 
         Args:
             classes (int): The number of classes or sources to classify.
@@ -147,7 +151,7 @@ class MLP(torch.nn.Module):
         self.activation = torch.nn.LogSoftmax(dim=-1)
 
     def forward(self, x):
-        """ Compute the mlp forward pass.
+        """Compute the mlp forward pass.
 
         Args:
             x (torch.tensor): An input tensor of shape
