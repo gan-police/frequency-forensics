@@ -16,8 +16,8 @@ __all__ = [
 
 
 class LoadNumpyDataset(Dataset):
-    """ Create a data loader to load pre-processed numpy arrays
-        into memory.
+    """Create a data loader to load pre-processed numpy arrays
+    into memory.
     """
     def __init__(self, data_dir: str, mean: float=None, std: float =None):
         """Create a Numpy-dataset object.

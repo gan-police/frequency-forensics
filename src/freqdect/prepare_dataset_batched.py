@@ -12,7 +12,7 @@ from typing import Optional
 import numpy as np
 from PIL import Image
 
-from wavelet_math import batch_packet_preprocessing, identity_processing
+from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def get_label(path_to_image: Path) -> int:
