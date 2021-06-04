@@ -1,3 +1,5 @@
+""" Code to plot training mean accuracy as well as the standard deviation. """
+
 import pickle
 import argparse
 import matplotlib.pyplot as plt
