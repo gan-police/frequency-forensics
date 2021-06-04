@@ -1,3 +1,5 @@
+""" Code to plot training mean accuracy as well as the standard deviation. """
+
 import pickle
 import argparse
 import matplotlib.pyplot as plt
@@ -7,6 +9,15 @@ from typing import List, Any, Dict
 
 
 def stack_list(dict_list, key: str):
+    """Extract time series data from a logfile-list.
+
+    Args:
+        dict_list (list): A list as stored by train_classifier.py
+        key (str): The key for a logfile entry.
+
+    Returns:
+        tuple: A tuple of a step and accuracy numpy array.
+    """
     step_lst = []
     acc_lst = []
     for current_dictionary in dict_list:
@@ -19,31 +30,50 @@ def stack_list(dict_list, key: str):
     return np.stack(step_lst), np.stack(acc_lst)
 
 
-def get_steps_mean_std(step_lst, cost_lst):
+def _get_steps_mean_std(step_lst, cost_lst):
     mean = np.mean(cost_lst, axis=0)
     std = np.std(cost_lst, axis=0)
     return step_lst[0, :], mean, std
 
 
 def get_plot_tuple(dict_list, key: str):
+    """Extract time series data from a logfile-list.
+
+    Args:
+        dict_list (list): A list as stored by train_classifier.py
+        key (str): The key for a logfile entry.
+
+    Returns:
+        tuple: A tuple of a step and mean accuracy and standard deviation.
+    """
     steps, loss = stack_list(dict_list, key)
-    steps, mean, std = get_steps_mean_std(steps, loss)
+    steps, mean, std = _get_steps_mean_std(steps, loss)
     return steps, mean, std
 
 
-def plot_mean_std(axs, steps, mean, std, color, label="", marker="."):
+def _plot_mean_std(axs, steps, mean, std, color, label="", marker="."):
     axs.plot(steps, mean, label=label, color=color, marker=marker)
     axs.fill_between(steps, mean - std, mean + std, color=color, alpha=0.2)
 
 
-def get_test_acc_mean_std_max(dict_list: dict, key: str):
+def get_test_acc_mean_std_max(dict_list: list, key: str):
+    """ Compute the mean test accuracy and standard deviation over
+        multiple runs.
+
+    Args:
+        dict_list (list): A list of dicts as stored by train_classifier.py
+        key (str): The dictionary key we are interested in.
+
+    Returns:
+        tuple: The mean, standard deviation and max in that order.
+    """
     test_accs = []
     for experiment_dict in dict_list:
         test_accs.append(experiment_dict[key])
     return np.mean(test_accs), np.std(test_accs), np.max(test_accs)
 
 
-def plot_on_ax(
+def _plot_on_ax(
         dataset: str,
         model: str,
         axs: Axes,
@@ -95,13 +125,13 @@ def plot_on_ax(
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
     steps, mean, std = get_plot_tuple(raw_logs, "val_acc")
-    plot_mean_std(axs, steps, mean, std, color=colors[0], label="raw validation acc")
+    _plot_mean_std(axs, steps, mean, std, color=colors[0], label="raw validation acc")
 
     steps, mean, std = get_plot_tuple(packet_logs, "val_acc")
-    plot_mean_std(axs, steps, mean, std, color=colors[1], label="packet validation acc")
+    _plot_mean_std(axs, steps, mean, std, color=colors[1], label="packet validation acc")
 
     steps, mean, std = get_plot_tuple(logpacket_logs, "val_acc")
-    plot_mean_std(axs, steps, mean, std, color=colors[2], label="logpacket validation acc")
+    _plot_mean_std(axs, steps, mean, std, color=colors[2], label="logpacket validation acc")
 
     lt_mean, lt_std, lt_max = get_test_acc_mean_std_max(logpacket_logs, "test_acc")
     pt_mean, pt_std, pt_max = get_test_acc_mean_std_max(packet_logs, "test_acc")
@@ -174,7 +204,7 @@ def plot_shared(args):
 
     fig, (ax1, ax2) = plt.subplots(ncols=2, sharey=True, figsize=(10, 5))
 
-    plot_on_ax(
+    _plot_on_ax(
         dataset="CelebA",
         model=args.model,
         axs=ax2,
@@ -186,7 +216,7 @@ def plot_shared(args):
         ylim=args.ylim
     )
 
-    plot_on_ax(
+    _plot_on_ax(
         dataset="LSUN",
         model=args.model,
         axs=ax1,
@@ -217,7 +247,7 @@ def plot_single(args):
         for idx in args.skip_val_acc_indices:
             skip_every_second_val_acc(log_list[idx])
 
-    plot_on_ax(
+    _plot_on_ax(
         dataset=args.dataset,
         model=args.model,
         axs=plt.gca(),
@@ -235,7 +265,7 @@ def plot_single(args):
     export_plots(args, prefix=args.dataset.lower())
 
 
-def main():
+def _parse_args():
     parser = argparse.ArgumentParser(description="Plot validation accuracy")
 
     parent_parser = argparse.ArgumentParser(add_help=False)
@@ -287,8 +317,10 @@ def main():
     parser_celeba.set_defaults(func=plot_single)
     parser_celeba.set_defaults(dataset="CelebA")
 
-    args = parser.parse_args()
+    return parser.parse_args()
 
+def main():
+    args = _parse_args()
     args.func(args)
 
 
