@@ -1,3 +1,7 @@
+""" Source code to train deepfake detectors in wavelet and pixel space.
+"""
+
+
 import argparse
 import pickle
 from typing import Any, Tuple
