@@ -34,7 +34,9 @@ We work with images of the size 128x128 pixels. Hence, the raw images from the L
 
 Use the pretrained GAN-models to generate images.
 In case of StyleGAN, there is only a pre-trained model generating images of size 1024x1024, so one has to resize the GAN-generated images to size 128x128 pixels, e.g. by inserting
-``` PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)```
+```
+PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)
+```
 into the [ffhq-stylegan](https://github.com/NVlabs/stylegan/blob/03563d18a0cf8d67d897cc61e44479267968716b/pretrained_example.py)
 
 Store all images (cropped original and GAN-generated) in a separate subdirectories of a directory, i.e. the directory structure should look like this
@@ -50,7 +52,7 @@ For the FFHQ case, we have only two subdirectories: `ffhq_stylegan/A_ffhq` and `
 
 Now, to prepare the data sets run `freqdect.prepare_dataset` . It reads in the data set, splits them into a training, validation and test set, applies the specified transformation (to wavelet packets, log-scaled wavelet packets or just the raw image data) and stores the result as numpy arrays.
 
-Afterwards run i.e.:
+Afterwards run e.g.:
 ```shell
 $ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/ --log-packets
 $ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/
@@ -61,7 +63,10 @@ to change the sizes of the train, test or validation sets. For a list of all opt
 ## Training the classifier
 Now you should be able to train a classifier using for example:
 ```shell
-$ python -m freqdect.train_classifier --data-prefix ./data/source_data_packets --calc-normalization --features packets
+$ python -m freqdect.train_classifier \
+    --data-prefix ./data/source_data_packets \
+    --calc-normalization \
+    --features packets
 ```
 This trains a regression classifier using default hyperparameters. The training, validation and test accuracy and loss values are stored in a file placed in a `log` folder. The state dict of the trained model is stored there as well. For a list of all optional arguments, open the help page via the `-h` argument.
 
