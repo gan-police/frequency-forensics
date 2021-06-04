@@ -4,94 +4,124 @@
 </p>
 -->
 
-# frequency-detection
+# Wavelet-Packet Powered Deepfake Image Detection
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+This is the supplementary source code for our paper
+Wavelet-Packet Powered Deepfake Image Detection,
+which is currently under review.
+
+
 ## Installation
-
-The latest code can be installed directly from GitHub with:
-
-```shell
-$ pip install git+https://github.com/gan-police/frequency-forensics
-```
-
 The latest code can be installed in development mode with:
-
 ```shell
-$ git clone https://github.com/gan-police/frequency-forensics
-$ cd frequency-forensics
 $ pip install -e .
 ```
 
-Where <kbd>-e</kbd> means "editable" mode.
+## Data sets:
+We utilize three datasets which commonly appeard in previous work:
+-  [FFHQ](https://github.com/NVlabs/ffhq-dataset)
+-  [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
+-  [LSUN bedroom](https://github.com/fyu/lsun)
 
-Periodically run `tox -e black` to blackify the code when in development mode.
+## GAN Architectures:
+We utilize pre-trained models from the following repositories:
+-  [StyleGAN](https://github.com/NVlabs/stylegan)
+-  [GANFingerprints](https://github.com/ningyu1991/GANFingerprints)
 
-## Getting a minimal example to run:
+## Dataset preparation
+We work with images of the size 128x128 pixels. Hence, the raw images from the LSUN/CelebA data set have to be cropped and/or resized to this size. To do this, run `freqdect.crop_celeba` or `freqdect.crop_lsun`, depending on the dataset. This will create a new folder with the transformed images. The FFHQ dataset is already distributed in the required image size.
 
-Download FFHQ-Style-Gan examples from
-https://drive.google.com/file/d/1pKmmRtRCtFqs-FuwmToXEYeZFaXk98Kw/view?usp=sharing
+Use the pretrained GAN-models to generate images.
+In case of StyleGAN, there is only a pre-trained model generating images of size 1024x1024, so one has to resize the GAN-generated images to size 128x128 pixels, e.g. by inserting
+``` PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)```
+into 
+[ffhq-stylegan](https://github.com/NVlabs/stylegan/blob/03563d18a0cf8d67d897cc61e44479267968716b/pretrained_example.py)
 
-and extract these into a `data` folder.
+Store all images (cropped original and GAN-generated) in a separate subdirectories of a directory, i.e. the directory structure should look like this
+```
+source_data
+ ├── A_original
+ ├── B_CramerGAN
+ ├── C_MMDGAN
+ ├── D_ProGAN
+ └── E_SNGAN
+```
+For the FFHQ case, we have only two subdirectories: `source_data/A_ffhq` and `source_data/B_stylegan`. The prefixes of the folders are important, since the directories get the labels in lexicographic order of their prefix, i.e. directory `A_...` gets label 0, `B_...` label 1, etc.
+
+Now, to prepare the data sets run `freqdect.prepare_dataset` . It reads in the data set, splits them into a training, validation and test set, applies the specified transformation (to wavelet packets, log-scaled wavelet packets or just the raw image data) and stores the result as numpy arrays.
 
 Afterwards run:
-
 ```shell
-$ CUDA_VISIBLE_DEVICES=0 python -m freqdect.prepare_dataset ./data/source_data/ --packets
-$ python -m freqdect.prepare_dataset ./data/source_data/ --raw
+$ python -m freqdect.prepare_dataset_batched ./data/source_data/ --packets
+$ python -m freqdect.prepare_dataset_batched ./data/source_data/
+
+usage: prepare_dataset.py [-h] [--train-size TRAIN_SIZE] [--test-size TEST_SIZE] [--val-size VAL_SIZE] [--batch-size BATCH_SIZE] [--packets] [--log-packets] directory
+
+positional arguments:
+  directory             The folder with the real and gan generated image folders.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --train-size TRAIN_SIZE
+                        Desired size of the training subset of each folder. (default: 63_000).
+  --test-size TEST_SIZE
+                        Desired size of the test subset of each folder. (default: 5_000).
+  --val-size VAL_SIZE   Desired size of the validation subset of each folder. (default: 2_000).
+  --batch-size BATCH_SIZE
+                        The batch_size used for image conversion. (default: 2048).
+  --packets, -p         Save image data as wavelet packets.
+  --log-packets, -lp    Save image data as log-scaled wavelet packets.
+
+  Example: python -m freqdect.prepare_dataset ./data/source_data/ --packets
 ```
 
-afterwards you should be able to train a classifier using
-
+## Training the classifier
+Now you should be able to train a classifier using
 ```shell
-$ CUDA_VISIBLE_DEVICES=0 python -m freqdect.train_classifier
+$ python -m freqdect.train_classifier --data-prefix ./data/source_data_packets/ --calc-normalization
+```
+This trains a regression classifier using default hyperparameters. The training, validation and test accuracy and loss values are stored in a file placed in a `log` folder. The state dict of the trained model is stored there as well.
+
+```
+usage: train_classifier.py [-h] [--features {raw,packets}] [--batch-size BATCH_SIZE] [--learning-rate LEARNING_RATE]
+                           [--weight-decay WEIGHT_DECAY] [--epochs EPOCHS]
+                           [--validation-interval VALIDATION_INTERVAL] [--data-prefix DATA_PREFIX]
+                           [--nclasses NCLASSES] [--seed SEED] [--model {regression,cnn,mlp}] [--tensorboard]
+                           [--normalize MEAN [STD ...] | --calc-normalization]
+
+Train an image classifier
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --features {raw,packets}
+                        the representation type
+  --batch-size BATCH_SIZE
+                        input batch size for testing (default: 512)
+  --learning-rate LEARNING_RATE
+                        learning rate for optimizer (default: 1e-3)
+  --weight-decay WEIGHT_DECAY
+                        weight decay for optimizer (default: 0)
+  --epochs EPOCHS       number of epochs (default: 10)
+  --validation-interval VALIDATION_INTERVAL
+                        number of training steps after which the model is tested on the validation data set
+                        (default: 200)
+  --data-prefix DATA_PREFIX
+                        shared prefix of the data paths (default: ./data/source_data_packets)
+  --nclasses NCLASSES   number of classes (default: 2)
+  --seed SEED           the random seed pytorch works with.
+  --model {regression,cnn,mlp}
+                        The model type chosse regression or CNN. Default: Regression.
+  --tensorboard         enables a tensorboard visualization.
+  --normalize MEAN [STD ...]
+                        normalize with specified values for mean and standard deviation (either 2 or 6 values are
+                        accepted)
+  --calc-normalization  calculates mean and standard deviation used in normalization from the training data
 ```
 
-## whats the plan?
-
-- I think it may be a good idea to use the fwt instead of the fft to find GAN generated conted, because of Gibbs
-  phenomenon:
-  https://en.wikipedia.org/wiki/Gibbs_phenomenon
-- Faces have sharp edges i.e. at the forehead - hair transition. I expect this to happen with the method above. => See
-  if we can find a wavelet that is better suited to GAN-content dectection and try to write a paper about it.
-
-## GAN Review List
-
-https://docs.google.com/spreadsheets/d/1uWQBdcbQIOcomveN912X8m3U0W_wORY1ZF5tMvGmmSA/edit?usp=sharing
-
-## Motivation List
-
-Distopian future where you dont know what's real and what's not. Thus, we have to prepare beforehand for this race by
-having machines that are able to recognize the difference between fake and real content.
-
-For example:
-
-- People already started using GANs to fabricate fake content (e.g., images, audios, etc.).
-    - Example: Biden's video
-    - Example: Homer's voice
-- There are existing fake versions of Copyright work that is being.
-    - Youtube videos that have been copied/modified (e.g., 2x speed video and you want to recognize)
-    - Recognizing real paintings
-
-## Goals
-
-- Flag such content so that people is aware that the image/audio is fake.
-- Having an open source software available for the community (e.g., media) to check the vericity of content.
-- Benchmark for the community and extensions (e.g., paper comes and they have to be able to avoid being recognized by
-  our software but at the same time new comes).
-- If easily generated content is everywhere, the source is key to determine the vericity of the content.
--
-
-## Loading the data
-
-FFHQ:
-
-``` shell
-$ python download_ffhq.py -t
-```
-
-LSUN:
-The lsun repository has python 2 to 3 conversion problems, the solution proposed in
-https://github.com/fyu/lsun/issues/11#issuecomment-567390245
-works.
+## Evaluating the classifier
+### Plotting the accuracies
+[TODO™]
+### Calculating the confusion matrix
+[TODO™]
