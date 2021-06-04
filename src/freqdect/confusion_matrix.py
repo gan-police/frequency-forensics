@@ -1,6 +1,7 @@
 """Calculating confusion matrices from trained models that classify deepfake image data."""
 import argparse
 from collections import defaultdict
+from typing import List
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
@@ -132,17 +133,16 @@ def calculate_generalized_confusion_matrix(args):
     return matrix
 
 
-def output_confusion_matrix_stats(matrix, plot: bool = False):
+def output_confusion_matrix_stats(matrix, label_names: List[str],  plot: bool = False):
     """Outputs stats about the confusion matrix.
 
     Args:
         matrix: The confusion matrix from which the stats are calculated.
+        label_names (List[str]): String representations of the labels.
         plot (bool): If this flag is set, the confusion matrix is plotted.
             The plot is shown and stored in the current working directory.
     """
     print("accuracy: ", np.trace(matrix) / matrix.sum())
-
-    label_names = ["Original", "CramerGAN", "MMDGAN", "ProGAN", "SNGAN"]
 
     diag = np.diag(matrix)
 
@@ -200,9 +200,16 @@ def _parse_args():
         "are accepted)",
     )
     parser.add_argument(
+        "--label-names",
+        nargs="+",
+        type=str,
+        default=["Original", "CramerGAN", "MMDGAN", "ProGAN", "SNGAN"],
+        help="string representation of the class labels. Only used when '--generalized' is not selected.",
+    )
+    parser.add_argument(
         "--plot",
         action="store_true",
-        help="plot the confusion matrix and store the plot as png",
+        help="plot the confusion matrix and store the plot as png. Does only have an effect when '--generalized' is not selected.",
     )
     parser.add_argument(
         "--nclasses", type=int, default=2, help="number of classes (default: 2)"
@@ -221,4 +228,4 @@ if __name__ == "__main__":
         matrix = calculate_confusion_matrix(args)
         print(matrix)
 
-        output_confusion_matrix_stats(matrix, args.plot)
+        output_confusion_matrix_stats(matrix, args.label_names, args.plot)
