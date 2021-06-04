@@ -33,6 +33,15 @@ def _get_steps_mean_std(step_lst, cost_lst):
 
 
 def get_plot_tuple(dict_list, key: str):
+    """Extract time series data from a logfile-list.
+
+    Args:
+        dict_list (list): A list as stored by train_classifier.py
+        key (str): The key for a logfile entry.
+
+    Returns:
+        tuple: A tuple of a step and mean accuracy and standard deviation.
+    """
     steps, loss = stack_list(dict_list, key)
     steps, mean, std = _get_steps_mean_std(steps, loss)
     return steps, mean, std
@@ -61,6 +70,7 @@ def get_test_acc_mean_std_max(dict_list: list, key: str):
 
 
 def main(args):
+    """ Run the plotting. """
     packet_logs = pickle.load(open(args.PACKETFILE, "rb"))
     raw_logs = pickle.load(open(args.PIXELFILE, "rb"))
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
@@ -96,6 +106,7 @@ def main(args):
 
 
 def parse_args():
+    """ Get packetile, pixelfile as well as the plot title and output type. """
     parser = argparse.ArgumentParser()
 
     # "./log/celeba_align_png_cropped_packets_regression.pkl"
