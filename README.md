@@ -46,7 +46,7 @@ Store all images in a `data` folder. Use i.e
 Afterwards run:
 ```shell
 $ python -m freqdect.prepare_dataset_batched ./data/source_data/ --packets
-$ python -m freqdect.prepare_dataset_batched ./data/source_data/ --raw
+$ python -m freqdect.prepare_dataset_batched ./data/source_data/
 ```
 now you should be able to train a classifier using
 ```shell
