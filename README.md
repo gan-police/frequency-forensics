@@ -53,7 +53,7 @@ Now, to prepare the data sets run `freqdect.prepare_dataset` . It reads in the d
 
 Afterwards run i.e.:
 ```shell
-$ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/ --packets
+$ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/ --log-packets
 $ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/
 ```
 The data-set preperation script accepts additional arguments. For example it is possible
@@ -80,12 +80,12 @@ optional arguments:
 ```
 
 ## Training the classifier
-Now you should be able to train a classifier using
+Now you should be able to train a classifier using for example:
 ```shell
 $ python -m freqdect.train_classifier --data-prefix ./data/source_data_packets --calc-normalization --features packets
 ```
 This trains a regression classifier using default hyperparameters. The training, validation and test accuracy and loss values are stored in a file placed in a `log` folder. The state dict of the trained model is stored there as well.
-
+For reference other options are:
 ```
 usage: train_classifier.py [-h] [--features {raw,packets}] [--batch-size BATCH_SIZE] [--learning-rate LEARNING_RATE]
                            [--weight-decay WEIGHT_DECAY] [--epochs EPOCHS]
