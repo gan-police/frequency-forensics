@@ -1,17 +1,27 @@
 import argparse
 import pickle
+from typing import Any, Tuple
 
 import numpy as np
-
 import torch
-from torch.nn.modules import linear
 from torch.utils.data import DataLoader
 from .data_loader import LoadNumpyDataset
 from .models import CNN, Regression, MLP, compute_parameter_total
 from torch.utils.tensorboard.writer import SummaryWriter
 
 
-def val_test_loop(data_loader, model, loss_fun):
+def val_test_loop(data_loader: DataLoader, model: torch.nn.Module, loss_fun) -> Tuple[float, Any]:
+    """Tests the performance of a model on a data set by calculating the prediction accuracy and loss of the model.
+
+    Args:
+        data_loader (DataLoader): A DataLoader loading the data set on which the performance should be measured,
+            e.g. a test or validation set in a data split.
+        model (torch.nn.Module): The model to evaluate.
+        loss_fun: The loss function, which is used to measure the loss of the model on the data set
+
+    Returns:
+        Tuple[float, Any]: The measured accuracy and loss of the model on the data set.
+    """
     with torch.no_grad():
         model.eval()
         val_total = 0
