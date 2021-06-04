@@ -203,6 +203,8 @@ def skip_every_second_val_acc(logs):
 
 
 def plot_shared(args):
+    """Plots the validation and test accuracy for both the LSUN and CelebA data sets side by side for better comparision"""
+
     logpacket_logs_lsun = pickle.load(open(f"{args.prefix_lsun}_logpackets_{args.model}.pkl", "rb"))
     packet_logs_lsun = pickle.load(open(f"{args.prefix_lsun}_packets_{args.model}.pkl", "rb"))
     raw_logs_lsun = pickle.load(open(f"{args.prefix_lsun}_raw_{args.model}.pkl", "rb"))
@@ -252,6 +254,8 @@ def plot_shared(args):
 
 
 def plot_single(args):
+    """Plots the validation and test accuracy for one data set"""
+
     logpacket_logs = pickle.load(open(f"{args.prefix}_logpackets_{args.model}.pkl", "rb"))
     packet_logs = pickle.load(open(f"{args.prefix}_packets_{args.model}.pkl", "rb"))
     raw_logs = pickle.load(open(f"{args.prefix}_raw_{args.model}.pkl", "rb"))
@@ -297,7 +301,7 @@ def _parse_args():
 
     subparsers = parser.add_subparsers(required=True)
 
-    # create subparsers for plotting a shared plot for LSUN/CelebA
+    # create subparser for plotting a shared plot for LSUN/CelebA
     parser_shared = subparsers.add_parser('shared', parents=[parent_parser])
     parser_shared.add_argument("--epochs", nargs=2, metavar=('LSUN_EPOCHS', 'CELEBA_EPOCHS'), type=int,
                                default=[None, None],
@@ -311,6 +315,7 @@ def _parse_args():
                                help="shared file path prefix of the log files (default: ./log/celeba_align_png_cropped)")
     parser_shared.set_defaults(func=plot_shared)
 
+    # create subparser for plotting either LSUN or CelebA
     parser_lsun = subparsers.add_parser('lsun', parents=[parent_parser])
     parser_lsun.add_argument("--prefix", default='./log/lsun_bedroom_200k_png',
                              help="shared file path prefix of the log files (default: ./log/lsun_bedroom_200k_png)")
