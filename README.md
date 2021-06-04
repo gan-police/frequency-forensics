@@ -32,7 +32,7 @@ TODO add more.
 
 ## Getting the ffhq experiment to run:
 Download the 128x128 pixel version of the ffhq data sets.
-Insert a foor loop a random seed and code to resize i.e. 
+Insert a for loop a random seed and code to resize i.e. 
 ``` PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)```
 into 
 [ffhq-stylegan](https://github.com/NVlabs/stylegan/blob/03563d18a0cf8d67d897cc61e44479267968716b/pretrained_example.py)
@@ -45,8 +45,8 @@ Store all images in a `data` folder. Use i.e
 
 Afterwards run:
 ```shell
-$ python -m freqdect.prepare_dataset ./data/source_data/ --packets
-$ python -m freqdect.prepare_dataset ./data/source_data/ --raw
+$ python -m freqdect.prepare_dataset_batched ./data/source_data/ --packets
+$ python -m freqdect.prepare_dataset_batched ./data/source_data/ --raw
 ```
 now you should be able to train a classifier using
 ```shell
