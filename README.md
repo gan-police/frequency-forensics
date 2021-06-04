@@ -76,8 +76,9 @@ optional arguments:
 ## Training the classifier
 Now you should be able to train a classifier using
 ```shell
-$ python -m freqdect.train_classifier --data-prefix ./data/source_data/ --calc-normalization
+$ python -m freqdect.train_classifier --data-prefix ./data/source_data_packets/ --calc-normalization
 ```
+This trains a regression classifier using default hyperparameters. The training, validation and test accuracy and loss values are stored in a file placed in a `log` folder. The state dict of the trained model is stored there as well.
 
 ```
 usage: train_classifier.py [-h] [--features {raw,packets}] [--batch-size BATCH_SIZE] [--learning-rate LEARNING_RATE]
@@ -114,3 +115,9 @@ optional arguments:
                         accepted)
   --calc-normalization  calculates mean and standard deviation used in normalization from the training data
 ```
+
+## Evaluating the classifier
+### Plotting the accuracies
+[TODO™]
+### Calculating the confusion matrix
+[TODO™]
