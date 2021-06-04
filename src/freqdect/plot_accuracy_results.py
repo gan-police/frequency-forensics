@@ -191,6 +191,13 @@ def export_plots(args, output_prefix: str):
 
 
 def skip_every_second_val_acc(logs):
+    """If the interval between the validation accuracy measurements is too small, the resulting plot is too loaded.
+    In this case, one can use this function to half the validation accuracy resolution by skipping every second
+    validation accuracy entry.
+
+    Args:
+        logs: The log of the runs, from which every second validation accuracy measurement is skipped.
+    """
     for run in logs:
         run['val_acc'] = run['val_acc'][1::2]
 
