@@ -11,7 +11,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 
 def crop_image(packed: Tuple[int, str, str, str]):
-    """Center-crops and resizes an CelebA image to 128x128 pixels.
+    """Center-crops an CelebA image to 128x128 pixels.
 
         Args:
             packed (Tuple[int, str, str, str]): Packed args as tuple. The first entry is the image index.
@@ -44,6 +44,7 @@ def crop_image(packed: Tuple[int, str, str, str]):
 
 
 def main(args):
+    """ Center-crops and resizes a number of CelebA images in a directory to 128x128 pixels and stores the cropped images."""
     os.makedirs(args.OUTPUT, exist_ok=True)
     paths = os.listdir(args.DIRECTORY)[: args.SIZE]
     packed = map(lambda x: (x[0], args.DIRECTORY, x[1], args.OUTPUT), enumerate(paths))
@@ -52,7 +53,7 @@ def main(args):
         jobs = pool.map(crop_image, packed)
 
 
-def parse_args():
+def _parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("DIRECTORY", help="Source directory.", type=str)
@@ -63,4 +64,4 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    main(parse_args())
+    main(_parse_args())
