@@ -44,7 +44,7 @@ def crop_image(packed: Tuple[int, str, str, str]):
 
 
 def main(args):
-    """ Center-crops and resizes a number of CelebA images in a directory to 128x128 pixels and stores the cropped images."""
+    """ Center-crops a number of CelebA images in a directory to 128x128 pixels and stores the cropped images."""
     os.makedirs(args.OUTPUT, exist_ok=True)
     paths = os.listdir(args.DIRECTORY)[: args.SIZE]
     packed = map(lambda x: (x[0], args.DIRECTORY, x[1], args.OUTPUT), enumerate(paths))
