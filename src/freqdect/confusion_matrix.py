@@ -214,7 +214,11 @@ def _parse_args():
     parser.add_argument(
         "--nclasses", type=int, default=2, help="number of classes (default: 2)"
     )
-    parser.add_argument("--generalized", action="store_true")
+    parser.add_argument(
+        "--generalized",
+        action="store_true",
+        help="Calculates a generalized confusion matrix for the binary classification task differentiating fake from real images."
+    )
     return parser.parse_args()
 
 
