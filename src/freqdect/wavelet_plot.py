@@ -1,3 +1,6 @@
+""" Code to compute wavelet packets of real and generated
+    images for visual comparison. """
+
 import argparse
 
 import cv2
