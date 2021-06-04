@@ -12,11 +12,11 @@ from concurrent.futures import ProcessPoolExecutor
 def transform_image(packed: Tuple[str, str, str]):
     """Center-crops and resizes an LSUN image to 128x128 pixels.
 
-        Args:
-            packed (Tuple[str, str, str]): Packed args as tuple.
-                The first entry is the file path of the original image file, which is cropped and resized.
-                The second entry is the path of the directory containing all original LSUN images.
-                The third entry is the path of the directory where the cropped image is stored.
+    Args:
+        packed (Tuple[str, str, str]): Packed args as tuple.
+            The first entry is the file path of the original image file, which is cropped and resized.
+            The second entry is the path of the directory containing all original LSUN images.
+            The third entry is the path of the directory where the cropped image is stored.
     """
     file_path, directory, output = packed
     # catch errors and continue with different files
@@ -71,7 +71,7 @@ def transform_image(packed: Tuple[str, str, str]):
 
 
 def main(args):
-    """ Center-crops and resizes a number of LSUN images in a directory to 128x128 pixels and stores the cropped images."""
+    """Center-crops and resizes a number of LSUN images in a directory to 128x128 pixels and stores the cropped images."""
     os.makedirs(args.OUTPUT, exist_ok=True)
 
     # only consider the specified number of files

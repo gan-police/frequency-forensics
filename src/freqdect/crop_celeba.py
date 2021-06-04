@@ -13,11 +13,12 @@ from concurrent.futures import ProcessPoolExecutor
 def crop_image(packed: Tuple[int, str, str, str]):
     """Center-crops an CelebA image to 128x128 pixels.
 
-        Args:
-            packed (Tuple[int, str, str, str]): Packed args as tuple. The first entry is the image index.
-                The second entry is the path of the directory containing all original CelebA images.
-                The third entry is the file path of the original image file, which is cropped.
-                The fourth entry is the path of the directory where the cropped image is stored.
+    Args:
+        packed (Tuple[int, str, str, str]): Packed args as tuple.
+            The first entry is the image index.
+            The second entry is the path of the directory containing all original CelebA images.
+            The third entry is the file path of the original image file, which is cropped.
+            The fourth entry is the path of the directory where the cropped image is stored.
     """
     i, directory, file_path, output = packed
     if (
@@ -44,7 +45,7 @@ def crop_image(packed: Tuple[int, str, str, str]):
 
 
 def main(args):
-    """ Center-crops a number of CelebA images in a directory to 128x128 pixels and stores the cropped images."""
+    """Center-crops a number of CelebA images in a directory to 128x128 pixels and stores the cropped images."""
     os.makedirs(args.OUTPUT, exist_ok=True)
     paths = os.listdir(args.DIRECTORY)[: args.SIZE]
     packed = map(lambda x: (x[0], args.DIRECTORY, x[1], args.OUTPUT), enumerate(paths))
