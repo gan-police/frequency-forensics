@@ -67,8 +67,8 @@ def generate_packet_image_tensor(packet_array: torch.tensor):
 
 
 def main():
-    """ Compute mean wavelet packets and the standard deviation for a NumPy 
-        dataset. """
+    """Compute mean wavelet packets and the standard deviation for a NumPy
+    dataset."""
 
     import matplotlib.pyplot as plt
 
