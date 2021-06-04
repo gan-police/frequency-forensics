@@ -30,8 +30,8 @@ We utilize pre-trained models from the following repositories:
 -  [StyleGAN](https://github.com/NVlabs/stylegan)
 -  [GANFingerprints](https://github.com/ningyu1991/GANFingerprints)
 
-## Getting the ffhq experiment to run:
-Download the 128x128 pixel version of the ffhq data sets.
+## Getting the FFHQ experiment to run:
+Download the 128x128 pixel version of the FFHQ data set.
 Insert a foor loop a random seed and code to resize i.e. 
 ``` PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)```
 into 
@@ -48,7 +48,7 @@ Afterwards run:
 $ python -m freqdect.prepare_dataset ./data/source_data/ --packets
 $ python -m freqdect.prepare_dataset ./data/source_data/ --raw
 ```
-now you should be able to train a classifier using
+Now you should be able to train a classifier using
 ```shell
 $ python -m freqdect.train_classifier --data-prefix ./data/source_data/ --calc-normalization
 ```
