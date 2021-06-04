@@ -25,10 +25,10 @@ We utilize three datasets which commonly appeard in previous work:
 -  [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 -  [LSUN bedroom](https://github.com/fyu/lsun)
 
-## Gan Architectures:
--  [StyleGan](https://github.com/NVlabs/stylegan)
-...
-TODO add more.
+## GAN Architectures:
+We utilize pre-trained models from the following repositories:
+-  [StyleGAN](https://github.com/NVlabs/stylegan)
+-  [GANFingerprints](https://github.com/ningyu1991/GANFingerprints)
 
 ## Getting the ffhq experiment to run:
 Download the 128x128 pixel version of the ffhq data sets.
