@@ -78,3 +78,39 @@ Now you should be able to train a classifier using
 ```shell
 $ python -m freqdect.train_classifier --data-prefix ./data/source_data/ --calc-normalization
 ```
+
+```
+usage: train_classifier.py [-h] [--features {raw,packets}] [--batch-size BATCH_SIZE] [--learning-rate LEARNING_RATE]
+                           [--weight-decay WEIGHT_DECAY] [--epochs EPOCHS]
+                           [--validation-interval VALIDATION_INTERVAL] [--data-prefix DATA_PREFIX]
+                           [--nclasses NCLASSES] [--seed SEED] [--model {regression,cnn,mlp}] [--tensorboard]
+                           [--normalize MEAN [STD ...] | --calc-normalization]
+
+Train an image classifier
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --features {raw,packets}
+                        the representation type
+  --batch-size BATCH_SIZE
+                        input batch size for testing (default: 512)
+  --learning-rate LEARNING_RATE
+                        learning rate for optimizer (default: 1e-3)
+  --weight-decay WEIGHT_DECAY
+                        weight decay for optimizer (default: 0)
+  --epochs EPOCHS       number of epochs (default: 10)
+  --validation-interval VALIDATION_INTERVAL
+                        number of training steps after which the model is tested on the validation data set
+                        (default: 200)
+  --data-prefix DATA_PREFIX
+                        shared prefix of the data paths (default: ./data/source_data_packets)
+  --nclasses NCLASSES   number of classes (default: 2)
+  --seed SEED           the random seed pytorch works with.
+  --model {regression,cnn,mlp}
+                        The model type chosse regression or CNN. Default: Regression.
+  --tensorboard         enables a tensorboard visualization.
+  --normalize MEAN [STD ...]
+                        normalize with specified values for mean and standard deviation (either 2 or 6 values are
+                        accepted)
+  --calc-normalization  calculates mean and standard deviation used in normalization from the training data
+```
