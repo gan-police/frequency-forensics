@@ -14,7 +14,7 @@
 
 ANACONDA_ENV="$HOME/env/intel38"
 
-DATASETS_DIR="/nvme/mwolter"
+DATASETS_DIR="/nvme/fblanke"
 
 LSUN_DATASET_LOGPACKETS="lsun_bedroom_200k_png_logpackets"
 LSUN_DATASET_PACKETS="lsun_bedroom_200k_png_packets"
@@ -58,12 +58,11 @@ do
   echo "confusion matrix for: $i "
   python -m freqdect.confusion_matrix \
     --features packets \
-    --classifier-path log/${CLASSIFIER_FILE}.pt \
+    --classifier-path final-models/missing_4_epochs_50/${CLASSIFIER_FILE}.pt \
     --data ${DATASETS_DIR}/${CHOSEN_DATASET}_test \
     --normalize ${CHOSEN_NORMALIZATION} \
     --batch-size $BATCH_SIZE \
     --nclasses ${NCLASSES} \
-    --model $MODEL \
-    --generalized
+    --model $MODEL
 done
 echo "ended at `date +"%T"`"
