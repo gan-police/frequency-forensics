@@ -58,7 +58,7 @@ def read_pair(path_real, path_fake):
 
 
 def compute_packet_rep_img(image, wavelet_str, max_lev):
-    """ Compute the packet representation of an input image.
+    """Compute the packet representation of an input image.
 
     Args:
         image (np.array): An image of shape [height, widht, channel]
@@ -83,8 +83,8 @@ def compute_packet_rep_img(image, wavelet_str, max_lev):
 
 
 def main():
-    """ Compute some wavelet packets of real and generated images for
-        visual comparison. """
+    """Compute some wavelet packets of real and generated images for
+    visual comparison."""
 
     parser = argparse.ArgumentParser(
         description="Plot wavelet decomposition of real and fake imgs"

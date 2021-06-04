@@ -18,7 +18,8 @@ class LoadNumpyDataset(Dataset):
     """Create a data loader to load pre-processed numpy arrays
     into memory.
     """
-    def __init__(self, data_dir: str, mean: float=None, std: float =None):
+
+    def __init__(self, data_dir: str, mean: float = None, std: float = None):
         """Create a Numpy-dataset object.
 
         Args:
@@ -54,7 +55,7 @@ class LoadNumpyDataset(Dataset):
 
 
 def main():
-    """ Compute dataset mean and standard deviation """
+    """Compute dataset mean and standard deviation"""
     import argparse
     import matplotlib.pyplot as plt
     from torch.utils.data import DataLoader
