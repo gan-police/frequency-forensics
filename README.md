@@ -4,9 +4,14 @@
 </p>
 -->
 
-# frequency-detection
+# Wavelet-Packet Powered Deepfake Image Detection
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+This is the supplementary source code for our paper
+Wavelet-Packet Powered Deepfake Image Detection,
+which is currently under review.
+
 
 ## Installation
 The latest code can be installed in development mode with:
@@ -25,7 +30,7 @@ We utilize three datasets which commonly appeard in previous work:
 ...
 TODO add more.
 
-## Getting the ffhq example to run:
+## Getting the ffhq experiment to run:
 Download the 128x128 pixel version of the ffhq data sets.
 Insert a foor loop a random seed and code to resize i.e. 
 ``` PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)```
