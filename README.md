@@ -25,6 +25,7 @@ We utilize three datasets which commonly appeard in previous work:
 -  [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 -  [LSUN bedroom](https://github.com/fyu/lsun)
 
+<<<<<<< HEAD
 ## Gan Architectures:
 -  [StyleGan](https://github.com/NVlabs/stylegan)
 ...
@@ -33,22 +34,101 @@ TODO add more.
 ## Getting the ffhq experiment to run:
 Download the 128x128 pixel version of the ffhq data sets.
 Insert a for loop a random seed and code to resize i.e. 
+=======
+## GAN Architectures:
+We utilize pre-trained models from the following repositories:
+-  [StyleGAN](https://github.com/NVlabs/stylegan)
+-  [GANFingerprints](https://github.com/ningyu1991/GANFingerprints)
+
+## Dataset preparation
+We work with images of the size 128x128 pixels. Hence, the raw images from the LSUN/CelebA data set have to be cropped and/or resized to this size. To do this, run `freqdect.crop_celeba` or `freqdect.crop_lsun`, depending on the dataset. This will create a new folder with the transformed images. The FFHQ dataset is already distributed in the required image size.
+
+Use the pretrained GAN-models to generate images.
+In case of StyleGAN, resize the GAN-generated images to size 128x128 pixels, e.g. by inserting
+>>>>>>> b3a637294173c435f2557359c1436a05fcc56b99
 ``` PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)```
 into 
 [ffhq-stylegan](https://github.com/NVlabs/stylegan/blob/03563d18a0cf8d67d897cc61e44479267968716b/pretrained_example.py)
-generate 70k images .
-Store all images in a `data` folder. Use i.e
-```
-./data/source_data/A_ffhq
-./data/source_data/B_stylegan
-```
 
+Store all images (cropped original and GAN-generated) in a separate subdirectories of a directory, i.e. the directory structure should look like this
+```
+source_data
+ ├── A_original
+ ├── B_CramerGAN
+ ├── C_MMDGAN
+ ├── D_ProGAN
+ └── E_SNGAN
+```
+For the FFHQ case, we have only two subdirectories: `source_data/A_ffhq` and `source_data/B_stylegan`. The prefixes of the folders are important, since the directories get the labels in lexicographic order of their prefix, i.e. directory `A_...` gets label 0, `B_...` label 1, etc.
+
+Now, to prepare the data sets run `freqdect.prepare_dataset` . It reads in the data set, splits them into a training, validation and test set, applies the specified transformation (to wavelet packets, log-scaled wavelet packets or just the raw image data) and stores the result as numpy arrays.
+
+<<<<<<< HEAD
 Afterwards run:
 ```shell
 $ python -m freqdect.prepare_dataset_batched ./data/source_data/ --packets
 $ python -m freqdect.prepare_dataset_batched ./data/source_data/
+=======
+>>>>>>> b3a637294173c435f2557359c1436a05fcc56b99
 ```
-now you should be able to train a classifier using
+usage: prepare_dataset.py [-h] [--train-size TRAIN_SIZE] [--test-size TEST_SIZE] [--val-size VAL_SIZE] [--batch-size BATCH_SIZE] [--packets] [--log-packets] directory
+
+positional arguments:
+  directory             The folder with the real and gan generated image folders.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --train-size TRAIN_SIZE
+                        Desired size of the training subset of each folder. (default: 63_000).
+  --test-size TEST_SIZE
+                        Desired size of the test subset of each folder. (default: 5_000).
+  --val-size VAL_SIZE   Desired size of the validation subset of each folder. (default: 2_000).
+  --batch-size BATCH_SIZE
+                        The batch_size used for image conversion. (default: 2048).
+  --packets, -p         Save image data as wavelet packets.
+  --log-packets, -lp    Save image data as log-scaled wavelet packets.
+
+  Example: python -m freqdect.prepare_dataset ./data/source_data/ --packets
+```
+
+## Training the classifier
+Now you should be able to train a classifier using
 ```shell
 $ python -m freqdect.train_classifier --data-prefix ./data/source_data/ --calc-normalization
+```
+
+```
+usage: train_classifier.py [-h] [--features {raw,packets}] [--batch-size BATCH_SIZE] [--learning-rate LEARNING_RATE]
+                           [--weight-decay WEIGHT_DECAY] [--epochs EPOCHS]
+                           [--validation-interval VALIDATION_INTERVAL] [--data-prefix DATA_PREFIX]
+                           [--nclasses NCLASSES] [--seed SEED] [--model {regression,cnn,mlp}] [--tensorboard]
+                           [--normalize MEAN [STD ...] | --calc-normalization]
+
+Train an image classifier
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --features {raw,packets}
+                        the representation type
+  --batch-size BATCH_SIZE
+                        input batch size for testing (default: 512)
+  --learning-rate LEARNING_RATE
+                        learning rate for optimizer (default: 1e-3)
+  --weight-decay WEIGHT_DECAY
+                        weight decay for optimizer (default: 0)
+  --epochs EPOCHS       number of epochs (default: 10)
+  --validation-interval VALIDATION_INTERVAL
+                        number of training steps after which the model is tested on the validation data set
+                        (default: 200)
+  --data-prefix DATA_PREFIX
+                        shared prefix of the data paths (default: ./data/source_data_packets)
+  --nclasses NCLASSES   number of classes (default: 2)
+  --seed SEED           the random seed pytorch works with.
+  --model {regression,cnn,mlp}
+                        The model type chosse regression or CNN. Default: Regression.
+  --tensorboard         enables a tensorboard visualization.
+  --normalize MEAN [STD ...]
+                        normalize with specified values for mean and standard deviation (either 2 or 6 values are
+                        accepted)
+  --calc-normalization  calculates mean and standard deviation used in normalization from the training data
 ```
