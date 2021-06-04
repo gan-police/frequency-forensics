@@ -42,6 +42,7 @@ def val_test_loop(
 
 
 def parse_args():
+    """Parse cmd line args for training an image classifier"""
     parser = argparse.ArgumentParser(description="Train an image classifier")
     parser.add_argument(
         "--features",
