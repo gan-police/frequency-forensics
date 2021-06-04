@@ -283,7 +283,7 @@ def parse_args():
     parser.add_argument(
         "--log-packets",
         "-lp",
-        help="Save image data as wavelet packets.",
+        help="Save image data as log-scaled wavelet packets.",
         action="store_true",
     )
     return parser.parse_args()
@@ -307,6 +307,3 @@ if __name__ == "__main__":
         args.test_size,
         feature,
     )
-
-    # pre_process_folder('data/source_data/', args.batch_size, args.train_size,
-    #                    args.val_size, args.test_size, 'packets')
