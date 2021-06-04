@@ -163,9 +163,10 @@ class MLP(torch.nn.Module):
         x_flat = torch.reshape(x, [x.shape[0], -1])
         return self.activation(self.classifier(x_flat))
 
+
 def save_model(model: torch.nn.Module, path):
     """Saves the state dict of the model to the specified path.
-    
+
     Args:
         model (torch.nn.Module): model to store
         path: file path of the storage file

@@ -25,10 +25,9 @@ Extraction functions
 """
 
 
-def extract_single(im: np.ndarray,
-                   levels: int = 4,
-                   sigma: float = 5,
-                   wdft_sigma: float = 0) -> np.ndarray:
+def extract_single(
+    im: np.ndarray, levels: int = 4, sigma: float = 5, wdft_sigma: float = 0
+) -> np.ndarray:
     """
     Extract noise residual from a single image
     :param im: grayscale or color image, np.uint8
@@ -46,10 +45,10 @@ def extract_single(im: np.ndarray,
 
     return W
 
-def extract_wiener_single(im: np.ndarray,
-                   levels: int = 4,
-                   sigma: float = 5,
-                   wdft_sigma: float = 0) -> np.ndarray:
+
+def extract_wiener_single(
+    im: np.ndarray, levels: int = 4, sigma: float = 5, wdft_sigma: float = 0
+) -> np.ndarray:
     """
     Extract noise residual from a single image
     :param im: grayscale or color image, np.uint8
@@ -58,7 +57,7 @@ def extract_wiener_single(im: np.ndarray,
     :param wdft_sigma: estimated DFT noise power
     :return: noise residual
     """
-    
+
     W = noise_extract(im, levels, sigma)
     W = rgb2gray(W)
     W = zero_mean_total(W)
@@ -68,10 +67,7 @@ def extract_wiener_single(im: np.ndarray,
     W = wiener_dft(W, W_std).astype(np.float32)
     wiener_after = W
 
-    return {
-        'before' : wiener_before,
-        'after' : wiener_after
-    }
+    return {"before": wiener_before, "after": wiener_after}
 
 
 def noise_extract(im: np.ndarray, levels: int = 4, sigma: float = 5) -> np.ndarray:
@@ -84,8 +80,8 @@ def noise_extract(im: np.ndarray, levels: int = 4, sigma: float = 5) -> np.ndarr
     :return: noise residual
     """
 
-    assert (im.dtype == np.uint8)
-    assert (im.ndim in [2, 3])
+    assert im.dtype == np.uint8
+    assert im.ndim in [2, 3]
 
     im = im.astype(np.float32)
 
@@ -101,12 +97,16 @@ def noise_extract(im: np.ndarray, levels: int = 4, sigma: float = 5) -> np.ndarr
         wlet = None
         while wlet is None and levels > 0:
             try:
-                wlet = pywt.wavedec2(im[:, :, ch], 'db4', level=levels)
+                wlet = pywt.wavedec2(im[:, :, ch], "db4", level=levels)
             except ValueError:
                 levels -= 1
                 wlet = None
         if wlet is None:
-            raise ValueError('Impossible to compute Wavelet filtering for input size: {}'.format(im.shape))
+            raise ValueError(
+                "Impossible to compute Wavelet filtering for input size: {}".format(
+                    im.shape
+                )
+            )
 
         wlet_details = wlet[1:]
 
@@ -116,7 +116,9 @@ def noise_extract(im: np.ndarray, levels: int = 4, sigma: float = 5) -> np.ndarr
             # Cycle over H,V,D components
             level_coeff_filt = [None] * 3
             for wlet_coeff_idx, wlet_coeff in enumerate(wlet_level):
-                level_coeff_filt[wlet_coeff_idx] = wiener_adaptive(wlet_coeff, noise_var)
+                level_coeff_filt[wlet_coeff_idx] = wiener_adaptive(
+                    wlet_coeff, noise_var
+                )
             wlet_details_filter[wlet_level_idx] = tuple(level_coeff_filt)
 
         # Set filtered detail coefficients for Levels > 0 ---
@@ -126,7 +128,7 @@ def noise_extract(im: np.ndarray, levels: int = 4, sigma: float = 5) -> np.ndarr
         wlet[0][...] = 0
 
         # Invert wavelet transform ---
-        wrec = pywt.waverec2(wlet, 'db4')
+        wrec = pywt.waverec2(wlet, "db4")
         try:
             W[:, :, ch] = wrec
         except ValueError:
@@ -136,7 +138,7 @@ def noise_extract(im: np.ndarray, levels: int = 4, sigma: float = 5) -> np.ndarr
     if W.shape[2] == 1:
         W.shape = W.shape[:2]
 
-    W = W[:im.shape[0], :im.shape[1]]
+    W = W[: im.shape[0], : im.shape[1]]
 
     return W
 
@@ -149,11 +151,17 @@ def noise_extract_compact(args):
     """
     w = noise_extract(*args)
     im = args[0]
-    return (w * im / 255.).astype(np.float32)
+    return (w * im / 255.0).astype(np.float32)
 
 
-def extract_multiple_aligned(imgs: list, levels: int = 4, sigma: float = 5, processes: int = None,
-                             batch_size=cpu_count(), tqdm_str: str = '') -> np.ndarray:
+def extract_multiple_aligned(
+    imgs: list,
+    levels: int = 4,
+    sigma: float = 5,
+    processes: int = None,
+    batch_size=cpu_count(),
+    tqdm_str: str = "",
+) -> np.ndarray:
     """
     Extract PRNU from a list of images. Images are supposed to be the same size and properly oriented
     :param tqdm_str: tqdm description (see tqdm documentation)
@@ -164,9 +172,9 @@ def extract_multiple_aligned(imgs: list, levels: int = 4, sigma: float = 5, proc
     :param sigma: estimated noise power
     :return: PRNU
     """
-    assert (isinstance(imgs[0], np.ndarray))
-    assert (imgs[0].ndim == 3)
-    assert (imgs[0].dtype == np.uint8)
+    assert isinstance(imgs[0], np.ndarray)
+    assert imgs[0].ndim == 3
+    assert imgs[0].dtype == np.uint8
 
     h, w, ch = imgs[0].shape
 
@@ -179,16 +187,28 @@ def extract_multiple_aligned(imgs: list, levels: int = 4, sigma: float = 5, proc
             args_list += [(im, levels, sigma)]
         pool = Pool(processes=processes)
 
-        for batch_idx0 in tqdm(np.arange(start=0, step=batch_size, stop=len(imgs)), disable=tqdm_str == '',
-                               desc=(tqdm_str + ' (1/2)'), dynamic_ncols=True):
-            nni = pool.map(inten_sat_compact, args_list[batch_idx0:batch_idx0 + batch_size])
+        for batch_idx0 in tqdm(
+            np.arange(start=0, step=batch_size, stop=len(imgs)),
+            disable=tqdm_str == "",
+            desc=(tqdm_str + " (1/2)"),
+            dynamic_ncols=True,
+        ):
+            nni = pool.map(
+                inten_sat_compact, args_list[batch_idx0 : batch_idx0 + batch_size]
+            )
             for ni in nni:
                 NN += ni
             del nni
 
-        for batch_idx0 in tqdm(np.arange(start=0, step=batch_size, stop=len(imgs)), disable=tqdm_str == '',
-                               desc=(tqdm_str + ' (2/2)'), dynamic_ncols=True):
-            wi_list = pool.map(noise_extract_compact, args_list[batch_idx0:batch_idx0 + batch_size])
+        for batch_idx0 in tqdm(
+            np.arange(start=0, step=batch_size, stop=len(imgs)),
+            disable=tqdm_str == "",
+            desc=(tqdm_str + " (2/2)"),
+            dynamic_ncols=True,
+        ):
+            wi_list = pool.map(
+                noise_extract_compact, args_list[batch_idx0 : batch_idx0 + batch_size]
+            )
             for wi in wi_list:
                 RPsum += wi
             del wi_list
@@ -196,7 +216,13 @@ def extract_multiple_aligned(imgs: list, levels: int = 4, sigma: float = 5, proc
         pool.close()
 
     else:  # Single process
-        for im in tqdm(imgs, bar_format='    {l_bar}{bar:30}{r_bar}', disable=tqdm_str is None, desc=tqdm_str, dynamic_ncols=True):
+        for im in tqdm(
+            imgs,
+            bar_format="    {l_bar}{bar:30}{r_bar}",
+            disable=tqdm_str is None,
+            desc=tqdm_str,
+            dynamic_ncols=True,
+        ):
             RPsum += noise_extract_compact((im, levels, sigma))
             NN += (inten_scale(im) * saturation(im)) ** 2
 
@@ -217,14 +243,16 @@ def cut_ctr(array: np.ndarray, sizes: tuple) -> np.ndarray:
     """
     array = array.copy()
     if not (array.ndim == len(sizes)):
-        raise ArgumentError('array.ndim must be equal to len(sizes)')
+        raise ArgumentError("array.ndim must be equal to len(sizes)")
     for axis in range(array.ndim):
         axis_target_size = sizes[axis]
         axis_original_size = array.shape[axis]
         if axis_target_size > axis_original_size:
             raise ValueError(
-                'Can\'t have target size {} for axis {} with original size {}'.format(axis_target_size, axis,
-                                                                                      axis_original_size))
+                "Can't have target size {} for axis {} with original size {}".format(
+                    axis_target_size, axis, axis_original_size
+                )
+            )
         elif axis_target_size < axis_original_size:
             axis_start_idx = (axis_original_size - axis_target_size) // 2
             axis_end_idx = axis_start_idx + axis_target_size
@@ -243,7 +271,7 @@ def wiener_dft(im: np.ndarray, sigma: float) -> np.ndarray:
     h, w = im.shape
 
     im_noise_fft = fft2(im)
-    im_noise_fft_mag = np.abs(im_noise_fft / (h * w) ** .5)
+    im_noise_fft_mag = np.abs(im_noise_fft / (h * w) ** 0.5)
 
     im_noise_fft_mag_noise = wiener_adaptive(im_noise_fft_mag, noise_var)
 
@@ -311,7 +339,9 @@ def rgb2gray(im: np.ndarray) -> np.ndarray:
     :param im: multidimensional array
     :return: grayscale version of input im
     """
-    rgb2gray_vector = np.asarray([0.29893602, 0.58704307, 0.11402090]).astype(np.float32)
+    rgb2gray_vector = np.asarray([0.29893602, 0.58704307, 0.11402090]).astype(
+        np.float32
+    )
     rgb2gray_vector.shape = (3, 1)
 
     if im.ndim == 2:
@@ -324,7 +354,7 @@ def rgb2gray(im: np.ndarray) -> np.ndarray:
         im_gray = np.dot(im, rgb2gray_vector)
         im_gray.shape = (w, h)
     else:
-        raise ValueError('Input image must have 1 or 3 channels')
+        raise ValueError("Input image must have 1 or 3 channels")
 
     return im_gray.astype(np.float32)
 
@@ -351,15 +381,15 @@ def wiener_adaptive(x: np.ndarray, noise_var: float, **kwargs) -> np.ndarray:
     :param window_size_list: list of window sizes
     :return: wiener filtered version of input x
     """
-    window_size_list = list(kwargs.pop('window_size_list', [3, 5, 7, 9]))
+    window_size_list = list(kwargs.pop("window_size_list", [3, 5, 7, 9]))
 
     energy = x ** 2
 
     avg_win_energy = np.zeros(x.shape + (len(window_size_list),))
     for window_idx, window_size in enumerate(window_size_list):
-        avg_win_energy[:, :, window_idx] = filters.uniform_filter(energy,
-                                                                  window_size,
-                                                                  mode='constant')
+        avg_win_energy[:, :, window_idx] = filters.uniform_filter(
+            energy, window_size, mode="constant"
+        )
 
     coef_var = threshold(avg_win_energy, noise_var)
     coef_var_min = np.min(coef_var, axis=2)
@@ -376,7 +406,7 @@ def inten_scale(im: np.ndarray) -> np.ndarray:
     :return: intensity scaled version of input x
     """
 
-    assert (im.dtype == np.uint8)
+    assert im.dtype == np.uint8
 
     T = 252
     v = 6
@@ -392,7 +422,7 @@ def saturation(im: np.ndarray) -> np.ndarray:
     :param im: type np.uint8
     :return: saturation map from input im
     """
-    assert (im.dtype == np.uint8)
+    assert im.dtype == np.uint8
 
     if im.ndim == 2:
         im.shape += (1,)
@@ -404,27 +434,23 @@ def saturation(im: np.ndarray) -> np.ndarray:
 
     im_h = im - np.roll(im, (0, 1), (0, 1))
     im_v = im - np.roll(im, (1, 0), (0, 1))
-    satur_map = \
-        np.bitwise_not(
+    satur_map = np.bitwise_not(
+        np.bitwise_and(
             np.bitwise_and(
-                np.bitwise_and(
-                    np.bitwise_and(
-                        im_h != 0, im_v != 0
-                    ), np.roll(im_h, (0, -1), (0, 1)) != 0
-                ), np.roll(im_v, (-1, 0), (0, 1)) != 0
-            )
+                np.bitwise_and(im_h != 0, im_v != 0),
+                np.roll(im_h, (0, -1), (0, 1)) != 0,
+            ),
+            np.roll(im_v, (-1, 0), (0, 1)) != 0,
         )
+    )
 
     max_ch = im.max(axis=0).max(axis=0)
 
     for ch_idx, max_c in enumerate(max_ch):
         if max_c > 250:
-            satur_map[:, :, ch_idx] = \
-                np.bitwise_not(
-                    np.bitwise_and(
-                        im[:, :, ch_idx] == max_c, satur_map[:, :, ch_idx]
-                    )
-                )
+            satur_map[:, :, ch_idx] = np.bitwise_not(
+                np.bitwise_and(im[:, :, ch_idx] == max_c, satur_map[:, :, ch_idx])
+            )
 
     return satur_map
 
@@ -451,8 +477,8 @@ def crosscorr_2d(k1: np.ndarray, k2: np.ndarray) -> np.ndarray:
     :param k2: 2D matrix of size (h2,w2)
     :return: 2D matrix of size (max(h1,h2),max(w1,w2))
     """
-    assert (k1.ndim == 2)
-    assert (k2.ndim == 2)
+    assert k1.ndim == 2
+    assert k2.ndim == 2
 
     max_height = max(k1.shape[0], k2.shape[0])
     max_width = max(k1.shape[1], k2.shape[1])
@@ -460,11 +486,25 @@ def crosscorr_2d(k1: np.ndarray, k2: np.ndarray) -> np.ndarray:
     k1 -= k1.flatten().mean()
     k2 -= k2.flatten().mean()
 
-    k1 = np.pad(k1, [(0, max_height - k1.shape[0]), (0, max_width - k1.shape[1])], mode='constant', constant_values=0)
-    k2 = np.pad(k2, [(0, max_height - k2.shape[0]), (0, max_width - k2.shape[1])], mode='constant', constant_values=0)
+    k1 = np.pad(
+        k1,
+        [(0, max_height - k1.shape[0]), (0, max_width - k1.shape[1])],
+        mode="constant",
+        constant_values=0,
+    )
+    k2 = np.pad(
+        k2,
+        [(0, max_height - k2.shape[0]), (0, max_width - k2.shape[1])],
+        mode="constant",
+        constant_values=0,
+    )
 
-    k1_fft = fft2(k1, )
-    k2_fft = fft2(np.rot90(k2, 2), )
+    k1_fft = fft2(
+        k1,
+    )
+    k2_fft = fft2(
+        np.rot90(k2, 2),
+    )
 
     return np.real(ifft2(k1_fft * k2_fft)).astype(np.float32)
 
@@ -483,12 +523,12 @@ def aligned_cc(k1: np.ndarray, k2: np.ndarray) -> dict:
 
     ndim1 = k1.ndim
     ndim2 = k2.ndim
-    assert (ndim1 == ndim2)
+    assert ndim1 == ndim2
 
     k1 = np.ascontiguousarray(k1).reshape(k1.shape[0], -1)
     k2 = np.ascontiguousarray(k2).reshape(k2.shape[0], -1)
 
-    assert (k1.shape[1] == k2.shape[1])
+    assert k1.shape[1] == k2.shape[1]
 
     k1_norm = np.linalg.norm(k1, ord=2, axis=1, keepdims=True)
     k2_norm = np.linalg.norm(k2, ord=2, axis=1, keepdims=True)
@@ -498,7 +538,7 @@ def aligned_cc(k1: np.ndarray, k2: np.ndarray) -> dict:
     cc = np.matmul(k1, k2t).astype(np.float32)
     ncc = (cc / (k1_norm * k2_norm.transpose())).astype(np.float32)
 
-    return {'cc': cc, 'ncc': ncc}
+    return {"cc": cc, "ncc": ncc}
 
 
 def pce(cc: np.ndarray, neigh_radius: int = 2) -> dict:
@@ -508,8 +548,8 @@ def pce(cc: np.ndarray, neigh_radius: int = 2) -> dict:
     :param neigh_radius: radius around the peak to be ignored while computing floor energy
     :return: {'peak':(y,x), 'pce': peak to floor ratio, 'cc': cross-correlation value at peak position
     """
-    assert (cc.ndim == 2)
-    assert (isinstance(neigh_radius, int))
+    assert cc.ndim == 2
+    assert isinstance(neigh_radius, int)
 
     out = dict()
 
@@ -519,13 +559,16 @@ def pce(cc: np.ndarray, neigh_radius: int = 2) -> dict:
     peak_height = cc[max_y, max_x]
 
     cc_nopeaks = cc.copy()
-    cc_nopeaks[max_y - neigh_radius:max_y + neigh_radius, max_x - neigh_radius:max_x + neigh_radius] = 0
+    cc_nopeaks[
+        max_y - neigh_radius : max_y + neigh_radius,
+        max_x - neigh_radius : max_x + neigh_radius,
+    ] = 0
 
     pce_energy = np.mean(cc_nopeaks.flatten() ** 2)
 
-    out['peak'] = (max_y, max_x)
-    out['pce'] = (peak_height ** 2) / pce_energy * np.sign(peak_height)
-    out['cc'] = peak_height
+    out["peak"] = (max_y, max_x)
+    out["pce"] = (peak_height ** 2) / pce_energy * np.sign(peak_height)
+    out["cc"] = peak_height
 
     return out
 
@@ -543,15 +586,14 @@ def classify(th: np.float32, cc: np.ndarray, gt: np.ndarray) -> dict:
     :param gt: boolean multidimensional array representing groundtruth
     :return: statistics dictionary
     """
-    assert (cc.shape == gt.shape)
-    assert (gt.dtype == np.bool)
+    assert cc.shape == gt.shape
+    assert gt.dtype == np.bool
 
-    assert (cc.shape == gt.shape)
-    assert (gt.dtype == np.bool)
+    assert cc.shape == gt.shape
+    assert gt.dtype == np.bool
 
     cc = cc.reshape(-1)
     gt = gt.reshape(-1)
-
 
     classify_result = np.array([c > th for i, c in enumerate(cc)])
 
@@ -573,26 +615,30 @@ def classify(th: np.float32, cc: np.ndarray, gt: np.ndarray) -> dict:
                 tn += 1
 
     outdict = {
-        'tp': tp,
-        'fp': fp,
-        'tn': tn,
-        'fn': fn,
+        "tp": tp,
+        "fp": fp,
+        "tn": tn,
+        "fn": fn,
     }
 
     return outdict
 
-def stats(cc: np.ndarray, gt: np.ndarray, ) -> dict:
+
+def stats(
+    cc: np.ndarray,
+    gt: np.ndarray,
+) -> dict:
     """
     Compute statistics
     :param cc: cross-correlation or normalized cross-correlation matrix
     :param gt: boolean multidimensional array representing groundtruth
     :return: statistics dictionary
     """
-    assert (cc.shape == gt.shape)
-    assert (gt.dtype == np.bool)
+    assert cc.shape == gt.shape
+    assert gt.dtype == np.bool
 
-    assert (cc.shape == gt.shape)
-    assert (gt.dtype == np.bool)
+    assert cc.shape == gt.shape
+    assert gt.dtype == np.bool
 
     fpr, tpr, th = roc_curve(gt.flatten(), cc.flatten())
     auc_score = auc(fpr, tpr)
@@ -602,11 +648,11 @@ def stats(cc: np.ndarray, gt: np.ndarray, ) -> dict:
     eer = float(fpr[eer_idx])
 
     outdict = {
-        'tpr': tpr,
-        'fpr': fpr,
-        'th': th,
-        'auc': auc_score,
-        'eer': eer,
+        "tpr": tpr,
+        "fpr": fpr,
+        "th": th,
+        "auc": auc_score,
+        "eer": eer,
     }
 
     return outdict
@@ -622,8 +668,8 @@ def gt(l1: list or np.ndarray, l2: list or np.ndarray) -> np.ndarray:
     l1 = np.array(l1)
     l2 = np.array(l2)
 
-    assert (l1.ndim == 1)
-    assert (l2.ndim == 1)
+    assert l1.ndim == 1
+    assert l2.ndim == 1
 
     gt_arr = np.zeros((len(l1), len(l2)), np.bool)
 

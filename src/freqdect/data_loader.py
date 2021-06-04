@@ -68,7 +68,7 @@ def main():
         "-c",
         "--channelwise",
         action="store_true",
-        help="calculate the mean and std for each channel of the data separately"
+        help="calculate the mean and std for each channel of the data separately",
     )
 
     args = parser.parse_args()

@@ -15,7 +15,10 @@ from torch.utils.tensorboard.writer import SummaryWriter
 
 
 def val_test_loop(
-    data_loader: DataLoader, model: torch.nn.Module, loss_fun, make_binary_labels: bool = False
+    data_loader: DataLoader,
+    model: torch.nn.Module,
+    loss_fun,
+    make_binary_labels: bool = False,
 ) -> Tuple[float, Any]:
     """Tests the performance of a model on a data set by calculating the prediction accuracy and loss of the model.
 
@@ -259,8 +262,15 @@ def main():
 
     print(validation_list)
 
-    model_file = "./log/" + args.data_prefix.split("/")[-1] \
-        + '_' + str(args.model) + '_' + str(args.seed) + ".pt"
+    model_file = (
+        "./log/"
+        + args.data_prefix.split("/")[-1]
+        + "_"
+        + str(args.model)
+        + "_"
+        + str(args.seed)
+        + ".pt"
+    )
     save_model(model, model_file)
     print(model_file, " saved.")
 
@@ -270,7 +280,9 @@ def main():
         test_data_set, args.batch_size, shuffle=False, num_workers=2
     )
     with torch.no_grad():
-        test_acc, test_loss = val_test_loop(test_data_loader, model, loss_fun, make_binary_labels=args.nclasses == 2)
+        test_acc, test_loss = val_test_loop(
+            test_data_loader, model, loss_fun, make_binary_labels=args.nclasses == 2
+        )
         print("test acc", test_acc)
 
     if args.tensorboard:

@@ -12,12 +12,12 @@ class PersistentDefaultDict:
     """
     Nested defaultdict that gets synced transparently to disk.
 
-    Init: 
+    Init:
         results = PersistentDefaultDict(<path_to_results_file>)
 
     Add result:
         results['key1', 'key2'] = <result>
-    """    
+    """
 
     def __init__(self, path_to_dict):
         self.path = Path(path_to_dict)
@@ -26,10 +26,10 @@ class PersistentDefaultDict:
             self.data = PersistentDefaultDict.redefault_dict(stored_data)
         else:
             self.data = defaultdict(PersistentDefaultDict.rec_default_dict)
-            
+
     def __str__(self):
         return str(json.dumps(self.data, indent=4))
-            
+
     def __setitem__(self, keys, item):
         d = self.data
         if isinstance(keys, str):
@@ -57,10 +57,13 @@ class PersistentDefaultDict:
     @staticmethod
     def rec_default_dict():
         return defaultdict(PersistentDefaultDict.rec_default_dict)
-        
+
     @staticmethod
     def redefault_dict(data):
         if isinstance(data, dict):
-            return defaultdict(PersistentDefaultDict.rec_default_dict, {k: PersistentDefaultDict.redefault_dict(v) for k, v in data.items()})
+            return defaultdict(
+                PersistentDefaultDict.rec_default_dict,
+                {k: PersistentDefaultDict.redefault_dict(v) for k, v in data.items()},
+            )
         else:
             return data
