@@ -83,7 +83,10 @@ optional arguments:
 ## Training the classifier
 Now you should be able to train a classifier using for example:
 ```shell
-$ python -m freqdect.train_classifier --data-prefix ./data/source_data_packets --calc-normalization --features packets
+$ python -m freqdect.train_classifier \
+    --data-prefix ./data/source_data_packets \
+    --calc-normalization \
+    --features packets
 ```
 This trains a regression classifier using default hyperparameters. The training, validation and test accuracy and loss values are stored in a file placed in a `log` folder. The state dict of the trained model is stored there as well.
 For reference other options are:
