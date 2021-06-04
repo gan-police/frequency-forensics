@@ -1,37 +1,57 @@
+""" Source code to train deepfake detectors in wavelet and pixel space.
+"""
+
+
 import argparse
 import pickle
+from typing import Any, Tuple
 
 import numpy as np
-# from numpy.core.numeric import outer
 import torch
-from torch.nn.modules import linear
 from torch.utils.data import DataLoader
 from .data_loader import LoadNumpyDataset
-#from .plot_mean_packets import generate_packet_image_tensor
-from .models import CNN, Regression, compute_parameter_total, save_model
+from .models import CNN, Regression, MLP, compute_parameter_total, save_model
+from torch.utils.tensorboard.writer import SummaryWriter
 
 
-def val_test_loop(data_loader, model, loss_fun, make_binary_labels=False):
+def val_test_loop(
+    data_loader: DataLoader, model: torch.nn.Module, loss_fun, make_binary_labels: bool = False
+) -> Tuple[float, Any]:
+    """Tests the performance of a model on a data set by calculating the prediction accuracy and loss of the model.
+
+    Args:
+        data_loader (DataLoader): A DataLoader loading the data set on which the performance should be measured,
+            e.g. a test or validation set in a data split.
+        model (torch.nn.Module): The model to evaluate.
+        loss_fun: The loss function, which is used to measure the loss of the model on the data set
+        make_binary_labels (bool): If flag is set, we only classify binarily, i.e. whether an image is real or fake.
+            In this case, the label 0 encodes 'real'. All other labels are cosidered fake data, and are set to 1.
+
+    Returns:
+        Tuple[float, Any]: The measured accuracy and loss of the model on the data set.
+    """
     with torch.no_grad():
+        model.eval()
         val_total = 0
         val_ok = 0
         for val_batch in iter(data_loader):
             batch_images = val_batch["image"].cuda(non_blocking=True)
             batch_labels = val_batch["label"].cuda(non_blocking=True)
-            # batch_labels = torch.nn.functional.one_hot(batch_labels)
-            # batch_images = (batch_images - 112.52875) / 68.63312
             out = model(batch_images)
             if make_binary_labels:
                 batch_labels[batch_labels > 0] = 1
+            val_loss = loss_fun(torch.squeeze(out), batch_labels)
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             val_ok += torch.sum(ok_mask).item()
             val_total += batch_labels.shape[0]
         val_acc = val_ok / val_total
         print("acc", val_acc, "ok", val_ok, "total", val_total)
-    return val_acc
+    return val_acc, val_loss
 
 
-def main():
+def _parse_args():
+    """Parse cmd line args for training an image classifier"""
+
     parser = argparse.ArgumentParser(description="Train an image classifier")
     parser.add_argument(
         "--features",
@@ -61,6 +81,12 @@ def main():
         "--epochs", type=int, default=10, help="number of epochs (default: 10)"
     )
     parser.add_argument(
+        "--validation-interval",
+        type=int,
+        default=200,
+        help="number of training steps after which the model is tested on the validation data set (default: 200)",
+    )
+    parser.add_argument(
         "--data-prefix",
         type=str,
         default="./data/source_data_packets",
@@ -75,9 +101,15 @@ def main():
 
     parser.add_argument(
         "--model",
-        choices=["regression", "CNN"],
+        choices=["regression", "cnn", "mlp"],
         default="regression",
-        help="The model type chosse regression or CNN. Default: Regression."
+        help="The model type chosse regression or CNN. Default: Regression.",
+    )
+
+    parser.add_argument(
+        "--tensorboard",
+        action="store_true",
+        help="enables a tensorboard visualization.",
     )
 
     # one should not specify normalization parameters and request their calculation at the same time
@@ -95,28 +127,28 @@ def main():
         action="store_true",
         help="calculates mean and standard deviation used in normalization from the training data",
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    """Trains a model to classify images. All settings such as which model to use, parameters, normalization, data set path,
+    seed etc. are specified via cmd line args.
+
+    All training, validation and testing results are printed to stdout.
+    After the training is done, the results are stored in a pickle dump in the 'log' folder.
+    The state_dict of the trained model is stored there as well.
+    """
+    args = _parse_args()
     print(args)
 
     # fix the seed in the interest of reproducible results.
     torch.manual_seed(args.seed)
 
-    if args.features == "packets":
-        # ffhq-stylegan defaults
-        default_mean = torch.tensor([1.2739, 1.2591, 1.2542])
-        default_std = torch.tensor([3.0472, 2.9926, 3.0297])
-    elif args.features == "raw":
-        # ffhq-stylegan defaults
-        default_mean = torch.tensor([132.6314, 108.3550, 96.8289])
-        default_std = torch.tensor([71.1634, 64.5999, 64.9532])
-    else:
-        raise NotImplementedError
-
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
         mean = torch.tensor(args.normalize[: num_of_norm_vals // 2])
-        std = torch.tensor(args.normalize[(num_of_norm_vals // 2):])
+        std = torch.tensor(args.normalize[(num_of_norm_vals // 2) :])
     elif args.calc_normalization:
         # load train data and compute mean and std
         train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
@@ -134,8 +166,8 @@ def main():
         std = torch.std(img_data.double(), axis).float()
         del img_data
     else:
-        mean = default_mean
-        std = default_std
+        mean = None
+        std = None
 
     print("mean", mean, "std", std)
 
@@ -155,12 +187,17 @@ def main():
     accuracy_list = []
     step_total = 0
 
-    if args.model == 'regression':
-        model = Regression(args.nclasses).cuda()
+    if args.model == "mlp":
+        model = MLP(args.nclasses).cuda()
+    elif args.model == "cnn":
+        model = CNN(args.nclasses, args.features == "packets").cuda()
     else:
-        model = CNN(args.nclasses, args.features == 'packets').cuda()
+        model = Regression(args.nclasses).cuda()
 
-    print('model parameter count:', compute_parameter_total(model))
+    print("model parameter count:", compute_parameter_total(model))
+
+    if args.tensorboard:
+        writer = SummaryWriter()
 
     loss_fun = torch.nn.NLLLoss()
     optimizer = torch.optim.Adam(
@@ -170,6 +207,7 @@ def main():
     for e in range(args.epochs):
         # iterate over training data.
         for it, batch in enumerate(iter(train_data_loader)):
+            model.train()
             optimizer.zero_grad()
             batch_images = batch["image"].cuda(non_blocking=True)
             batch_labels = batch["label"].cuda(non_blocking=True)
@@ -180,22 +218,45 @@ def main():
             acc = torch.sum(ok_mask.type(torch.float32)) / len(batch_labels)
 
             if it % 10 == 0:
-                print("e", e, "it", it, "total", step_total, "loss", loss.item(), "acc", acc.item())
+                print(
+                    "e",
+                    e,
+                    "it",
+                    it,
+                    "total",
+                    step_total,
+                    "loss",
+                    loss.item(),
+                    "acc",
+                    acc.item(),
+                )
             loss.backward()
             optimizer.step()
             step_total += 1
             loss_list.append([step_total, e, loss.item()])
             accuracy_list.append([step_total, e, acc.item()])
 
+            if args.tensorboard:
+                writer.add_scalar("train_loss", loss.item(), step_total)
+                if it == 0:
+                    writer.add_graph(model, batch_images)
+
             # iterate over val batches.
-            if step_total % 100 == 0:
+            if step_total % args.validation_interval == 0:
                 print("validating....")
-                validation_list.append(
-                    [step_total, e, val_test_loop(val_data_loader, model, loss_fun)]
-                )
+                val_acc, val_loss = val_test_loop(val_data_loader, model, loss_fun)
+                validation_list.append([step_total, e, val_acc])
                 if validation_list[-1] == 1.0:
                     print("val acc ideal stopping training.")
                     break
+
+                if args.tensorboard:
+                    writer.add_scalar("validation_loss", val_loss, step_total)
+                    writer.add_scalar("validation_accuracy", val_acc, step_total)
+
+        if args.tensorboard:
+            writer.add_scalar("epochs", e, step_total)
+
     print(validation_list)
 
     model_file = "./log/" + args.data_prefix.split("/")[-1] \
@@ -209,11 +270,15 @@ def main():
         test_data_set, args.batch_size, shuffle=False, num_workers=2
     )
     with torch.no_grad():
-        test_acc = val_test_loop(test_data_loader, model, loss_fun, make_binary_labels=args.nclasses == 2)
+        test_acc, test_loss = val_test_loop(test_data_loader, model, loss_fun, make_binary_labels=args.nclasses == 2)
         print("test acc", test_acc)
 
-    stats_file = "./log/" + args.data_prefix.split("/")[-1] \
-        + '_' + str(args.model) + ".pkl"
+    if args.tensorboard:
+        writer.add_scalar("test_accuracy", test_acc, step_total)
+        writer.add_scalar("test_loss", test_loss, step_total)
+
+    log_name = "./log/" + args.data_prefix.split("/")[-1] + "_" + str(args.model)
+    stats_file = log_name + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
     except (OSError, IOError) as e:
@@ -230,7 +295,7 @@ def main():
             "val_acc": validation_list,
             "test_acc": test_acc,
             "args": args,
-            "iterations_per_epoch": len(iter(train_data_loader))
+            "iterations_per_epoch": len(iter(train_data_loader)),
         }
     )
     pickle.dump(res, open(stats_file, "wb"))
