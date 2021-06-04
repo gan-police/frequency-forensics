@@ -45,5 +45,5 @@ $ python -m freqdect.prepare_dataset ./data/source_data/ --raw
 ```
 now you should be able to train a classifier using
 ```shell
-$ CUDA_VISIBLE_DEVICES=0 python -m freqdect.train_classifier --data-prefix ./data/source_data/ --calc-normalization
+$ python -m freqdect.train_classifier --data-prefix ./data/source_data/ --calc-normalization
 ```
