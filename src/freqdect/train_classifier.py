@@ -111,17 +111,6 @@ def main():
     # fix the seed in the interest of reproducible results.
     torch.manual_seed(args.seed)
 
-    if args.features == "packets":
-        # ffhq-stylegan defaults
-        default_mean = torch.tensor([1.2739, 1.2591, 1.2542])
-        default_std = torch.tensor([3.0472, 2.9926, 3.0297])
-    elif args.features == "raw":
-        # ffhq-stylegan defaults
-        default_mean = torch.tensor([132.6314, 108.3550, 96.8289])
-        default_std = torch.tensor([71.1634, 64.5999, 64.9532])
-    else:
-        raise NotImplementedError
-
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
@@ -144,8 +133,8 @@ def main():
         std = torch.std(img_data.double(), axis).float()
         del img_data
     else:
-        mean = default_mean
-        std = default_std
+        mean = None
+        std = None
 
     print("mean", mean, "std", std)
 
