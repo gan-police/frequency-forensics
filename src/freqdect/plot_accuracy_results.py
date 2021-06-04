@@ -171,14 +171,21 @@ def _plot_on_ax(
         axs.legend()
 
 
-def export_plots(args, prefix: str):
+def export_plots(args, output_prefix: str):
+    """Exports the plot as png or tikz plot, if specified in the cmd line args,
+    and shows the plot, if not specified otherwise in the cmd line args.
+
+    Args:
+        args: The cmd line args settings.
+        output_prefix (str): A prefix, with which the file names of the exported plots start.
+    """
     if args.png:
-        print(f'saving {prefix}_{args.model}_accuracy.png')
-        plt.savefig(f'{prefix}_{args.model}_accuracy.png')
+        print(f'saving {output_prefix}_{args.model}_accuracy.png')
+        plt.savefig(f'{output_prefix}_{args.model}_accuracy.png')
     if args.tikz:
         import tikzplotlib
-        print(f'saving {prefix}_{args.model}_accuracy.tex')
-        tikzplotlib.save(f"{prefix}_{args.model}_accuracy.tex", standalone=True)
+        print(f'saving {output_prefix}_{args.model}_accuracy.tex')
+        tikzplotlib.save(f"{output_prefix}_{args.model}_accuracy.tex", standalone=True)
     if not args.hide:
         plt.show()
 
@@ -234,7 +241,7 @@ def plot_shared(args):
     fig.legend(handles, labels, loc='center right', bbox_to_anchor=(1.0, 0.30))
     plt.tight_layout()
 
-    export_plots(args, prefix="lsun_celeba")
+    export_plots(args, output_prefix="lsun_celeba")
 
 
 def plot_single(args):
@@ -262,7 +269,7 @@ def plot_single(args):
         title=f"{args.dataset}-GAN {args.model} source identification"
     )
 
-    export_plots(args, prefix=args.dataset.lower())
+    export_plots(args, output_prefix=args.dataset.lower())
 
 
 def _parse_args():
@@ -319,10 +326,9 @@ def _parse_args():
 
     return parser.parse_args()
 
-def main():
-    args = _parse_args()
+def main(args):
     args.func(args)
 
 
 if __name__ == "__main__":
-    main()
+    main(_parse_args())
