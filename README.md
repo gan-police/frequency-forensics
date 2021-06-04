@@ -12,7 +12,6 @@ This is the supplementary source code for our paper
 Wavelet-Packet Powered Deepfake Image Detection,
 which is currently under review.
 
-
 ## Installation
 The latest code can be installed in development mode with:
 ```shell
@@ -59,7 +58,9 @@ $ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/
 The data-set preperation script accepts additional arguments. For example it is possible
 to change the sizes of the train, test or validation sets. For all options see:
 ```
-usage: prepare_dataset.py [-h] [--train-size TRAIN_SIZE] [--test-size TEST_SIZE] [--val-size VAL_SIZE] [--batch-size BATCH_SIZE] [--packets] [--log-packets] directory
+usage: prepare_dataset.py [-h] [--train-size TRAIN_SIZE] [--test-size TEST_SIZE]
+    [--val-size VAL_SIZE] [--batch-size BATCH_SIZE] [--packets]
+    [--log-packets] directory
 
 positional arguments:
   directory             The folder with the real and gan generated image folders.
