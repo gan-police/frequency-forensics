@@ -1,5 +1,4 @@
-""" Model code for GAN detection in Wavelet-Packet and pixel space.
-"""
+"""Models for deepfake detection"""
 import torch
 import numpy as np
 
@@ -163,3 +162,23 @@ class MLP(torch.nn.Module):
         """
         x_flat = torch.reshape(x, [x.shape[0], -1])
         return self.activation(self.classifier(x_flat))
+
+
+def save_model(model: torch.nn.Module, path):
+    """Saves the state dict of the model to the specified path.
+
+    Args:
+        model (torch.nn.Module): model to store
+        path: file path of the storage file
+    """
+    torch.save(model.state_dict(), path)
+
+
+def initialize_model(model: torch.nn.Module, path):
+    """Initialized the given model from a stored state dict file.
+
+    Args:
+        model (torch.nn.Module): model to initialize
+        path: file path of the storage file
+    """
+    model.load_state_dict(torch.load(path))

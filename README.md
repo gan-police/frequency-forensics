@@ -125,6 +125,12 @@ optional arguments:
 
 ## Evaluating the classifier
 ### Plotting the accuracies
-[TODO™]
+
+To plot the accuracy results, run
+```shell
+$ python -m freqdect.plot_accuracy_results {shared, lsun, celeba} {regression, CNN} ...
+```
+For a list of all optional arguments, open the help page via the `-h` argument.
+
 ### Calculating the confusion matrix
 [TODO™]
