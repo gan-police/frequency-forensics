@@ -3,12 +3,11 @@ import pickle
 
 import numpy as np
 
-# from numpy.core.numeric import outer
 import torch
 from torch.nn.modules import linear
 from torch.utils.data import DataLoader
-from data_loader import LoadNumpyDataset
-from models import CNN, Regression, MLP, compute_parameter_total
+from .data_loader import LoadNumpyDataset
+from .models import CNN, Regression, MLP, compute_parameter_total
 from torch.utils.tensorboard.writer import SummaryWriter
 
 
@@ -20,8 +19,6 @@ def val_test_loop(data_loader, model, loss_fun):
         for val_batch in iter(data_loader):
             batch_images = val_batch["image"].cuda(non_blocking=True)
             batch_labels = val_batch["label"].cuda(non_blocking=True)
-            # batch_labels = torch.nn.functional.one_hot(batch_labels)
-            # batch_images = (batch_images - 112.52875) / 68.63312
             out = model(batch_images)
             val_loss = loss_fun(torch.squeeze(out), batch_labels)
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
