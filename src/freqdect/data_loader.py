@@ -1,3 +1,9 @@
+"""
+Code to load numpy files into memory for further processing
+with PyTorch. Written with the numpy based data format
+of https://github.com/RUB-SysSec/GANDCTAnalysis in mind.
+"""
+
 from pathlib import Path
 
 import numpy as np
@@ -10,6 +16,9 @@ __all__ = [
 
 
 class LoadNumpyDataset(Dataset):
+    """ Create a data loader to load pre-processed numpy arrays
+        into memory.
+    """
     def __init__(self, data_dir, mean=None, std=None):
         self.data_dir = data_dir
         self.file_lst = sorted(Path(data_dir).glob("./*.npy"))

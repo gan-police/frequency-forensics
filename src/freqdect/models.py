@@ -147,5 +147,15 @@ class MLP(torch.nn.Module):
         self.activation = torch.nn.LogSoftmax(dim=-1)
 
     def forward(self, x):
+        """ Compute the mlp forward pass.
+
+        Args:
+            x (torch.tensor): An input tensor of shape
+                [batch_size, ...]
+
+        Returns:
+            torch.tensor: A logsoftmax scaled output of shape
+                [batch_size, classes].
+        """
         x_flat = torch.reshape(x, [x.shape[0], -1])
         return self.activation(self.classifier(x_flat))
