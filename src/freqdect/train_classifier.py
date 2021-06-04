@@ -10,12 +10,12 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from .data_loader import LoadNumpyDataset
-from .models import CNN, Regression, MLP, compute_parameter_total
+from .models import CNN, Regression, MLP, compute_parameter_total, save_model
 from torch.utils.tensorboard.writer import SummaryWriter
 
 
 def val_test_loop(
-    data_loader: DataLoader, model: torch.nn.Module, loss_fun
+    data_loader: DataLoader, model: torch.nn.Module, loss_fun, make_binary_labels: bool = False
 ) -> Tuple[float, Any]:
     """Tests the performance of a model on a data set by calculating the prediction accuracy and loss of the model.
 
@@ -24,6 +24,8 @@ def val_test_loop(
             e.g. a test or validation set in a data split.
         model (torch.nn.Module): The model to evaluate.
         loss_fun: The loss function, which is used to measure the loss of the model on the data set
+        make_binary_labels (bool): If flag is set, we only classify binarily, i.e. whether an image is real or fake.
+            In this case, the label 0 encodes 'real'. All other labels are cosidered fake data, and are set to 1.
 
     Returns:
         Tuple[float, Any]: The measured accuracy and loss of the model on the data set.
@@ -36,6 +38,8 @@ def val_test_loop(
             batch_images = val_batch["image"].cuda(non_blocking=True)
             batch_labels = val_batch["label"].cuda(non_blocking=True)
             out = model(batch_images)
+            if make_binary_labels:
+                batch_labels[batch_labels > 0] = 1
             val_loss = loss_fun(torch.squeeze(out), batch_labels)
             ok_mask = torch.eq(torch.max(out, dim=-1)[1], batch_labels)
             val_ok += torch.sum(ok_mask).item()
@@ -255,13 +259,18 @@ def main():
 
     print(validation_list)
 
+    model_file = "./log/" + args.data_prefix.split("/")[-1] \
+        + '_' + str(args.model) + '_' + str(args.seed) + ".pt"
+    save_model(model, model_file)
+    print(model_file, " saved.")
+
     # Run over the test set.
     print("Training done testing....")
     test_data_loader = DataLoader(
         test_data_set, args.batch_size, shuffle=False, num_workers=2
     )
     with torch.no_grad():
-        test_acc, test_loss = val_test_loop(test_data_loader, model, loss_fun)
+        test_acc, test_loss = val_test_loop(test_data_loader, model, loss_fun, make_binary_labels=args.nclasses == 2)
         print("test acc", test_acc)
 
     if args.tensorboard:
@@ -291,7 +300,6 @@ def main():
     )
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, " saved.")
-    torch.save(model.state_dict(), log_name + ".pt")
 
 
 if __name__ == "__main__":
