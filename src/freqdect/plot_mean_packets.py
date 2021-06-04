@@ -1,3 +1,6 @@
+""" Source code to visualize mean wavelet packets and their
+    standard deviation for visual inspection. """
+
 import matplotlib.pyplot as plt
 from itertools import product
 import torch
@@ -64,6 +67,9 @@ def generate_packet_image_tensor(packet_array: torch.tensor):
 
 
 def main():
+    """ Compute mean wavelet packets and the standard deviation for a NumPy 
+        dataset. """
+
     import matplotlib.pyplot as plt
 
     # raw images - use only the training set.
