@@ -34,7 +34,7 @@ We utilize pre-trained models from the following repositories:
 We work with images of the size 128x128 pixels. Hence, the raw images from the LSUN/CelebA data set have to be cropped and/or resized to this size. To do this, run `freqdect.crop_celeba` or `freqdect.crop_lsun`, depending on the dataset. This will create a new folder with the transformed images. The FFHQ dataset is already distributed in the required image size.
 
 Use the pretrained GAN-models to generate images.
-In case of StyleGAN, resize the GAN-generated images to size 128x128 pixels, e.g. by inserting
+In case of StyleGAN, there is only a pre-trained model generating images of size 1024x1024, so one has to resize the GAN-generated images to size 128x128 pixels, e.g. by inserting
 ``` PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)```
 into 
 [ffhq-stylegan](https://github.com/NVlabs/stylegan/blob/03563d18a0cf8d67d897cc61e44479267968716b/pretrained_example.py)
