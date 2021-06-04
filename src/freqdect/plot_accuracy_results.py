@@ -163,6 +163,7 @@ def _plot_on_ax(
     rt_mean, rt_std, rt_max = get_test_acc_mean_std_max(raw_logs, "test_acc")
 
     def print_results(name, logs, logs_mean, logs_std, logs_max):
+        """Prints the max, mean and std of the accuracy of the runs on one feature."""
         print(f"{name} ({len(logs)} runs):")
         print(
             f"\t\tmax: {logs_max * 100:.2f}%\n\t\tmean: {logs_mean * 100:.2f}%\n\t\tstd: {logs_std * 100:.2f}"
