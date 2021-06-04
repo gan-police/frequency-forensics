@@ -56,7 +56,7 @@ Afterwards run:
 ```shell
 $ python -m freqdect.prepare_dataset_batched ./data/source_data/ --packets
 $ python -m freqdect.prepare_dataset_batched ./data/source_data/
-```
+
 usage: prepare_dataset.py [-h] [--train-size TRAIN_SIZE] [--test-size TEST_SIZE] [--val-size VAL_SIZE] [--batch-size BATCH_SIZE] [--packets] [--log-packets] directory
 
 positional arguments:
