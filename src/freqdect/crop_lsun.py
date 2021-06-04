@@ -12,23 +12,42 @@ def transform_image(stupid):
     file_path, directory, output = stupid
     # catch errors and continue with different files
     try:
-        if file_path.endswith("png") or file_path.endswith("jpeg") or file_path.endswith("jpg") or file_path.endswith("webp"):
+        if (
+            file_path.endswith("png")
+            or file_path.endswith("jpeg")
+            or file_path.endswith("jpg")
+            or file_path.endswith("webp")
+        ):
             image = Image.open(f"{directory}/{file_path}")
             x, y = image.size
             if y < x:
                 crop_height = y
                 crop_width = y
 
-                crop_left = (x - y)//2
+                crop_left = (x - y) // 2
                 crop_top = 0
-                image = image.crop((crop_left, crop_top, crop_left+crop_width, crop_top+crop_height))
+                image = image.crop(
+                    (
+                        crop_left,
+                        crop_top,
+                        crop_left + crop_width,
+                        crop_top + crop_height,
+                    )
+                )
             elif x < y:
                 crop_height = x
                 crop_width = x
 
                 crop_left = 0
-                crop_top = (y - x)//2
-                image = image.crop((crop_left, crop_top, crop_left+crop_width, crop_top+crop_height))
+                crop_top = (y - x) // 2
+                image = image.crop(
+                    (
+                        crop_left,
+                        crop_top,
+                        crop_left + crop_width,
+                        crop_top + crop_height,
+                    )
+                )
 
             image = image.resize((128, 128))
 
@@ -41,14 +60,16 @@ def transform_image(stupid):
     except ValueError as exc:
         print(file_path, exc, x, y)
 
+
 def main(args):
     os.makedirs(args.OUTPUT, exist_ok=True)
 
     # only consider the specified number of files
-    paths = os.listdir(args.DIRECTORY)[:args.SIZE]
+    paths = os.listdir(args.DIRECTORY)[: args.SIZE]
     packed = map(lambda p: (p, args.DIRECTORY, args.OUTPUT), paths)
     with ProcessPoolExecutor() as pool:
         list(pool.map(transform_image, packed))
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -60,6 +81,7 @@ def parse_args():
     parser.add_argument("SIZE", help="Amount of data to convert.", type=int)
 
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     main(parse_args())
