@@ -5,6 +5,15 @@ import numpy as np
 
 
 def stack_list(dict_list, key: str):
+    """Extract time series data from a logfile-list.
+
+    Args:
+        dict_list (list): A list as stored by train_classifier.py
+        key (str): The key for a logfile entry.
+
+    Returns:
+        tuple: A tuple of a step and accuracy numpy array.
+    """
     step_lst = []
     acc_lst = []
     for current_dictionary in dict_list:
@@ -17,7 +26,7 @@ def stack_list(dict_list, key: str):
     return np.stack(step_lst), np.stack(acc_lst)
 
 
-def get_steps_mean_std(step_lst, cost_lst):
+def _get_steps_mean_std(step_lst, cost_lst):
     mean = np.mean(cost_lst, axis=0)
     std = np.std(cost_lst, axis=0)
     return step_lst[0, :], mean, std
@@ -25,16 +34,26 @@ def get_steps_mean_std(step_lst, cost_lst):
 
 def get_plot_tuple(dict_list, key: str):
     steps, loss = stack_list(dict_list, key)
-    steps, mean, std = get_steps_mean_std(steps, loss)
+    steps, mean, std = _get_steps_mean_std(steps, loss)
     return steps, mean, std
 
 
-def plot_mean_std(steps, mean, std, color, label="", marker="."):
+def _plot_mean_std(steps, mean, std, color, label="", marker="."):
     plt.plot(steps, mean, label=label, color=color, marker=marker)
     plt.fill_between(steps, mean - std, mean + std, color=color, alpha=0.2)
 
 
-def get_test_acc_mean_std_max(dict_list: dict, key: str):
+def get_test_acc_mean_std_max(dict_list: list, key: str):
+    """ Compute the mean test accuracy and standard deviation over
+        multiple runs.
+
+    Args:
+        dict_list (list): A list of dicts as stored by train_classifier.py
+        key (str): The dictionary key we are interested in.
+
+    Returns:
+        tuple: The mean, standard deviation and max in that order.
+    """
     test_accs = []
     for experiment_dict in dict_list:
         test_accs.append(experiment_dict[key])
@@ -48,10 +67,10 @@ def main(args):
 
     steps, mean, std = get_plot_tuple(raw_logs, "train_acc")
     steps, mean, std = get_plot_tuple(raw_logs, "val_acc")
-    plot_mean_std(steps, mean, std, color=colors[0], label="raw validation acc")
+    _plot_mean_std(steps, mean, std, color=colors[0], label="raw validation acc")
 
     steps, mean, std = get_plot_tuple(packet_logs, "val_acc")
-    plot_mean_std(steps, mean, std, color=colors[1], label="packet validation acc")
+    _plot_mean_std(steps, mean, std, color=colors[1], label="packet validation acc")
 
     pt_mean, pt_std, pt_max = get_test_acc_mean_std_max(packet_logs, "test_acc")
     rt_mean, rt_std, rt_max = get_test_acc_mean_std_max(raw_logs, "test_acc")
