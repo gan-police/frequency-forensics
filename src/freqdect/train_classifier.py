@@ -291,7 +291,11 @@ def main():
     )
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, " saved.")
-    torch.save(model.state_dict(), log_name + ".pt")
+
+    model_file = "./log/" + args.data_prefix.split("/")[-1] \
+        + '_' + str(args.model) + '_' + str(args.seed) + ".pt"
+    torch.save(model.state_dict(), model_file)
+    print(model_file, " saved.")
 
 
 if __name__ == "__main__":
