@@ -1,3 +1,4 @@
+"""Calculating confusion matrices from trained models that classify deepfake image data."""
 import argparse
 from collections import defaultdict
 import torch
@@ -10,6 +11,18 @@ from .data_loader import LoadNumpyDataset
 
 
 def calculate_confusion_matrix(args):
+    """Calculates the confusion matrix.
+    A test data set specified in the cmd line args is loaded (and normalized if specified).
+    A model is loaded from a state dict file and used to classify the loaded test data.
+    Then, a confusion matrix is computed from the predicted labels and the correct labels.
+
+    Args:
+        args: Command line args, in which settings such as the test data set path, the model file path,
+            the normalization, etc. are specified.
+
+    Returns:
+        a confusion matrix, comparing the predicted and the actual labels for each class
+    """
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
@@ -51,7 +64,23 @@ def calculate_confusion_matrix(args):
     return confusion_matrix(correct_labels, predicted_labels)
 
 
-def confusion_matrix_generalized(args):
+def calculate_generalized_confusion_matrix(args):
+    """Calculates a generalized confusion matrix for the binary classification task differentiating fake from real images.
+
+    A test data set specified in the cmd line args is loaded (and normalized if specified).
+    A model is loaded from a state dict file and used to classify the loaded test data into the classes 'fake' and 'real'.
+    Then, a generalized confusion matrix is computed from the predicted labels and the correct labels. The confusion matrix is
+    insofar 'generalized' as the actual labels for the 'fake' class are split into subgroups according to the GAN that was used
+    to generate the fake images.
+
+    Args:
+        args: Command line args, in which settings such as the test data set path, the model file path,
+            the normalization, etc. are specified.
+
+    Returns:
+        a 'generalized' confusion matrix, containing for each image source (i.e. real and different GANs) the number of images that
+        were classified as 'real' or 'fake'.
+    """
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
@@ -103,7 +132,41 @@ def confusion_matrix_generalized(args):
     return matrix
 
 
-if __name__ == "__main__":
+def output_confusion_matrix_stats(matrix, plot: bool = False):
+    """Outputs stats about the confusion matrix.
+
+    Args:
+        matrix: The confusion matrix from which the stats are calculated.
+        plot (bool): If this flag is set, the confusion matrix is plotted.
+            The plot is shown and stored in the current working directory.
+    """
+    print("accuracy: ", np.trace(matrix) / matrix.sum())
+
+    label_names = ["Original", "CramerGAN", "MMDGAN", "ProGAN", "SNGAN"]
+
+    diag = np.diag(matrix)
+
+    worst_index = np.argmin(diag)
+    best_index = np.argmax(diag)
+    print(
+        f"worst index: {worst_index} ({label_names[worst_index]}) with an accuracy of {diag[worst_index]/matrix[worst_index].sum()*100:.2f}%"
+    )
+    print(
+        f"best index: {best_index} ({label_names[best_index]}) with an accuracy of {diag[best_index]/matrix[best_index].sum()*100:.2f}%"
+    )
+
+    if plot:
+        import matplotlib.pyplot as plt
+
+        disp = ConfusionMatrixDisplay(
+            confusion_matrix=matrix, display_labels=label_names
+        )
+        disp.plot()
+        plt.savefig("confusion_matrix.png")
+        plt.show()
+
+
+def _parse_args():
     parser = argparse.ArgumentParser(description="Calculate the confusion matrix")
     parser.add_argument(
         "--classifier-path", type=str, help="path to classifier model file"
@@ -145,37 +208,17 @@ if __name__ == "__main__":
         "--nclasses", type=int, default=2, help="number of classes (default: 2)"
     )
     parser.add_argument("--generalized", action="store_true")
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = _parse_args()
 
     if args.generalized:
-        matrix = confusion_matrix_generalized(args)
+        matrix = calculate_generalized_confusion_matrix(args)
         print(matrix)
     else:
-        confusion_matrix = calculate_confusion_matrix(args)
+        matrix = calculate_confusion_matrix(args)
+        print(matrix)
 
-        print("accuracy: ", np.trace(confusion_matrix) / confusion_matrix.sum())
-
-        label_names = ["Original", "CramerGAN", "MMDGAN", "ProGAN", "SNGAN"]
-
-        diag = np.diag(confusion_matrix)
-
-        worst_index = np.argmin(diag)
-        best_index = np.argmax(diag)
-        print(
-            f"worst index: {worst_index} ({label_names[worst_index]}) with an accuracy of {diag[worst_index]/confusion_matrix[worst_index].sum()*100:.2f}%"
-        )
-        print(
-            f"best index: {best_index} ({label_names[best_index]}) with an accuracy of {diag[best_index]/confusion_matrix[best_index].sum()*100:.2f}%"
-        )
-
-        print(confusion_matrix)
-
-        if args.plot:
-            import matplotlib.pyplot as plt
-
-            disp = ConfusionMatrixDisplay(
-                confusion_matrix=confusion_matrix, display_labels=label_names
-            )
-            disp.plot()
-            plt.savefig("confusion_matrix.png")
-            plt.show()
+        output_confusion_matrix_stats(matrix, args.plot)
