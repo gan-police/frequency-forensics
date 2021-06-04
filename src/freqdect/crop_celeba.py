@@ -2,6 +2,7 @@
 This version is taken as is from: https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/crop_celeba.py"""
 import argparse
 import os
+from typing import Tuple
 
 from PIL import Image
 import numpy as np
@@ -9,8 +10,16 @@ import numpy as np
 from concurrent.futures import ProcessPoolExecutor
 
 
-def crop_image(stupid):
-    i, directory, file_path, output = stupid
+def crop_image(packed: Tuple[int, str, str, str]):
+    """Center-crops and resizes an CelebA image to 128x128 pixels.
+
+        Args:
+            packed (Tuple[int, str, str, str]): Packed args as tuple. The first entry is the image index.
+                The second entry is the path of the directory containing all original CelebA images.
+                The third entry is the file path of the original image file, which is cropped.
+                The fourth entry is the path of the directory where the cropped image is stored.
+    """
+    i, directory, file_path, output = packed
     if (
         file_path.endswith("png")
         or file_path.endswith("jpeg")
