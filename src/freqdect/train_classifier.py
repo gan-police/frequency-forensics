@@ -41,7 +41,7 @@ def val_test_loop(
     return val_acc, val_loss
 
 
-def parse_args():
+def _parse_args():
     """Parse cmd line args for training an image classifier"""
 
     parser = argparse.ArgumentParser(description="Train an image classifier")
@@ -130,7 +130,7 @@ def main():
     After the training is done, the results are stored in a pickle dump in the 'log' folder.
     The state_dict of the trained model is stored there as well.
     """
-    args = parse_args()
+    args = _parse_args()
     print(args)
 
     # fix the seed in the interest of reproducible results.
