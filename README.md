@@ -9,41 +9,41 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ## Installation
-
-The latest code can be installed directly from GitHub with:
-
-```shell
-$ pip install git+https://github.com/gan-police/frequency-forensics
-```
-
 The latest code can be installed in development mode with:
-
 ```shell
-$ git clone https://github.com/gan-police/frequency-forensics
-$ cd frequency-forensics
 $ pip install -e .
 ```
 
-Where <kbd>-e</kbd> means "editable" mode.
+## Data sets:
+We utilize three datasets which commonly appeard in previous work:
+-  [FFHQ](https://github.com/NVlabs/ffhq-dataset)
+-  [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
+-  [LSUN bedroom](https://github.com/fyu/lsun)
 
-Periodically run `tox -e black` to blackify the code when in development mode.
+## Gan Architectures:
+-  [StyleGan](https://github.com/NVlabs/stylegan)
+...
+TODO add more.
 
-## Getting a minimal example to run:
-
-Download FFHQ-Style-Gan examples from
-https://drive.google.com/file/d/1pKmmRtRCtFqs-FuwmToXEYeZFaXk98Kw/view?usp=sharing
-
-and extract these into a `data` folder.
+## Getting the ffhq example to run:
+Download the 128x128 pixel version of the ffhq data sets.
+Insert a foor loop a random seed and code to resize i.e. 
+``` PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)```
+into 
+[ffhq-stylegan](https://github.com/NVlabs/stylegan/blob/03563d18a0cf8d67d897cc61e44479267968716b/pretrained_example.py)
+generate 70k images .
+Store all images in a `data` folder. Use i.e
+```
+./data/source_data/A_ffhq
+./data/source_data/B_stylegan
+```
 
 Afterwards run:
-
 ```shell
 $ CUDA_VISIBLE_DEVICES=0 python -m freqdect.prepare_dataset ./data/source_data/ --packets
 $ python -m freqdect.prepare_dataset ./data/source_data/ --raw
 ```
-
-afterwards you should be able to train a classifier using
-
+now you should be able to train a classifier using
 ```shell
-$ CUDA_VISIBLE_DEVICES=0 python -m freqdect.train_classifier
+$ CUDA_VISIBLE_DEVICES=0 python -m freqdect.train_classifier --data-prefix ./data/source_data/ --calc-normalization
 ```
