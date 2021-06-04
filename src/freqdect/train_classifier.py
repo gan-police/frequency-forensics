@@ -39,7 +39,7 @@ def val_test_loop(data_loader: DataLoader, model: torch.nn.Module, loss_fun) -> 
     return val_acc, val_loss
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser(description="Train an image classifier")
     parser.add_argument(
         "--features",
@@ -115,7 +115,11 @@ def main():
         action="store_true",
         help="calculates mean and standard deviation used in normalization from the training data",
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
     print(args)
 
     # fix the seed in the interest of reproducible results.
