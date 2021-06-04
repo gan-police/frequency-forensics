@@ -121,7 +121,7 @@ def main():
     std_vmin = np.min((np.min(gan_std_packet_image), np.min(ffhq_std_packet_image)))
     std_vmax = np.max((np.max(gan_std_packet_image), np.max(ffhq_std_packet_image)))
 
-    def plot_image(image, title, vmax=None, vmin=None):
+    def _plot_image(image, title, vmax=None, vmin=None):
         fig.add_subplot(rows, columns, plot_count)
         plt.imshow(image, cmap=cmap, vmax=vmax, vmin=vmin)
         plt.xticks([], [])
@@ -129,20 +129,20 @@ def main():
         plt.title(title)
         plt.colorbar()
 
-    plot_image(gan_mean_packet_image, "gan mean packets", mean_vmax, mean_vmin)
+    _plot_image(gan_mean_packet_image, "gan mean packets", mean_vmax, mean_vmin)
     plot_count += 1
-    plot_image(ffhq_mean_packet_image, "data-set mean packets", mean_vmax, mean_vmin)
+    _plot_image(ffhq_mean_packet_image, "data-set mean packets", mean_vmax, mean_vmin)
     plot_count += 1
-    plot_image(
+    _plot_image(
         np.abs(gan_mean_packet_image - ffhq_mean_packet_image),
         "absolute mean difference",
     )
     plot_count += 1
-    plot_image(gan_std_packet_image, "gan std packets", std_vmax, std_vmin)
+    _plot_image(gan_std_packet_image, "gan std packets", std_vmax, std_vmin)
     plot_count += 1
-    plot_image(ffhq_std_packet_image, "data-set std packets", std_vmax, std_vmin)
+    _plot_image(ffhq_std_packet_image, "data-set std packets", std_vmax, std_vmin)
     plot_count += 1
-    plot_image(
+    _plot_image(
         np.abs(gan_std_packet_image - ffhq_std_packet_image), "absolute std difference"
     )
     plot_count += 1
