@@ -88,11 +88,15 @@ $ python -m freqdect.train_classifier --data-prefix ./data/source_data_packets -
 This trains a regression classifier using default hyperparameters. The training, validation and test accuracy and loss values are stored in a file placed in a `log` folder. The state dict of the trained model is stored there as well.
 For reference other options are:
 ```
-usage: train_classifier.py [-h] [--features {raw,packets}] [--batch-size BATCH_SIZE] [--learning-rate LEARNING_RATE]
+usage: train_classifier.py [-h] [--features {raw,packets}]
+                           [--batch-size BATCH_SIZE]
+                           [--learning-rate LEARNING_RATE]
                            [--weight-decay WEIGHT_DECAY] [--epochs EPOCHS]
-                           [--validation-interval VALIDATION_INTERVAL] [--data-prefix DATA_PREFIX]
-                           [--nclasses NCLASSES] [--seed SEED] [--model {regression,cnn,mlp}] [--tensorboard]
-                           [--normalize MEAN [STD ...] | --calc-normalization]
+                           [--validation-interval VALIDATION_INTERVAL]
+                           [--data-prefix DATA_PREFIX] [--nclasses NCLASSES]
+                           [--seed SEED] [--model {regression,cnn,mlp}]
+                           [--tensorboard] [--normalize MEAN [STD ...] |
+                           --calc-normalization]
 
 Train an image classifier
 
@@ -108,19 +112,22 @@ optional arguments:
                         weight decay for optimizer (default: 0)
   --epochs EPOCHS       number of epochs (default: 10)
   --validation-interval VALIDATION_INTERVAL
-                        number of training steps after which the model is tested on the validation data set
-                        (default: 200)
+                        number of training steps after which the model is
+                        tested on the validation data set (default: 200)
   --data-prefix DATA_PREFIX
-                        shared prefix of the data paths (default: ./data/source_data_packets)
+                        shared prefix of the data paths (default:
+                        ./data/source_data_packets)
   --nclasses NCLASSES   number of classes (default: 2)
   --seed SEED           the random seed pytorch works with.
   --model {regression,cnn,mlp}
-                        The model type chosse regression or CNN. Default: Regression.
+                        The model type chosse regression or CNN. Default:
+                        Regression.
   --tensorboard         enables a tensorboard visualization.
   --normalize MEAN [STD ...]
-                        normalize with specified values for mean and standard deviation (either 2 or 6 values are
-                        accepted)
-  --calc-normalization  calculates mean and standard deviation used in normalization from the training data
+                        normalize with specified values for mean and standard
+                        deviation (either 2 or 6 values are accepted)
+  --calc-normalization  calculates mean and standard deviation used in
+                        normalizationfrom the training data
 ```
 
 ## Evaluating the classifier
