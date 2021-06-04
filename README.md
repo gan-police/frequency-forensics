@@ -25,16 +25,6 @@ We utilize three datasets which commonly appeard in previous work:
 -  [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 -  [LSUN bedroom](https://github.com/fyu/lsun)
 
-<<<<<<< HEAD
-## Gan Architectures:
--  [StyleGan](https://github.com/NVlabs/stylegan)
-...
-TODO add more.
-
-## Getting the ffhq experiment to run:
-Download the 128x128 pixel version of the ffhq data sets.
-Insert a for loop a random seed and code to resize i.e. 
-=======
 ## GAN Architectures:
 We utilize pre-trained models from the following repositories:
 -  [StyleGAN](https://github.com/NVlabs/stylegan)
@@ -45,7 +35,6 @@ We work with images of the size 128x128 pixels. Hence, the raw images from the L
 
 Use the pretrained GAN-models to generate images.
 In case of StyleGAN, resize the GAN-generated images to size 128x128 pixels, e.g. by inserting
->>>>>>> b3a637294173c435f2557359c1436a05fcc56b99
 ``` PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)```
 into 
 [ffhq-stylegan](https://github.com/NVlabs/stylegan/blob/03563d18a0cf8d67d897cc61e44479267968716b/pretrained_example.py)
@@ -63,13 +52,10 @@ For the FFHQ case, we have only two subdirectories: `source_data/A_ffhq` and `so
 
 Now, to prepare the data sets run `freqdect.prepare_dataset` . It reads in the data set, splits them into a training, validation and test set, applies the specified transformation (to wavelet packets, log-scaled wavelet packets or just the raw image data) and stores the result as numpy arrays.
 
-<<<<<<< HEAD
 Afterwards run:
 ```shell
 $ python -m freqdect.prepare_dataset_batched ./data/source_data/ --packets
 $ python -m freqdect.prepare_dataset_batched ./data/source_data/
-=======
->>>>>>> b3a637294173c435f2557359c1436a05fcc56b99
 ```
 usage: prepare_dataset.py [-h] [--train-size TRAIN_SIZE] [--test-size TEST_SIZE] [--val-size VAL_SIZE] [--batch-size BATCH_SIZE] [--packets] [--log-packets] directory
 
