@@ -1,3 +1,6 @@
+""" Code to compute wavelet packets of real and generated
+    images for visual comparison. """
+
 import argparse
 
 import cv2
@@ -40,13 +43,33 @@ def draw_2d_wp_basis(shape, keys, fmt="k", plot_kwargs={}, ax=None, label_levels
 
 
 def read_pair(path_real, path_fake):
+    """Loads an image pair into numpy arrays.
+
+    Args:
+        path_real (str): A path to a real image.
+        path_fake (str): Another path to a generated image.
+
+    Returns:
+        tuple: Two numpy arrays for each image.
+    """
     face = cv2.cvtColor(cv2.imread(path_real), cv2.COLOR_BGR2RGB) / 255.0
     fake_face = cv2.cvtColor(cv2.imread(path_fake), cv2.COLOR_BGR2RGB) / 255.0
     return face, fake_face
 
 
 def compute_packet_rep_img(image, wavelet_str, max_lev):
+    """Compute the packet representation of an input image.
 
+    Args:
+        image (np.array): An image of shape [height, widht, channel]
+        wavelet_str (str): A string indicating the desired wavelet according
+            to the pywt convention. I.e. 'haar.'
+        max_lev (int): The level up to which the packet representation should be
+            computed. I.e. 3.
+
+    Returns:
+        np.array: A stacked version of the wavelet packet representation.
+    """
     if len(image.shape) == 3:
         channels_lst = []
         for channel in range(3):
@@ -60,6 +83,9 @@ def compute_packet_rep_img(image, wavelet_str, max_lev):
 
 
 def main():
+    """Compute some wavelet packets of real and generated images for
+    visual comparison."""
+
     parser = argparse.ArgumentParser(
         description="Plot wavelet decomposition of real and fake imgs"
     )
