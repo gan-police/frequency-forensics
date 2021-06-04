@@ -140,4 +140,31 @@ $ python -m freqdect.plot_accuracy_results {shared, lsun, celeba} {regression, C
 For a list of all optional arguments, open the help page via the `-h` argument.
 
 ### Calculating the confusion matrix
-[TODO™]
+
+To calculate the confusion matrix, run `freqdect.confusion_matrix`.
+
+```
+usage: confusion_matrix.py [-h] [--classifier-path CLASSIFIER_PATH] [--data DATA] [--model {regression,CNN}] [--features {raw,packets}] [--batch-size BATCH_SIZE] [--normalize MEAN [STD ...]] [--label-names LABEL_NAMES [LABEL_NAMES ...]]
+                           [--plot] [--nclasses NCLASSES] [--generalized]
+
+Calculate the confusion matrix
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --classifier-path CLASSIFIER_PATH
+                        path to classifier model file
+  --data DATA           path of folder containing the test data
+  --model {regression,CNN}
+                        The model type. Choose regression or CNN.
+  --features {raw,packets}
+                        the representation type
+  --batch-size BATCH_SIZE
+                        input batch size for testing (default: 512)
+  --normalize MEAN [STD ...]
+                        normalize with specified values for mean and standard deviation (either 2 or 6 values are accepted)
+  --label-names LABEL_NAMES [LABEL_NAMES ...]
+                        string representation of the class labels. Only used when '--generalized' is not selected.
+  --plot                plot the confusion matrix and store the plot as png. Does only have an effect when '--generalized' is not selected.
+  --nclasses NCLASSES   number of classes (default: 2)
+  --generalized         Calculates a generalized confusion matrix for the binary classification task differentiating fake from real images.
+```
