@@ -83,13 +83,17 @@ For a list of all optional arguments, open the help page via the `-h` argument.
 
 To calculate the confusion matrix, run `freqdect.confusion_matrix`. For a list of all arguments, open the help page via the `-h` argument.
 
-## Licensing
+## ⚖️ Licensing
 
 This project is licensed under the [GNU GPLv3 license](LICENSE)
 
 ## Acknowledgements
 
-## Support
+### 📖 Citation
+
+> TBD
+
+### 🙏 Support
 
 This project has been supported by the following organizations (in alphabetical order):
 
@@ -97,7 +101,7 @@ This project has been supported by the following organizations (in alphabetical 
 - [Fraunhofer Cluster of Excellence Cognitive Internet Technologies (CCIT)](https://www.cit.fraunhofer.de/en.html)
 - [Harvard Program in Therapeutic Science - Laboratory of Systems Pharmacology](https://hits.harvard.edu/the-program/laboratory-of-systems-pharmacology/)
 
-### Funding
+### 💰 Funding
 
 This project has been funded by the following grants:
 
