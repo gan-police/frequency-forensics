@@ -37,7 +37,7 @@ In case of StyleGAN, there is only a pre-trained model generating images of size
 ```
 PIL.Image.fromarray(images[0], 'RGB').resize((128, 128)).save(png_filename)
 ```
-into the [ffhq-stylegan](https://github.com/NVlabs/stylegan/blob/03563d18a0cf8d67d897cc61e44479267968716b/pretrained_example.py)
+into the [ffhq-stylegan](https://github.com/NVlabs/stylegan/blob/03563d18a0cf8d67d897cc61e44479267968716b/pretrained_example.py) .
 
 Store all images (cropped original and GAN-generated) in a separate subdirectories of a directory, i.e. the directory structure should look like this
 ```
