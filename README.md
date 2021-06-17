@@ -21,20 +21,26 @@ $ cd frequency-forensics
 $ pip install -e .
 ```
 
-## GAN Architectures
+## Assets
+
+### GAN Architectures
 
 We utilize pre-trained models from the following repositories:
 
 - [StyleGAN](https://github.com/NVlabs/stylegan)
 - [GANFingerprints](https://github.com/ningyu1991/GANFingerprints)
 
-## Datasets
+### Datasets
 
 We utilize three datasets which commonly appeared in previous work:
 
 - [FFHQ](https://github.com/NVlabs/ffhq-dataset)
 - [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 - [LSUN bedroom](https://github.com/fyu/lsun)
+
+## Reproduction
+
+The following section of the README serves as a guide to reproducing our paper.
 
 ### Preparation
 
@@ -141,3 +147,9 @@ This project has been funded by the following grants:
 | Funding Body                                             | Program                                                                                                                       | Grant           |
 |----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|-----------------|
 | DARPA                                                    | Young Faculty Award (PI: Benjamin M. Gyori) | W911NF2010255   |
+
+### 🍪 Cookiecutter
+
+This package was created with [@audreyfeldroy](https://github.com/audreyfeldroy)'s
+[cookiecutter](https://github.com/cookiecutter/cookiecutter) package using [@cthoyt](https://github.com/cthoyt)'s
+[cookiecutter-snekpack](https://github.com/cthoyt/cookiecutter-snekpack) template.
