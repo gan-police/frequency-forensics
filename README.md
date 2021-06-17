@@ -90,7 +90,7 @@ $ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/
 The data-set preparation script accepts additional arguments. For example, it is possible to change the sizes of the
 train, test or validation sets. For a list of all optional arguments, open the help page via the `-h` argument.
 
-## Training the Classifier
+### Training the Classifier
 
 Now you should be able to train a classifier using for example:
 
@@ -105,9 +105,9 @@ This trains a regression classifier using default hyperparameters. The training,
 values are stored in a file placed in a `log` folder. The state dict of the trained model is stored there as well. For a
 list of all optional arguments, open the help page via the `-h` argument.
 
-## Evaluating the Classifier
+### Evaluating the Classifier
 
-### Plotting the Metrics
+#### Plotting the Metrics
 
 To plot the accuracy results, run:
 
@@ -117,7 +117,7 @@ $ python -m freqdect.plot_accuracy_results {shared, lsun, celeba} {regression, C
 
 For a list of all optional arguments, open the help page via the `-h` argument.
 
-### Calculating the confusion matrix
+#### Calculating the confusion matrix
 
 To calculate the confusion matrix, run `freqdect.confusion_matrix`. For a list of all arguments, open the help page via
 the `-h` argument.
