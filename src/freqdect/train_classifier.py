@@ -294,7 +294,7 @@ def main():
     stats_file = log_name + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
-    except (OSError, IOError) as e:
+    except OSError as e:
         res = []
         print(
             e,
