@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+
 """
 @author: Luca Bondi (luca.bondi@polimi.it)
 @author: Paolo Bestagini (paolo.bestagini@polimi.it)
@@ -12,32 +13,25 @@ import numpy as np
 import pywt
 from numpy.fft import fft2, ifft2
 from scipy.ndimage import filters
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import auc, roc_curve
 from tqdm import tqdm
 
 
 class ArgumentError(Exception):
-    """ Raised if array shapes don't match. """
-    pass
-
-
-"""
-Extraction functions
-"""
+    """Raised if array shapes don't match."""
 
 
 def extract_single(
     im: np.ndarray, levels: int = 4, sigma: float = 5, wdft_sigma: float = 0
 ) -> np.ndarray:
-    """
-    Extract noise residual from a single image
+    """Extract noise residual from a single image.
+
     :param im: grayscale or color image, np.uint8
     :param levels: number of wavelet decomposition levels
     :param sigma: estimated noise power
     :param wdft_sigma: estimated DFT noise power
     :return: noise residual
     """
-
     W = noise_extract(im, levels, sigma)
     W = rgb2gray(W)
     W = zero_mean_total(W)
@@ -50,15 +44,14 @@ def extract_single(
 def extract_wiener_single(
     im: np.ndarray, levels: int = 4, sigma: float = 5, wdft_sigma: float = 0
 ) -> np.ndarray:
-    """
-    Extract noise residual from a single image
+    """Extract noise residual from a single image.
+
     :param im: grayscale or color image, np.uint8
     :param levels: number of wavelet decomposition levels
     :param sigma: estimated noise power
     :param wdft_sigma: estimated DFT noise power
     :return: noise residual
     """
-
     W = noise_extract(im, levels, sigma)
     W = rgb2gray(W)
     W = zero_mean_total(W)
@@ -72,15 +65,13 @@ def extract_wiener_single(
 
 
 def noise_extract(im: np.ndarray, levels: int = 4, sigma: float = 5) -> np.ndarray:
-    """
-    NoiseExtract as from Binghamton toolbox.
+    """NoiseExtract as from Binghamton toolbox.
 
     :param im: grayscale or color image, np.uint8
     :param levels: number of wavelet decomposition levels
     :param sigma: estimated noise power
     :return: noise residual
     """
-
     assert im.dtype == np.uint8
     assert im.ndim in [2, 3]
 
@@ -145,8 +136,8 @@ def noise_extract(im: np.ndarray, levels: int = 4, sigma: float = 5) -> np.ndarr
 
 
 def noise_extract_compact(args):
-    """
-    Extract residual, multiplied by the image. Useful to save memory in multiprocessing operations
+    """Extract residual, multiplied by the image. Useful to save memory in multiprocessing operations.
+
     :param args: (im, levels, sigma), see noise_extract for usage
     :return: residual, multiplied by the image
     """
@@ -163,8 +154,8 @@ def extract_multiple_aligned(
     batch_size=cpu_count(),
     tqdm_str: str = "",
 ) -> np.ndarray:
-    """
-    Extract PRNU from a list of images. Images are supposed to be the same size and properly oriented
+    """Extract PRNU from a list of images. Images are supposed to be the same size and properly oriented.
+
     :param tqdm_str: tqdm description (see tqdm documentation)
     :param batch_size: number of parallel processed images
     :param processes: number of parallel processes
@@ -236,12 +227,12 @@ def extract_multiple_aligned(
 
 
 def cut_ctr(array: np.ndarray, sizes: tuple) -> np.ndarray:
-    """
-    Cut a multi-dimensional array at its center, according to sizes
+    """Cut a multi-dimensional array at its center, according to sizes.
+
     :param array: multidimensional array
     :param sizes: tuple of the same length as array.ndim
     :return: multidimensional array, center cut
-    :raises: ArgumentError if array shapes dont match.   
+    :raises: ArgumentError if array shapes dont match.
     """
     array = array.copy()
     if not (array.ndim == len(sizes)):
@@ -263,8 +254,8 @@ def cut_ctr(array: np.ndarray, sizes: tuple) -> np.ndarray:
 
 
 def wiener_dft(im: np.ndarray, sigma: float) -> np.ndarray:
-    """
-    Adaptive Wiener filter applied to the 2D FFT of the image
+    """Adaptive Wiener filter applied to the 2D FFT of the image.
+
     :param im: multidimensional array
     :param sigma: estimated noise power
     :return: filtered version of input im
@@ -289,8 +280,8 @@ def wiener_dft(im: np.ndarray, sigma: float) -> np.ndarray:
 
 
 def zero_mean(im: np.ndarray) -> np.ndarray:
-    """
-    ZeroMean called with the 'both' argument, as from Binghamton toolbox.
+    """ZeroMean called with the 'both' argument, as from Binghamton toolbox.
+
     :param im: multidimensional array
     :return: zero mean version of input im
     """
@@ -323,8 +314,8 @@ def zero_mean(im: np.ndarray) -> np.ndarray:
 
 
 def zero_mean_total(im: np.ndarray) -> np.ndarray:
-    """
-    ZeroMeanTotal as from Binghamton toolbox.
+    """ZeroMeanTotal as from Binghamton toolbox.
+
     :param im: multidimensional array
     :return: zero mean version of input im
     """
@@ -336,8 +327,8 @@ def zero_mean_total(im: np.ndarray) -> np.ndarray:
 
 
 def rgb2gray(im: np.ndarray) -> np.ndarray:
-    """
-    RGB to gray as from Binghamton toolbox.
+    """Convert RGB to gray as from Binghamton toolbox.
+
     :param im: multidimensional array
     :return: grayscale version of input im
     """
@@ -362,8 +353,8 @@ def rgb2gray(im: np.ndarray) -> np.ndarray:
 
 
 def threshold(wlet_coeff_energy_avg: np.ndarray, noise_var: float) -> np.ndarray:
-    """
-    Noise variance theshold as from Binghamton toolbox.
+    """Noise variance theshold as from Binghamton toolbox.
+
     :param wlet_coeff_energy_avg:
     :param noise_var:
     :return: noise variance threshold
@@ -373,11 +364,12 @@ def threshold(wlet_coeff_energy_avg: np.ndarray, noise_var: float) -> np.ndarray
 
 
 def wiener_adaptive(x: np.ndarray, noise_var: float, **kwargs) -> np.ndarray:
-    """
-    WaveNoise as from Binghamton toolbox.
+    """WaveNoise as from Binghamton toolbox.
+
     Wiener adaptive flter aimed at extracting the noise component
     For each input pixel the average variance over a neighborhoods of different window sizes is first computed.
     The smaller average variance is taken into account when filtering according to Wiener.
+
     :param x: 2D matrix
     :param noise_var: Power spectral density of the noise we wish to extract (S)
     :param window_size_list: list of window sizes
@@ -402,12 +394,11 @@ def wiener_adaptive(x: np.ndarray, noise_var: float, **kwargs) -> np.ndarray:
 
 
 def inten_scale(im: np.ndarray) -> np.ndarray:
-    """
-    IntenScale as from Binghamton toolbox
+    """Calculate the IntenScale as from Binghamton toolbox.
+
     :param im: type np.uint8
     :return: intensity scaled version of input x
     """
-
     assert im.dtype == np.uint8
 
     T = 252
@@ -419,8 +410,8 @@ def inten_scale(im: np.ndarray) -> np.ndarray:
 
 
 def saturation(im: np.ndarray) -> np.ndarray:
-    """
-    Saturation as from Binghamton toolbox
+    """Saturation as from Binghamton toolbox
+
     :param im: type np.uint8
     :return: saturation map from input im
     """
@@ -458,8 +449,8 @@ def saturation(im: np.ndarray) -> np.ndarray:
 
 
 def inten_sat_compact(args):
-    """
-    Memory saving version of inten_scale followed by saturation. Useful for multiprocessing
+    """Memory saving version of inten_scale followed by saturation that is useful for multiprocessing.
+
     :param args:
     :return: intensity scale and saturation of input
     """
@@ -473,8 +464,8 @@ Cross-correlation functions
 
 
 def crosscorr_2d(k1: np.ndarray, k2: np.ndarray) -> np.ndarray:
-    """
-    PRNU 2D cross-correlation
+    """Calculate the PRNU 2D cross-correlation.
+
     :param k1: 2D matrix of size (h1,w1)
     :param k2: 2D matrix of size (h2,w2)
     :return: 2D matrix of size (max(h1,h2),max(w1,w2))

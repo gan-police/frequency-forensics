@@ -9,6 +9,7 @@ from .utils import PersistentDefaultDict
 
 class KNNClassifier(Classifier):
     """ K-nearest neighbors classification """
+
     def __init__(self, n_neighbors, n_jobs, **kwargs):
         """ Create the classifier. """
         super().__init__(**kwargs)

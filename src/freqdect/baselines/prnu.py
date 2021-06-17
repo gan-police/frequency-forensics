@@ -15,11 +15,12 @@ from .utils import PersistentDefaultDict
 
 
 class PRNUClassifier(Classifier):
-    """ Photoresponse non-uniformity classification as described in:
-        Francesco Marra, Diego Gragnaniello, Luisa Verdoliva, and Giovanni Poggi. Do gans leave
-        artificial fingerprints? In 2019 IEEE Conference on Multimedia Information Processing and
-        Retrieval (MIPR), pages 506–511. IEEE, 2019.
+    """Photoresponse non-uniformity classification as described in:
+    Francesco Marra, Diego Gragnaniello, Luisa Verdoliva, and Giovanni Poggi. Do gans leave
+    artificial fingerprints? In 2019 IEEE Conference on Multimedia Information Processing and
+    Retrieval (MIPR), pages 506–511. IEEE, 2019.
     """
+
     def __init__(self, levels, sigma, **kwargs):
         """ Create the classifier. """
         super().__init__(**kwargs)

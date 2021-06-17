@@ -13,6 +13,7 @@ from tqdm import tqdm
 
 class Classifier(object):
     """ Classifier interface for the eigenfaces and k-nearest neighbour. """
+
     def __init__(self):
         """ Instantiates a classifier """
         super().__init__()

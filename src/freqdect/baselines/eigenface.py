@@ -11,11 +11,12 @@ from .utils import PersistentDefaultDict
 
 
 class PCAClassifier(Classifier):
-    """ Classification based on principal components or eigenfaces as
-        described in: 
-        Lawrence Sirovich and Michael Kirby. Low-dimensional procedure for the characterization of
-        human faces. Josa a, 4(3):519–524, 1987.
+    """Classification based on principal components or eigenfaces as
+    described in:
+    Lawrence Sirovich and Michael Kirby. Low-dimensional procedure for the characterization of
+    human faces. Josa a, 4(3):519–524, 1987.
     """
+
     def __init__(self, pca_target_variance, svm_params, **kwargs):
         """ Create the PCA classifier. """
         super().__init__(**kwargs)

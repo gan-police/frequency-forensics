@@ -123,13 +123,13 @@ def _parse_args():
         type=float,
         metavar=("MEAN", "STD"),
         help="normalize with specified values for mean and standard deviation (either 2 or 6 values "
-             "are accepted)",
+        "are accepted)",
     )
     group.add_argument(
         "--calc-normalization",
         action="store_true",
         help="calculates mean and standard deviation used in normalization"
-             "from the training data",
+        "from the training data",
     )
     return parser.parse_args()
 
