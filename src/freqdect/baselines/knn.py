@@ -1,5 +1,5 @@
 """
-As found at:
+KNN baseline code as found at:
 https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/baselines/knn.py
 """
 from .classifier import Classifier, read_dataset
@@ -8,7 +8,9 @@ from .utils import PersistentDefaultDict
 
 
 class KNNClassifier(Classifier):
+    """ K-nearest neighbors classification """
     def __init__(self, n_neighbors, n_jobs, **kwargs):
+        """ Create the classifier. """
         super().__init__(**kwargs)
         self.knn = KNeighborsClassifier(n_neighbors=n_neighbors, n_jobs=n_jobs)
 
@@ -22,7 +24,7 @@ class KNNClassifier(Classifier):
     def grid_search(
         dataset_name, datasets_dir, output_dir, n_jobs, mean=None, std=None
     ):
-
+        """ Determine reasonable hyperparameters. """
         # hyperparameter grid
         knn_grid = [1] + [(2 ** x) + 1 for x in range(1, 11)]
 
@@ -62,6 +64,7 @@ class KNNClassifier(Classifier):
     def train_classifier(
         dataset_name, datasets_dir, output_dir, n_jobs, n_neighbors, mean=None, std=None
     ):
+        """ Run the training code. """
         results = PersistentDefaultDict(output_dir.joinpath(f"knn_test.json"))
         # classifier name
         classifier_name = f"classifier_{dataset_name}_knn_n_neighbors.{n_neighbors}"

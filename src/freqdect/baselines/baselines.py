@@ -1,5 +1,5 @@
 """
-As found at:
+Basline code as found at:
 https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/baselines/baselines.py
 """
 import argparse
@@ -31,6 +31,7 @@ def main(
     calc_normalization,
     **classifier_args,
 ):
+    """ Run baslines """
     print("[+] ARGUMENTS")
     print(f"    -> command      @ {command}")
     print(f"    -> baseline     @ {baseline}")
@@ -113,6 +114,7 @@ def main(
 
 
 def parse_args():
+    """ Read command line arguments. """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--command",

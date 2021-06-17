@@ -1,10 +1,9 @@
 """
-As found at:
+Eigenface baseline code as found at:
 https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/baselines/eigenface.py
 """
 import time
 from itertools import product
-
 from .classifier import Classifier, read_dataset
 from sklearn.decomposition import PCA
 from sklearn.svm import LinearSVC
@@ -12,12 +11,19 @@ from .utils import PersistentDefaultDict
 
 
 class PCAClassifier(Classifier):
+    """ Classification based on principal components or eigenfaces as
+        described in: 
+        Lawrence Sirovich and Michael Kirby. Low-dimensional procedure for the characterization of
+        human faces. Josa a, 4(3):519–524, 1987.
+    """
     def __init__(self, pca_target_variance, svm_params, **kwargs):
+        """ Create the PCA classifier. """
         super().__init__(**kwargs)
         self.pca = PCA(n_components=pca_target_variance, svd_solver="full")
         self.svm = LinearSVC(**svm_params, max_iter=10000)
 
     def fit_pca(self, train_data):
+        """ Fit to target data. """
         print(f"    -> pca")
         start = time.time()
         self.pca.fit(train_data)
@@ -41,6 +47,7 @@ class PCAClassifier(Classifier):
 
     @staticmethod
     def generate_params(svm_grid):
+        """ Loop over parameter grids. """
         for grid in svm_grid:
             for param_values in product(*tuple(grid.values())):
                 params = {}
@@ -52,6 +59,7 @@ class PCAClassifier(Classifier):
     def grid_search(
         dataset_name, datasets_dir, output_dir, n_jobs, mean=None, std=None
     ):
+        """ Determine reasonable input parameters. """
         # hyperparameter grid
         pca_target_variances = [0.25, 0.5, 0.75, 0.95]
         svm_grid = [{"C": [0.0001, 0.001, 0.01, 0.1]}]
@@ -116,6 +124,7 @@ class PCAClassifier(Classifier):
         mean=None,
         std=None,
     ):
+        """ Run the training code."""
         # classifier name
         classifier_name = (
             f"classifier_{dataset_name}_eigenfaces_v.{pca_target_variance}_c.{C}"
@@ -159,6 +168,7 @@ class PCAClassifier(Classifier):
         mean=None,
         std=None,
     ):
+        """ Run the test code. """
         results = PersistentDefaultDict(output_dir.joinpath(f"eigenfaces_test.json"))
         # load data
         test_data, test_labels = read_dataset(

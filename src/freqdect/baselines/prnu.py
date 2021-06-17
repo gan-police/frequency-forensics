@@ -15,7 +15,13 @@ from .utils import PersistentDefaultDict
 
 
 class PRNUClassifier(Classifier):
+    """ Photoresponse non-uniformity classification as described in:
+        Francesco Marra, Diego Gragnaniello, Luisa Verdoliva, and Giovanni Poggi. Do gans leave
+        artificial fingerprints? In 2019 IEEE Conference on Multimedia Information Processing and
+        Retrieval (MIPR), pages 506–511. IEEE, 2019.
+    """
     def __init__(self, levels, sigma, **kwargs):
+        """ Create the classifier. """
         super().__init__(**kwargs)
         self.levels = levels
         self.sigma = sigma
@@ -66,6 +72,7 @@ class PRNUClassifier(Classifier):
     def grid_search(
         dataset_name, datasets_dir, output_dir, n_jobs, mean=None, std=None
     ):
+        """ Determine hyperparameters. """
         # init results
         results = PersistentDefaultDict(output_dir.joinpath(f"prnu_grid_search.json"))
 
@@ -107,6 +114,7 @@ class PRNUClassifier(Classifier):
 
     @staticmethod
     def train_classifier(dataset_name, datasets_dir, output_dir, n_jobs, levels, sigma):
+        """ Run the training code. """
         # classifier name
         classifier_name = (
             f"classifier_{dataset_name}_prnu_levels.{levels}_sigma.{sigma}"
@@ -130,6 +138,7 @@ class PRNUClassifier(Classifier):
     def test_classifier(
         classifier_name, dataset_name, datasets_dir, output_dir, n_jobs
     ):
+        """ Test the classifier. """
         print(f"\n{classifier_name.upper()}")
         results = PersistentDefaultDict(output_dir.joinpath(f"prnu_test.json"))
         # load data

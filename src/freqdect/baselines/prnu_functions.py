@@ -17,6 +17,7 @@ from tqdm import tqdm
 
 
 class ArgumentError(Exception):
+    """ Raised if array shapes don't match. """
     pass
 
 
@@ -240,6 +241,7 @@ def cut_ctr(array: np.ndarray, sizes: tuple) -> np.ndarray:
     :param array: multidimensional array
     :param sizes: tuple of the same length as array.ndim
     :return: multidimensional array, center cut
+    :raises: ArgumentError if array shapes dont match.   
     """
     array = array.copy()
     if not (array.ndim == len(sizes)):
