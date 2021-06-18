@@ -129,8 +129,17 @@ This project is licensed under the [GNU GPLv3 license](LICENSE)
 ## Acknowledgements
 
 ### 📖 Citation
-
-> TBD
+If you find this work useful please consider citing:
+```
+@misc{wolter2021waveletpacket,
+      title={Wavelet-Packet Powered Deepfake Image Detection}, 
+      author={Moritz Wolter and Felix Blanke and Charles Tapley Hoyt and Jochen Garcke},
+      year={2021},
+      eprint={2106.09369},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
 
 ### 🙏 Support
 
