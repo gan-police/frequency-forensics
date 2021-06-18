@@ -8,7 +8,7 @@
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-This is the supplementary source code for our paper Wavelet-Packet Powered Deepfake Image Detection, which is currently
+This is the supplementary source code for our paper [Wavelet-Packet Powered Deepfake Image Detection](https://arxiv.org/abs/2106.09369), which is currently
 under review.
 
 ## Installation
