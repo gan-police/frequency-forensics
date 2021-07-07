@@ -20,7 +20,7 @@ class PersistentDefaultDict:
     """
 
     def __init__(self, path_to_dict):
-        """ Creates the dictionary at the given path. """
+        """Creates the dictionary at the given path."""
         self.path = Path(path_to_dict)
         if self.path.is_file():
             stored_data = json.loads(self.path.read_text())
@@ -50,7 +50,7 @@ class PersistentDefaultDict:
         return self.data.__iter__()
 
     def as_dict(self):
-        """ Return the stored json as dict. """
+        """Return the stored json as dict."""
         if self.path.is_file():
             return json.loads(self.path.read_text())
         else:
@@ -58,12 +58,12 @@ class PersistentDefaultDict:
 
     @staticmethod
     def rec_default_dict():
-        """ Wrap the rec_default_dict property. """
+        """Wrap the rec_default_dict property."""
         return defaultdict(PersistentDefaultDict.rec_default_dict)
 
     @staticmethod
     def redefault_dict(data):
-        """ Loads data into the dictionary. """
+        """Loads data into the dictionary."""
         if isinstance(data, dict):
             return defaultdict(
                 PersistentDefaultDict.rec_default_dict,

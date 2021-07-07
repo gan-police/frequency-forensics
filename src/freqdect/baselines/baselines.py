@@ -31,7 +31,7 @@ def main(
     calc_normalization,
     **classifier_args,
 ):
-    """ Run baslines """
+    """Run baslines"""
     print("[+] ARGUMENTS")
     print(f"    -> command      @ {command}")
     print(f"    -> baseline     @ {baseline}")
@@ -114,7 +114,7 @@ def main(
 
 
 def parse_args():
-    """ Read command line arguments. """
+    """Read command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--command",

@@ -12,10 +12,10 @@ from tqdm import tqdm
 
 
 class Classifier(object):
-    """ Classifier interface for the eigenfaces and k-nearest neighbour. """
+    """Classifier interface for the eigenfaces and k-nearest neighbour."""
 
     def __init__(self):
-        """ Instantiates a classifier """
+        """Instantiates a classifier"""
         super().__init__()
 
     def _fit(self, train_data, train_labels):
@@ -25,7 +25,7 @@ class Classifier(object):
         raise NotImplementedError()
 
     def fit(self, train_data, train_labels):
-        """ Fit the classifier to training data. """
+        """Fit the classifier to training data."""
         print(f"    fit")
         start = time.time()
         self._fit(train_data, train_labels)
@@ -37,7 +37,7 @@ class Classifier(object):
         return self
 
     def score(self, test_data, test_labels):
-        """ Measure classifier performance. """
+        """Measure classifier performance."""
         print(f"    score")
         start = time.time()
         score = self._score(test_data, test_labels)
@@ -50,13 +50,13 @@ class Classifier(object):
         return score
 
     def save(self, output_path):
-        """ Save the classifier to disk. """
+        """Save the classifier to disk."""
         Path(output_path).parent.mkdir(exist_ok=True, parents=True)
         output_path.write_bytes(pickle.dumps(self))
 
     @staticmethod
     def load(in_path):
-        """ Load classifier from disk. """
+        """Load classifier from disk."""
         instance = pickle.loads(Path(in_path).read_bytes())
         return instance
 
@@ -64,7 +64,7 @@ class Classifier(object):
 def read_dataset(
     datasets_dir, dataset_name, subset_to_size=None, flatten=True, mean=None, std=None
 ):
-    """ Load data from disk. """
+    """Load data from disk."""
     print(f"[+] Read from {dataset_name}")
     dataset_dir = datasets_dir / dataset_name
 

@@ -22,7 +22,7 @@ class PRNUClassifier(Classifier):
     """
 
     def __init__(self, levels, sigma, **kwargs):
-        """ Create the classifier. """
+        """Create the classifier."""
         super().__init__(**kwargs)
         self.levels = levels
         self.sigma = sigma
@@ -73,7 +73,7 @@ class PRNUClassifier(Classifier):
     def grid_search(
         dataset_name, datasets_dir, output_dir, n_jobs, mean=None, std=None
     ):
-        """ Determine hyperparameters. """
+        """Determine hyperparameters."""
         # init results
         results = PersistentDefaultDict(output_dir.joinpath(f"prnu_grid_search.json"))
 
@@ -115,7 +115,7 @@ class PRNUClassifier(Classifier):
 
     @staticmethod
     def train_classifier(dataset_name, datasets_dir, output_dir, n_jobs, levels, sigma):
-        """ Run the training code. """
+        """Run the training code."""
         # classifier name
         classifier_name = (
             f"classifier_{dataset_name}_prnu_levels.{levels}_sigma.{sigma}"
@@ -139,7 +139,7 @@ class PRNUClassifier(Classifier):
     def test_classifier(
         classifier_name, dataset_name, datasets_dir, output_dir, n_jobs
     ):
-        """ Test the classifier. """
+        """Test the classifier."""
         print(f"\n{classifier_name.upper()}")
         results = PersistentDefaultDict(output_dir.joinpath(f"prnu_test.json"))
         # load data
