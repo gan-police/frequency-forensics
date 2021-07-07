@@ -11,7 +11,7 @@
 This is the supplementary source code for our paper [Wavelet-Packet Powered Deepfake Image Detection](https://arxiv.org/abs/2106.09369), which is currently
 under review.
 
-![packet plot](./docs/packet_visualization.png)
+![packet plot](./img/packet_visualization.png)
 
 The plot above illustrates the fundamental principle.
 It shows an FFHQ and a style-gan-generated image on the very left.
