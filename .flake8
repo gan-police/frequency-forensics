@@ -12,6 +12,8 @@ ignore =
     E203 # Ignore the spaces black puts before columns.
     E402 # allow path extensions for testing.
     S101 # asserts are fine.
+    DAR101
+    DAR201
 exclude =
     .tox,
     .git,

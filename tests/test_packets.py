@@ -5,8 +5,8 @@ from itertools import product
 
 import numpy as np
 import pytest
-import torch
 import pywt
+import torch
 from scipy import misc
 
 sys.path.append("./src")

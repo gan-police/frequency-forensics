@@ -20,7 +20,7 @@ def val_test_loop(
     loss_fun,
     make_binary_labels: bool = False,
 ) -> Tuple[float, Any]:
-    """Tests the performance of a model on a data set by calculating the prediction accuracy and loss of the model.
+    """Test the performance of a model on a data set by calculating the prediction accuracy and loss of the model.
 
     Args:
         data_loader (DataLoader): A DataLoader loading the data set on which the performance should be measured,
@@ -53,8 +53,7 @@ def val_test_loop(
 
 
 def _parse_args():
-    """Parse cmd line args for training an image classifier"""
-
+    """Parse cmd line args for training an image classifier."""
     parser = argparse.ArgumentParser(description="Train an image classifier")
     parser.add_argument(
         "--features",
@@ -135,9 +134,10 @@ def _parse_args():
 
 
 def main():
-    """Trains a model to classify images. All settings such as which model to use, parameters, normalization, data set path,
+    """Trains a model to classify images.
+    
+    All settings such as which model to use, parameters, normalization, data set path,
     seed etc. are specified via cmd line args.
-
     All training, validation and testing results are printed to stdout.
     After the training is done, the results are stored in a pickle dump in the 'log' folder.
     The state_dict of the trained model is stored there as well.
