@@ -24,7 +24,7 @@ exclude =
     .cache,
     .eggs,
     data.
-    src/baselines/*
+    src/freqdect/baselines/*
 max-line-length = 120
 max-complexity = 20
 import-order-style = pycharm
