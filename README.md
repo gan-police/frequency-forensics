@@ -40,12 +40,12 @@ We utilize pre-trained models from the following repositories:
 For our wavelet-packet computations, we build upon :
 - [ptwt](https://github.com/v0lta/PyTorch-Wavelet-Toolbox)
 
-In the paper we compare our approach to the DCT-method from:
+In the paper, we compare our approach to the DCT-method from:
 - [GANDCTAnalysis](https://github.com/RUB-SysSec/GANDCTAnalysis)
 
 ### Datasets
 
-We utilize three datasets which commonly appeared in previous work:
+We utilize three datasets that commonly appeared in previous work:
 
 - [FFHQ](https://github.com/NVlabs/ffhq-dataset)
 - [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
@@ -100,7 +100,7 @@ $ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/ --log-packets
 $ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/
 ```
 
-The data-set preparation script accepts additional arguments. For example, it is possible to change the sizes of the
+The dataset preparation script accepts additional arguments. For example, it is possible to change the sizes of the
 train, test or validation sets. For a list of all optional arguments, open the help page via the `-h` argument.
 
 ### Training the Classifier
