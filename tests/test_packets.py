@@ -2,11 +2,12 @@
 
 import sys
 import pywt
-import torch
-import pytest
 import numpy as np
-from scipy import misc
+import pytest
+import torch
+
 from itertools import product
+from scipy import misc
 
 sys.path.append("./src")
 from freqdect.wavelet_math import compute_pytorch_packet_representation_2d_tensor
