@@ -1,3 +1,5 @@
+""" Ensure ptwt and pywt packets are equivalent. """
+
 import sys
 import pywt
 import torch
@@ -13,7 +15,7 @@ from freqdect.wavelet_math import compute_pytorch_packet_representation_2d_tenso
 def compute_pywt_packet_representation_2d_tensor(
     data, wavelet_str: str = "db5", max_lev: int = 5
 ):
-    """Ensure pywt and ptwt equivalence."""
+    """To Ensure pywt and ptwt equivalence compute pywt packets."""
     wavelet = pywt.Wavelet(wavelet_str)
     pywt_wp_tree = pywt.WaveletPacket2D(data=data, wavelet=wavelet, mode="reflect")
 
@@ -31,6 +33,7 @@ def compute_pywt_packet_representation_2d_tensor(
 
 @pytest.mark.slow
 def test_packets():
+    """Runs the pywt ptwt comparison test."""
     face = misc.face()[256:512, 256:512]
     grey_face = np.mean(face, axis=-1).astype(np.float64)
     # add batch dimension.
@@ -47,4 +50,5 @@ def test_packets():
 
 
 if __name__ == "__main__":
+    """Run the test."""
     test_packets()
