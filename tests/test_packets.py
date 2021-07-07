@@ -1,12 +1,12 @@
-""" Ensure ptwt and pywt packets are equivalent. """
+"""Ensure ptwt and pywt packets are equivalent."""
 
 import sys
-import pywt
+from itertools import product
+
 import numpy as np
 import pytest
 import torch
-
-from itertools import product
+import pywt
 from scipy import misc
 
 sys.path.append("./src")
