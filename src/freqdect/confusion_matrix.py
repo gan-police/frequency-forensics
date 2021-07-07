@@ -69,17 +69,19 @@ def calculate_generalized_confusion_matrix(args):
     """Calculates a generalized confusion matrix for the binary classification task differentiating fake from real images.
 
     A test data set specified in the cmd line args is loaded (and normalized if specified).
-    A model is loaded from a state dict file and used to classify the loaded test data into the classes 'fake' and 'real'.
-    Then, a generalized confusion matrix is computed from the predicted labels and the correct labels. The confusion matrix is
-    insofar 'generalized' as the actual labels for the 'fake' class are split into subgroups according to the GAN that was used
-    to generate the fake images.
+    A model is loaded from a state dict file and used to classify the loaded test data into
+    the classes 'fake' and 'real'.
+    Then, a generalized confusion matrix is computed from the predicted labels and the correct labels.
+    The confusion matrix is insofar 'generalized' as the actual labels for the 'fake' class are split into
+    subgroups according to the GAN that was used to generate the fake images.
 
     Args:
         args: Command line args, in which settings such as the test data set path, the model file path,
             the normalization, etc. are specified.
 
     Returns:
-        a 'generalized' confusion matrix, containing for each image source (i.e. real and different GANs) the number of images that
+        a 'generalized' confusion matrix, containing for each image source \
+        (i.e. real and different GANs) the number of images that
         were classified as 'real' or 'fake'.
     """
     if args.normalize:
@@ -149,10 +151,12 @@ def output_confusion_matrix_stats(matrix, label_names: List[str], plot: bool = F
     worst_index = np.argmin(diag)
     best_index = np.argmax(diag)
     print(
-        f"worst index: {worst_index} ({label_names[worst_index]}) with an accuracy of {diag[worst_index]/matrix[worst_index].sum()*100:.2f}%"
+        f"worst index: {worst_index} ({label_names[worst_index]}) \
+        with an accuracy of {diag[worst_index]/matrix[worst_index].sum()*100:.2f}%"
     )
     print(
-        f"best index: {best_index} ({label_names[best_index]}) with an accuracy of {diag[best_index]/matrix[best_index].sum()*100:.2f}%"
+        f"best index: {best_index} ({label_names[best_index]}) \
+        with an accuracy of {diag[best_index]/matrix[best_index].sum()*100:.2f}%"
     )
 
     if plot:
@@ -209,7 +213,8 @@ def _parse_args():
     parser.add_argument(
         "--plot",
         action="store_true",
-        help="plot the confusion matrix and store the plot as png. Does only have an effect when '--generalized' is not selected.",
+        help="plot the confusion matrix and store the plot as png. Does only have an effect when \
+              '--generalized' is not selected.",
     )
     parser.add_argument(
         "--nclasses", type=int, default=2, help="number of classes (default: 2)"
@@ -217,7 +222,8 @@ def _parse_args():
     parser.add_argument(
         "--generalized",
         action="store_true",
-        help="Calculates a generalized confusion matrix for the binary classification task differentiating fake from real images.",
+        help="Calculates a generalized confusion matrix for the binary classification \
+              task differentiating fake from real images.",
     )
     return parser.parse_args()
 

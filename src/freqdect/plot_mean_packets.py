@@ -73,9 +73,11 @@ def main():
     import matplotlib.pyplot as plt
 
     # raw images - use only the training set.
-    # train_packet_set = LoadNumpyDataset("/home/ndv/projects/wavelets/frequency-forensics_felix/data/lsun_bedroom_200k_png_baseline_logpackets_train/")
+    # train_packet_set = LoadNumpyDataset("/home/ndv/projects/wavelets/frequency-forensics_felix/data/\
+    # lsun_bedroom_200k_png_baseline_logpackets_train/")
     train_packet_set = LoadNumpyDataset(
-        "/home/ndv/projects/wavelets/frequency-forensics_felix/data/celeba_align_png_cropped_baselines_logpackets_train/"
+        "/home/ndv/projects/wavelets/frequency-forensics_felix/data/\
+            celeba_align_png_cropped_baselines_logpackets_train/"
     )
 
     style_gan_list = []

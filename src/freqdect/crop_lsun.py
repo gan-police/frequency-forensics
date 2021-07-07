@@ -71,7 +71,8 @@ def transform_image(packed: Tuple[str, str, str]):
 
 
 def main(args):
-    """Center-crops and resizes a number of LSUN images in a directory to 128x128 pixels and stores the cropped images."""
+    """Center-crops and resizes a number of LSUN images in a directory
+    to 128x128 pixels and stores the cropped images."""
     os.makedirs(args.OUTPUT, exist_ok=True)
 
     # only consider the specified number of files

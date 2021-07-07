@@ -247,7 +247,8 @@ def skip_every_second_val_acc(logs):
 
 
 def plot_shared(args):
-    """Plots the validation and test accuracy for both the LSUN and CelebA data sets side by side for better comparision"""
+    """Plots the validation and test accuracy for both the \
+       LSUN and CelebA data sets side by side for better comparision"""
 
     logpacket_logs_lsun = pickle.load(
         open(f"{args.prefix_lsun}_logpackets_{args.model}.pkl", "rb")

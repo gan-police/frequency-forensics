@@ -31,7 +31,8 @@ def get_label_of_folder(
         path_of_folder (Path):  Path string containing only a single
             underscore directly after the label letter.
         binary_classification (bool): If flag is set, we only classify binarily, i.e. whether an image is real or fake.
-            In this case, the prefix 'A' indicates real, which is encoded with the label 0. All other folders are cosidered
+            In this case, the prefix 'A' indicates real, \
+            which is encoded with the label 0. All other folders are considered
             fake data, encoded with the label 1.
 
     Raises:
@@ -78,8 +79,8 @@ def get_label(path_to_image: Path, binary_classification: bool) -> int:
         path_to_image (Path): Image path string containing only a single
             underscore directly after the label letter.
         binary_classification (bool): If flag is set, we only classify binarily, i.e. whether an image is real or fake.
-            In this case, the prefix 'A' indicates real, which is encoded with the label 0. All other folders are cosidered
-            fake data, encoded with the label 1.
+            In this case, the prefix 'A' indicates real, which is encoded with the label 0.
+            All other folders are considered fake data, encoded with the label 1.
 
     Raises:
         NotImplementedError: Raised if the label letter is unkown.
