@@ -6,7 +6,7 @@ https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/baselines/baselines.py
 import argparse
 from multiprocessing import cpu_count
 from pathlib import Path
-from typing import Type
+from typing import Type, Dict
 
 import numpy as np
 
@@ -15,7 +15,7 @@ from .eigenface import PCAClassifier
 from .knn import KNNClassifier
 from .prnu import PRNUClassifier
 
-CLASSIFIER_CLS: dict[str, Type[Classifier]] = {
+CLASSIFIER_CLS: Dict[str, Type[Classifier]] = {
     "prnu": PRNUClassifier,
     "eigenfaces": PCAClassifier,
     "knn": KNNClassifier,
