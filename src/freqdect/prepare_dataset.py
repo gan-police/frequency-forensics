@@ -36,10 +36,11 @@ def get_label_of_folder(
             fake data, encoded with the label 1.
 
     Raises:
-        NotImplementedError: Raised if the label letter is unkown.
+       NotImplementedError: Raised if the label letter is unkown.
 
     Returns:
         int: The label encoded as integer.
+
     """
     label_str = path_of_folder.name.split("_")[0]
     if binary_classification:

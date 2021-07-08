@@ -81,7 +81,7 @@ def compute_pytorch_packet_representation_2d_image(
 def compute_pytorch_packet_representation_2d_tensor(
     pt_data: torch.Tensor,
     wavelet_str: Optional[str] = "db5",
-    max_lev: Optional[int] = 5,
+    max_lev: int = 5,
 ) -> torch.Tensor:
     """Compute the wavelet packet representation tensor for a batch of input images.
 
