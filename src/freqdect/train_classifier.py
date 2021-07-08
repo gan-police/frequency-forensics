@@ -1,6 +1,4 @@
-""" Source code to train deepfake detectors in wavelet and pixel space.
-"""
-
+"""Source code to train deepfake detectors in wavelet and pixel space."""
 
 import argparse
 import pickle
@@ -9,9 +7,10 @@ from typing import Any, Tuple
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from .data_loader import LoadNumpyDataset
-from .models import CNN, Regression, MLP, compute_parameter_total, save_model
 from torch.utils.tensorboard.writer import SummaryWriter
+
+from .data_loader import LoadNumpyDataset
+from .models import CNN, MLP, Regression, compute_parameter_total, save_model
 
 
 def val_test_loop(
