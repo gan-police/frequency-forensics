@@ -1,6 +1,6 @@
-"""Models for deepfake detection"""
-import torch
+"""This module contains code for deepfake detection models."""
 import numpy as np
+import torch
 
 
 def compute_parameter_total(net: torch.nn.Module) -> int:
@@ -22,7 +22,7 @@ def compute_parameter_total(net: torch.nn.Module) -> int:
 
 
 class CNN(torch.nn.Module):
-    """CNN code for packet or pixel classification"""
+    """CNN models used for packet or pixel classification."""
 
     def __init__(self, classes: int, packets: bool):
         """Create a convolutional neural network (CNN) model.
@@ -95,7 +95,8 @@ class Regression(torch.nn.Module):
     """A shallow linear-regression model."""
 
     def __init__(self, classes: int):
-        """Create the regression model
+        """Create the regression model.
+
         Args:
             classes (int): The number of classes or sources to classify.
         """
@@ -122,10 +123,11 @@ class Regression(torch.nn.Module):
 
 class MLP(torch.nn.Module):
     """Create a more involved Multi Layer Perceptron.
-        - We did not end up using ths MLP in the paper -.
 
     Args:
         torch ([type]): [description]
+
+    - We did not end up using ths MLP in the paper -.
     """
 
     def __init__(self, classes: int):
@@ -165,7 +167,7 @@ class MLP(torch.nn.Module):
 
 
 def save_model(model: torch.nn.Module, path):
-    """Saves the state dict of the model to the specified path.
+    """Save the state dict of the model to the specified path.
 
     Args:
         model (torch.nn.Module): model to store
@@ -175,7 +177,7 @@ def save_model(model: torch.nn.Module, path):
 
 
 def initialize_model(model: torch.nn.Module, path):
-    """Initialized the given model from a stored state dict file.
+    """Initialize the given model from a stored state dict file.
 
     Args:
         model (torch.nn.Module): model to initialize
