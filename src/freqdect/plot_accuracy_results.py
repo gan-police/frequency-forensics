@@ -1,11 +1,10 @@
-""" Code to plot training mean accuracy as well as the standard deviation. """
-
-import pickle
+"""Code to plot training mean accuracy as well as the standard deviation."""
 import argparse
+import pickle
+
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
 import numpy as np
-from typing import List, Any, Dict
+from matplotlib.axes import Axes
 
 
 def stack_list(dict_list, key: str):
@@ -57,8 +56,7 @@ def _plot_mean_std(axs, steps, mean, std, color, label="", marker="."):
 
 
 def get_test_acc_mean_std_max(dict_list: list, key: str):
-    """Compute the mean test accuracy and standard deviation over
-        multiple runs.
+    """Compute the mean test accuracy and standard deviation over multiple runs.
 
     Args:
         dict_list (list): A list of dicts as stored by train_classifier.py
@@ -163,7 +161,7 @@ def _plot_on_ax(
     rt_mean, rt_std, rt_max = get_test_acc_mean_std_max(raw_logs, "test_acc")
 
     def print_results(name, logs, logs_mean, logs_std, logs_max):
-        """Prints the max, mean and std of the accuracy of the runs on one feature."""
+        """Print the max, mean and std of the accuracy of the runs on one feature."""
         print(f"{name} ({len(logs)} runs):")
         print(
             f"\t\tmax: {logs_max * 100:.2f}%\n\t\tmean: {logs_mean * 100:.2f}%\n\t\tstd: {logs_std * 100:.2f}"
@@ -215,8 +213,9 @@ def _plot_on_ax(
 
 
 def export_plots(args, output_prefix: str):
-    """Exports the plot as png or tikz plot, if specified in the cmd line args,
-    and shows the plot, if not specified otherwise in the cmd line args.
+    """Export the plot as png or tikz plot.
+
+    Shows the plot, if not specified otherwise in the cmd line args.
 
     Args:
         args: The cmd line args settings.
@@ -235,9 +234,10 @@ def export_plots(args, output_prefix: str):
 
 
 def skip_every_second_val_acc(logs):
-    """If the interval between the validation accuracy measurements is too small, the resulting plot is too loaded.
-    In this case, one can use this function to half the validation accuracy resolution by skipping every second
-    validation accuracy entry.
+    """Half the validation accuracy resolution by skipping every second validation accuracy entry.
+
+    If the interval between the validation accuracy measurements is too small, the resulting plot is too loaded.
+    In this case, this function is useful.
 
     Args:
         logs: The log of the runs, from which every second validation accuracy measurement is skipped.
@@ -247,9 +247,10 @@ def skip_every_second_val_acc(logs):
 
 
 def plot_shared(args):
-    """Plots the validation and test accuracy for both the \
-       LSUN and CelebA data sets side by side for better comparision"""
+    """Plot the validation and test accuracy.
 
+    Both LSUN and CelebA are shown side by side for better comparision.
+    """
     logpacket_logs_lsun = pickle.load(
         open(f"{args.prefix_lsun}_logpackets_{args.model}.pkl", "rb")
     )
@@ -315,8 +316,7 @@ def plot_shared(args):
 
 
 def plot_single(args):
-    """Plots the validation and test accuracy for one data set"""
-
+    """Plot the validation and test accuracy for one data set."""
     logpacket_logs = pickle.load(
         open(f"{args.prefix}_logpackets_{args.model}.pkl", "rb")
     )
