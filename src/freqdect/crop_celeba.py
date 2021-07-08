@@ -1,13 +1,15 @@
-"""Script for cropping celebA adopted from: https://github.com/ningyu1991/GANFingerprints/
-This version is taken as is from: https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/crop_celeba.py"""
+"""Crop celebA for further processing.
+
+Adopted from: https://github.com/ningyu1991/GANFingerprints/
+This version is taken as is from: https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/crop_celeba.py
+"""
 import argparse
 import os
+from concurrent.futures import ProcessPoolExecutor
 from typing import Tuple
 
-from PIL import Image
 import numpy as np
-
-from concurrent.futures import ProcessPoolExecutor
+from PIL import Image
 
 
 def crop_image(packed: Tuple[int, str, str, str]):
@@ -51,7 +53,7 @@ def main(args):
     packed = map(lambda x: (x[0], args.DIRECTORY, x[1], args.OUTPUT), enumerate(paths))
 
     with ProcessPoolExecutor() as pool:
-        jobs = pool.map(crop_image, packed)
+        _ = pool.map(crop_image, packed)
 
 
 def _parse_args():
