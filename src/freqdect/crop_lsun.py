@@ -1,12 +1,15 @@
-"""Script for cropping LSUN adopted from: https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/crop_lsun.py
-which is based on: https://github.com/ningyu1991/GANFingerprints/"""
+"""Script for cropping LSUN.
+
+Adopted from: https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/crop_lsun.py
+which is based on: https://github.com/ningyu1991/GANFingerprints/
+"""
 
 import argparse
 import os
+from concurrent.futures import ProcessPoolExecutor
 from typing import Tuple
 
 from PIL import Image
-from concurrent.futures import ProcessPoolExecutor
 
 
 def transform_image(packed: Tuple[str, str, str]):
@@ -71,8 +74,10 @@ def transform_image(packed: Tuple[str, str, str]):
 
 
 def main(args):
-    """Center-crops and resizes a number of LSUN images in a directory
-    to 128x128 pixels and stores the cropped images."""
+    """Center-crops and resizes a number of LSUN images.
+
+    Images are resized to 128x128 pixels and stored.
+    """
     os.makedirs(args.OUTPUT, exist_ok=True)
 
     # only consider the specified number of files
