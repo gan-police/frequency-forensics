@@ -247,7 +247,7 @@ def pre_process_folder(
 
     if feature == "packets":
         processing_function = batch_packet_preprocessing
-    if feature == "log_packets":
+    elif feature == "log_packets":
         processing_function = functools.partial(
             batch_packet_preprocessing, log_scale=True
         )
@@ -304,9 +304,11 @@ def pre_process_folder(
             results = list(pool.map(func_load_folder, folder_list))
         results = np.array(results)
 
-        train_list = [img for folder in results[:, 0] for img in folder]
-        validation_list = [img for folder in results[:, 1] for img in folder]
-        test_list = [img for folder in results[:, 2] for img in folder]
+        train_list = [img for folder in results[:, 0] for img in folder]  # type:ignore
+        validation_list = [
+            img for folder in results[:, 1] for img in folder
+        ]  # type:ignore
+        test_list = [img for folder in results[:, 2] for img in folder]  # type:ignore
 
     # fix the seed to make results reproducible.
     random.seed(42)

@@ -2,17 +2,20 @@
 Basline code as found at:
 https://github.com/RUB-SysSec/GANDCTAnalysis/blob/master/baselines/baselines.py
 """
+
 import argparse
-import numpy as np
 from multiprocessing import cpu_count
 from pathlib import Path
+from typing import Type
 
+import numpy as np
+
+from .classifier import Classifier, read_dataset
 from .eigenface import PCAClassifier
 from .knn import KNNClassifier
 from .prnu import PRNUClassifier
-from .classifier import read_dataset
 
-CLASSIFIER_CLS = {
+CLASSIFIER_CLS: dict[str, Type[Classifier]] = {
     "prnu": PRNUClassifier,
     "eigenfaces": PCAClassifier,
     "knn": KNNClassifier,
@@ -31,7 +34,7 @@ def main(
     calc_normalization,
     **classifier_args,
 ):
-    """Run baslines"""
+    """Run baselines."""
     print("[+] ARGUMENTS")
     print(f"    -> command      @ {command}")
     print(f"    -> baseline     @ {baseline}")

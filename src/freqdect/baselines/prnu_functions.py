@@ -8,6 +8,7 @@ Politecnico di Milano 2018
 """
 
 from multiprocessing import Pool, cpu_count
+from typing import Union
 
 import numpy as np
 import pywt
@@ -100,18 +101,15 @@ def noise_extract(im: np.ndarray, levels: int = 4, sigma: float = 5) -> np.ndarr
                 )
             )
 
-        wlet_details = wlet[1:]
-
-        wlet_details_filter = [None] * len(wlet_details)
-        # Cycle over Wavelet levels 1:levels-1
-        for wlet_level_idx, wlet_level in enumerate(wlet_details):
+        wlet_details_filter = [
             # Cycle over H,V,D components
-            level_coeff_filt = [None] * 3
-            for wlet_coeff_idx, wlet_coeff in enumerate(wlet_level):
-                level_coeff_filt[wlet_coeff_idx] = wiener_adaptive(
-                    wlet_coeff, noise_var
-                )
-            wlet_details_filter[wlet_level_idx] = tuple(level_coeff_filt)
+            tuple(
+                wiener_adaptive(wlet_coeff, noise_var)
+                for wlet_coeff_idx, wlet_coeff in enumerate(wlet_level)
+            )
+            # Cycle over Wavelet levels 1:levels-1
+            for wlet_level_idx, wlet_level in enumerate(wlet[1:])
+        ]
 
         # Set filtered detail coefficients for Levels > 0 ---
         wlet[1:] = wlet_details_filter
@@ -651,9 +649,9 @@ def stats(
     return outdict
 
 
-def gt(l1: list or np.ndarray, l2: list or np.ndarray) -> np.ndarray:
-    """
-    Determine the Ground Truth matrix given the labels
+def gt(l1: list or np.ndarray, l2: Union[list, np.ndarray]) -> np.ndarray:
+    """Determine the Ground Truth matrix given the labels
+
     :param l1: fingerprints labels
     :param l2: residuals labels
     :return: groundtruth matrix

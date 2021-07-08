@@ -8,7 +8,6 @@ from pathlib import Path
 
 
 class PersistentDefaultDict:
-
     """
     Nested defaultdict that gets synced transparently to disk.
 

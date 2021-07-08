@@ -1,11 +1,11 @@
 """
 The wavelet math module implements functionality to make the
-packet transfrom useful for image analysis and gan-content
+packet transform useful for image analysis and gan-content
 recognition.
 """
 
-
 from itertools import product
+from typing import Optional
 
 import numpy as np
 import pywt
@@ -80,20 +80,19 @@ def compute_pytorch_packet_representation_2d_image(
 
 
 def compute_pytorch_packet_representation_2d_tensor(
-    pt_data, wavelet_str: str = "db5", max_lev: int = 5
-):
-    """Compute the wavelet packet representation tensor for
-       a batch of input images.
+    pt_data: torch.Tensor,
+    wavelet_str: Optional[str] = "db5",
+    max_lev: Optional[int] = 5,
+) -> torch.Tensor:
+    """Compute the wavelet packet representation tensor for a batch of input images.
 
     Args:
-        pt_data (torch.tensor): Image tensor of shape [batch, height, width]
-        wavelet_str (str, optional): Wavelet description string. Must be Pywt compatible.
-                                     Defaults to "db5".
-        max_lev (int, optional): The maximum decomposition level to compute. Defaults to 5.
+        pt_data: Image tensor of shape [batch, height, width]
+        wavelet_str: Wavelet description string. Must be Pywt compatible. Defaults to "db5".
+        max_lev: The maximum decomposition level to compute. Defaults to 5.
 
     Returns:
-        [torch.tensor]: The packet tensor of shape [batch_size, packet_no,
-                        packet_height, packet_widht]
+    : The packet tensor of shape [batch_size, packet_no, packet_height, packet_width]
     """
     wavelet = pywt.Wavelet(wavelet_str)
     ptwt_wp_tree = ptwt.WaveletPacket2D(data=pt_data, wavelet=wavelet, mode="reflect")

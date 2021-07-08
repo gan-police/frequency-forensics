@@ -135,7 +135,7 @@ def _parse_args():
 
 def main():
     """Trains a model to classify images.
-    
+
     All settings such as which model to use, parameters, normalization, data set path,
     seed etc. are specified via cmd line args.
     All training, validation and testing results are printed to stdout.

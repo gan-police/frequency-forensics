@@ -1,18 +1,21 @@
 """Calculating confusion matrices from trained models that classify deepfake image data."""
+
 import argparse
 from collections import defaultdict
 from typing import List
-import torch
-import numpy as np
-from torch.utils.data import DataLoader
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
-from .models import CNN, Regression, initialize_model
+import numpy as np
+import torch
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+from torch.utils.data import DataLoader
+
 from .data_loader import LoadNumpyDataset
+from .models import CNN, Regression, initialize_model
 
 
 def calculate_confusion_matrix(args):
-    """Calculates the confusion matrix.
+    """Calculate the confusion matrix.
+
     A test data set specified in the cmd line args is loaded (and normalized if specified).
     A model is loaded from a state dict file and used to classify the loaded test data.
     Then, a confusion matrix is computed from the predicted labels and the correct labels.
@@ -66,7 +69,7 @@ def calculate_confusion_matrix(args):
 
 
 def calculate_generalized_confusion_matrix(args):
-    """Calculates a generalized confusion matrix for the binary classification task differentiating fake from real images.
+    """Calculate a generalized confusion matrix for binary classification of fake/real images.
 
     A test data set specified in the cmd line args is loaded (and normalized if specified).
     A model is loaded from a state dict file and used to classify the loaded test data into
@@ -136,7 +139,7 @@ def calculate_generalized_confusion_matrix(args):
 
 
 def output_confusion_matrix_stats(matrix, label_names: List[str], plot: bool = False):
-    """Outputs stats about the confusion matrix.
+    """Output stats about the confusion matrix.
 
     Args:
         matrix: The confusion matrix from which the stats are calculated.
@@ -152,11 +155,11 @@ def output_confusion_matrix_stats(matrix, label_names: List[str], plot: bool = F
     best_index = np.argmax(diag)
     print(
         f"worst index: {worst_index} ({label_names[worst_index]}) \
-        with an accuracy of {diag[worst_index]/matrix[worst_index].sum()*100:.2f}%"
+        with an accuracy of {diag[worst_index] / matrix[worst_index].sum() * 100:.2f}%"
     )
     print(
         f"best index: {best_index} ({label_names[best_index]}) \
-        with an accuracy of {diag[best_index]/matrix[best_index].sum()*100:.2f}%"
+        with an accuracy of {diag[best_index] / matrix[best_index].sum() * 100:.2f}%"
     )
 
     if plot:
@@ -228,7 +231,7 @@ def _parse_args():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def _main():
     args = _parse_args()
 
     if args.generalized:
@@ -239,3 +242,7 @@ if __name__ == "__main__":
         print(matrix)
 
         output_confusion_matrix_stats(matrix, args.label_names, args.plot)
+
+
+if __name__ == "__main__":
+    _main()
