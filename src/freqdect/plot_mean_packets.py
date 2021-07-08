@@ -1,10 +1,10 @@
-""" Source code to visualize mean wavelet packets and their
-    standard deviation for visual inspection. """
+"""Source code to visualize mean wavelet packets and their standard deviation for visual inspection."""
+
+from itertools import product
 
 import matplotlib.pyplot as plt
-from itertools import product
-import torch
 import numpy as np
+import torch
 
 from .data_loader import LoadNumpyDataset
 
@@ -16,6 +16,7 @@ def _plot_mean_std(x, mean, std, color, label="", marker="."):
 
 def generate_packet_image(packet_array: np.array):
     """Arrange a  packet array  as an image for imshow.
+
     Args:
         packet_array ([np.array): The [packet_no, height, width] packets
     Returns:
@@ -41,7 +42,8 @@ def generate_packet_image(packet_array: np.array):
 
 
 def generate_packet_image_tensor(packet_array: torch.tensor):
-    """Arrange a  packet tensor  as an image for imshow.
+    """Arrange a packet tensor  as an image for imshow.
+
     Args:
         packet_array ([torch.tensor): The [bach_size, packet_no, height, width, channels] packets
     Returns:
@@ -67,9 +69,7 @@ def generate_packet_image_tensor(packet_array: torch.tensor):
 
 
 def main():
-    """Compute mean wavelet packets and the standard deviation for a NumPy
-    dataset."""
-
+    """Compute mean wavelet packets and the standard deviation for a NumPy dataset."""
     import matplotlib.pyplot as plt
 
     # raw images - use only the training set.
