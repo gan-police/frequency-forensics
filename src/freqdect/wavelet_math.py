@@ -1,17 +1,16 @@
-"""
-The wavelet math module implements functionality to make the
-packet transform useful for image analysis and gan-content
-recognition.
+"""Module implementing wavelet related math functions.
+
+The ides is to provide functionality to make the packet transform useful
+for image analysis and gan-content recognition.
 """
 
 from itertools import product
 from typing import Optional
 
 import numpy as np
+import ptwt
 import pywt
 import torch
-
-import ptwt
 
 
 def compute_packet_rep_2d(
@@ -112,8 +111,9 @@ def compute_pytorch_packet_representation_2d_tensor(
 def batch_packet_preprocessing(
     image_batch, wavelet="db1", max_lev=3, eps=1e-12, log_scale=False
 ):
-    """Preprosess image batches by computing the wavelet packet
-       representation as well as log scaling their absolute value.
+    """Preprosess image batches by computing the wavelet packet representation.
+
+    The raw as well as an absolute log scaled version can be computed.
 
     Args:
         image_batch (np.array): An image of shape (B, H, W, C)
@@ -147,5 +147,5 @@ def batch_packet_preprocessing(
 
 
 def identity_processing(image_batch):
-    """Returns the input unchanged."""
+    """Return the input unchanged."""
     return image_batch

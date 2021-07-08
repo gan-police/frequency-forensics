@@ -1,5 +1,4 @@
-""" Speedy preprocessing using batched PyTorch code.
-"""
+"""Speedy preprocessing using batched PyTorch code."""
 
 import argparse
 import functools
@@ -19,6 +18,7 @@ def get_label_of_folder(
     path_of_folder: Path, binary_classification: bool = False
 ) -> int:
     """Get the label of the images in a folder based on the folder path.
+
         We assume:
             A: Orignal data, B: First gan,
             C: Second gan, D: Third gan, E: Fourth gan.
@@ -67,6 +67,7 @@ def get_label_of_folder(
 
 def get_label(path_to_image: Path, binary_classification: bool) -> int:
     """Get the label based on the image path.
+
         We assume:
             A: Orignal data, B: First gan,
             C: Second gan, D: Third gan, E: Fourth gan.
@@ -92,8 +93,7 @@ def get_label(path_to_image: Path, binary_classification: bool) -> int:
 
 
 def load_and_stack(path_list: list, binary_classification: bool = False) -> tuple:
-    """Transform a lists of paths into a batches of
-    numpy arrays and record their labels.
+    """Transform a lists of paths into a batches of numpy arrays and record their labels.
 
     Args:
         path_list (list): A list of Poxis paths strings.
@@ -154,7 +154,7 @@ def load_process_store(
     dir_suffix="",
     binary_classification: bool = False,
 ):
-    """Loads processes and stores a file list according to a processing function.
+    """Load, process and store a file list according to a processing function.
 
     Args:
         file_list (list): PosixPath objects leading to source images.
@@ -187,9 +187,11 @@ def load_process_store(
 def load_folder(
     folder: Path, train_size: int, val_size: int, test_size: int
 ) -> np.array:
-    """Given a folder containing portable network graphics (*.png) files
-       this functions will create Posix-path lists. A train, test, and
-       validation set list is created.
+    """Create posix-path lists for png files in a folder.
+
+    Given a folder containing portable network graphics (*.png) files
+    this functions will create Posix-path lists. A train, test, and
+    validation set list is created.
 
     Args:
         folder (Path): Path to a folder with images from the same source.
@@ -226,8 +228,9 @@ def pre_process_folder(
     missing_label: int = None,
     gan_split_factor: float = 1.0,
 ) -> None:
-    """Preprocess a folder containing sub-directories with images from
-    different sources. All images are expected to have the same size.
+    """Preprocess a folder containing sub-directories with images from different sources.
+
+    All images are expected to have the same size.
     The sub-directories are expected to indicate to label their source in
     their name. For example,  A - for real and B - for GAN generated imagery.
 
