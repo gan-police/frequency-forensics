@@ -1,5 +1,4 @@
-""" Code to compute wavelet packets of real and generated
-    images for visual comparison. """
+"""Code to create wavelet packet plots."""
 
 import argparse
 
@@ -16,9 +15,11 @@ from .wavelet_math import (
 )
 
 
-def draw_2d_wp_basis(shape, keys, fmt="k", plot_kwargs={}, ax=None, label_levels=0):
+def draw_2d_wp_basis(shape, keys, fmt="k", plot_kwargs=None, ax=None, label_levels=0):
     """Plot a 2D representation of a WaveletPacket2D basis.
-    Based on: pywt._doc_utils.draw_2d_wp_basis"""
+
+    Based on: pywt._doc_utils.draw_2d_wp_basis
+    """
     coords, centers = _2d_wp_basis_coords(shape, keys)
     if ax is None:
         fig, ax = plt.subplots(1, 1)
@@ -43,7 +44,7 @@ def draw_2d_wp_basis(shape, keys, fmt="k", plot_kwargs={}, ax=None, label_levels
 
 
 def read_pair(path_real, path_fake):
-    """Loads an image pair into numpy arrays.
+    """Load an image pair into numpy arrays.
 
     Args:
         path_real (str): A path to a real image.
@@ -83,9 +84,7 @@ def compute_packet_rep_img(image, wavelet_str, max_lev):
 
 
 def main():
-    """Compute some wavelet packets of real and generated images for
-    visual comparison."""
-
+    """Compute some wavelet packets of real and generated images for visual comparison."""
     parser = argparse.ArgumentParser(
         description="Plot wavelet decomposition of real and fake imgs"
     )
@@ -192,7 +191,7 @@ def main():
             cmap=cmap,
         )
         ax2.set_title("fake img " + wavelet + " packet decomposition")
-        im = ax2.imshow(
+        _ = ax2.imshow(
             abs_fake_packets,
             norm=colors.LogNorm(vmin=scale_min, vmax=scale_max),
             cmap=cmap,
