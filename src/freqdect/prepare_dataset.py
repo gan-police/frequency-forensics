@@ -309,11 +309,11 @@ def pre_process_folder(
             results = list(pool.map(func_load_folder, folder_list))
         results = np.array(results)
 
-        train_list = [img for folder in results[:, 0] for img in folder]  # type:ignore
+        train_list = [img for folder in results[:, 0] for img in folder]  # type: ignore
         validation_list = [
-            img for folder in results[:, 1] for img in folder
-        ]  # type:ignore
-        test_list = [img for folder in results[:, 2] for img in folder]  # type:ignore
+            img for folder in results[:, 1] for img in folder  # type: ignore
+        ]
+        test_list = [img for folder in results[:, 2] for img in folder]  # type: ignore
 
     # fix the seed to make results reproducible.
     random.seed(42)

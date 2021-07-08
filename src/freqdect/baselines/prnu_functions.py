@@ -649,7 +649,7 @@ def stats(
     return outdict
 
 
-def gt(l1: list or np.ndarray, l2: Union[list, np.ndarray]) -> np.ndarray:
+def gt(l1, l2) -> np.ndarray:
     """Determine the Ground Truth matrix given the labels
 
     :param l1: fingerprints labels
