@@ -13,7 +13,7 @@ ignore =
     E402 # allow path extensions for testing.
     DAR101
     DAR201
-    N400 # flake an pylance disagree on linebreaks in strings.
+    N400 # flake and pylance disagree on linebreaks in strings.
 exclude =
     .tox,
     .git,
