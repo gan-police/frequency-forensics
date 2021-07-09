@@ -24,12 +24,18 @@ def calculate_confusion_matrix(args):
         args: Command line args, in which settings such as the test data set path, the model file path,
             the normalization, etc. are specified.
 
+    Raises:
+        ValueError: If mean or std arguments are missing values.
+
     Returns:
         a confusion matrix, comparing the predicted and the actual labels for each class
+
+    # noqa: DAR401
     """
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
-        assert num_of_norm_vals == 2 or num_of_norm_vals == 6
+        if not (num_of_norm_vals == 2 or num_of_norm_vals == 6):
+            raise ValueError("incorrect mean and standard deviation input values.")
         mean = torch.tensor(args.normalize[: num_of_norm_vals // 2])
         std = torch.tensor(args.normalize[(num_of_norm_vals // 2) :])
     else:
@@ -82,14 +88,20 @@ def calculate_generalized_confusion_matrix(args):
         args: Command line args, in which settings such as the test data set path, the model file path,
             the normalization, etc. are specified.
 
+    Raises:
+        ValueError: If mean or std arguments are missing values.
+
     Returns:
         a 'generalized' confusion matrix, containing for each image source \
         (i.e. real and different GANs) the number of images that
         were classified as 'real' or 'fake'.
+
+    # noqa: DAR401
     """
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
-        assert num_of_norm_vals == 2 or num_of_norm_vals == 6
+        if not (num_of_norm_vals == 2 or num_of_norm_vals == 6):
+            raise ValueError("incorrect mean and standard deviation arguments.")
         mean = torch.tensor(args.normalize[: num_of_norm_vals // 2])
         std = torch.tensor(args.normalize[(num_of_norm_vals // 2) :])
     else:

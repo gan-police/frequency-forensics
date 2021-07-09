@@ -47,7 +47,7 @@ def test_packets():
         .squeeze(0)
         .numpy()
     )
-    assert np.allclose(py_packets, pt_packets)
+    assert np.allclose(py_packets, pt_packets)  # noqa: S101
 
 
 if __name__ == "__main__":

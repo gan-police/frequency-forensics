@@ -140,6 +140,11 @@ def main():
     All training, validation and testing results are printed to stdout.
     After the training is done, the results are stored in a pickle dump in the 'log' folder.
     The state_dict of the trained model is stored there as well.
+
+    Raises:
+        ValueError: Raised if mean and std values are incomplete.
+
+    # noqa: DAR401
     """
     args = _parse_args()
     print(args)
@@ -149,7 +154,8 @@ def main():
 
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
-        assert num_of_norm_vals == 2 or num_of_norm_vals == 6
+        if not (num_of_norm_vals == 2 or num_of_norm_vals == 6):
+            raise ValueError("incorrect mean and standard deviation input values.")
         mean = torch.tensor(args.normalize[: num_of_norm_vals // 2])
         std = torch.tensor(args.normalize[(num_of_norm_vals // 2) :])
     elif args.calc_normalization:
