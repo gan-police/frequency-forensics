@@ -67,9 +67,14 @@ def compute_packet_rep_img(image, wavelet_str, max_lev):
             to the pywt convention. I.e. 'haar.'
         max_lev (int): The level up to which the packet representation should be
             computed. I.e. 3.
+    
+    Raises:
+        ValueError: If the image shape does not have two dimensions.
 
     Returns:
         np.array: A stacked version of the wavelet packet representation.
+        
+    # noqa: DAR401
     """
     if len(image.shape) == 3:
         channels_lst = []
