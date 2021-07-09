@@ -69,7 +69,7 @@ def compute_packet_rep_img(image, wavelet_str, max_lev):
             computed. I.e. 3.
     
     Raises:
-        ValueError: If the image shape does not have two dimensions.
+        ValueError: If the image shape does not have 2 or 3 dimensions.
 
     Returns:
         np.array: A stacked version of the wavelet packet representation.
