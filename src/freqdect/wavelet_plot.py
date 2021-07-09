@@ -78,8 +78,9 @@ def compute_packet_rep_img(image, wavelet_str, max_lev):
                 compute_packet_rep_2d(image[:, :, channel], wavelet_str, max_lev)
             )
         return np.stack(channels_lst, axis=-1)
+    elif len(image.shape) != 2:
+        raise ValueError(f"invalid image shape: {image.shape}")
     else:
-        assert len(image.shape) == 2
         return compute_packet_rep_2d(image, wavelet_str, max_lev)
 
 

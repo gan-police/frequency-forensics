@@ -195,22 +195,18 @@ def load_folder(
     this functions will create Posix-path lists. A train, test, and
     validation set list is created.
 
-    Args:
-        folder (Path): Path to a folder with images from the same source.
-            I.e. A_ffhq .
-        train_size (int): Desired size of the training set.
-        val_size (int): Desired size of the validation set.
-        test_size (int): Desired size of the test set.
-
-    Returns:
-        np.array: Numpy array with the train, validation and test lists,
-            in this order.
+    :param folder: Path to a folder with images from the same source, i.e. A_ffhq .
+    :param train_size: Desired size of the training set.
+    :param val_size: Desired size of the validation set.
+    :param test_size: Desired size of the test set.
+    :return: Numpy array with the train, validation and test lists, in this order.
+    :raises ValueError: if the requested set sizes are not smaller or equal to the number of images available
     """
     file_list = list(folder.glob("./*.png"))
-
-    assert (
-        len(file_list) >= train_size + val_size + test_size
-    ), "Requested set sizes must be smaller or equal to the number of images available."
+    if len(file_list) < train_size + val_size + test_size:
+        raise ValueError(
+            "Requested set sizes must be smaller or equal to the number of images available."
+        )
 
     # split the list into training, validation and test sub-lists.
     train_list = file_list[:train_size]

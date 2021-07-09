@@ -6,6 +6,7 @@ of https://github.com/RUB-SysSec/GANDCTAnalysis in mind.
 """
 
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import torch
@@ -19,20 +20,21 @@ __all__ = [
 class LoadNumpyDataset(Dataset):
     """Create a data loader to load pre-processed numpy arrays into memory."""
 
-    def __init__(self, data_dir: str, mean: float = None, std: float = None):
+    def __init__(
+        self, data_dir: str, mean: Optional[float] = None, std: Optional[float] = None
+    ):
         """Create a Numpy-dataset object.
 
-        Args:
-            data_dir (str): A path to a pre-processed folder with numpy files.
-            mean (float, optional): Pre-computed mean to normalize with.
-                Defaults to None.
-            std (float, optional): Pre-computed standard deviation to normalize
-                with. Defaults to None.
+        :param data_dir: A path to a pre-processed folder with numpy files.
+        :param mean: Pre-computed mean to normalize with. Defaults to None.
+        :param std: Pre-computed standard deviation to normalize with. Defaults to None.
+        :raises ValueError: If an unexpected file name is given
         """
         self.data_dir = data_dir
         self.file_lst = sorted(Path(data_dir).glob("./*.npy"))
         print("Loading ", data_dir)
-        assert self.file_lst[-1].name == "labels.npy"
+        if self.file_lst[-1].name != "labels.npy":
+            raise ValueError("unexpected file name")
         self.labels = np.load(self.file_lst[-1])
         self.images = self.file_lst[:-1]
         self.mean = mean
