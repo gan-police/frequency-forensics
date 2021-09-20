@@ -23,6 +23,7 @@ exclude =
     dist,
     tests/fixtures/*,
     *.pyc,
+    *.bib,
     *.egg-info,
     .cache,
     .eggs,
