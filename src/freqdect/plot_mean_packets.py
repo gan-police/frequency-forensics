@@ -76,8 +76,8 @@ def main():
     # train_packet_set = LoadNumpyDataset("/home/ndv/projects/wavelets/frequency-forensics_felix/data/\
     # lsun_bedroom_200k_png_baseline_logpackets_train/")
     train_packet_set = LoadNumpyDataset(
-        "/home/ndv/projects/wavelets/frequency-forensics_felix/data/\
-            celeba_align_png_cropped_baselines_logpackets_train/"
+        "/home/ndv/projects/wavelets/frequency-forensics_felix/data/celeba_align_png_crop"
+        "ped_baselines_logpackets_train"
     )
 
     style_gan_list = []
@@ -149,9 +149,8 @@ def main():
     )
     plot_count += 1
 
-    if 1:
+    if 0:
         import tikzplotlib
-
         tikzplotlib.save("celeba_packet_mean_std_plot.tex", standalone=True)
     plt.show()
     print("first plot done")
@@ -164,7 +163,7 @@ def main():
 
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
     x = np.array(range(len(style_gan_mean)))
-    wp_keys = list(product(["a", "d", "h", "v"], repeat=3))
+    wp_keys = list(product(["a", "h", "v", "d"], repeat=3))
     wp_labels = ["".join(key) for key in wp_keys]
     _plot_mean_std(x, ffhq_mean, ffhq_std, colors[0], "real data")
     _plot_mean_std(x, style_gan_mean, style_gan_std, colors[1], "gan")
@@ -175,7 +174,7 @@ def main():
     plt.ylabel("mean absolute coefficient magnitude")
     plt.title("Mean absolute coefficient comparison real data-GAN")
 
-    if 1:
+    if 0:
         import tikzplotlib
 
         tikzplotlib.save("celeba_mean_absolute_coeff_comparison.tex", standalone=True)

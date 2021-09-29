@@ -30,7 +30,7 @@ def compute_packet_rep_2d(
     wavelet = pywt.Wavelet(wavelet_str)
     wp_tree = pywt.WaveletPacket2D(data=image, wavelet=wavelet, mode="reflect")
     # Get the full decomposition
-    wp_keys = list(product(["a", "d", "h", "v"], repeat=max_lev))
+    wp_keys = list(product(["a", "h", "v", "d"], repeat=max_lev))
     count = 0
     img_rows = None
     img = []
@@ -58,7 +58,7 @@ def compute_pytorch_packet_representation_2d_image(
     ptwt_wp_tree = ptwt.WaveletPacket2D(data=pt_data, wavelet=wavelet, mode="reflect")
 
     # get the pytorch decomposition
-    wp_keys = list(product(["a", "d", "h", "v"], repeat=max_lev))
+    wp_keys = list(product(["a", "h", "v", "d"], repeat=max_lev))
     count = 0
     img_pt = []
     img_rows_pt = None
