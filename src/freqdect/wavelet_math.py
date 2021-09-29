@@ -99,14 +99,7 @@ def compute_pytorch_packet_representation_2d_tensor(
     # get the pytorch decomposition
     # batch_size = pt_data.shape[0]
     wp_keys = list(
-        product(
-            [
-                "a",
-                "h",
-                "v",
-                "d",
-            ],
-            repeat=max_lev,
+        product(["a", "h", "v", "d"], repeat=max_lev,
         )
     )
     packet_list = []

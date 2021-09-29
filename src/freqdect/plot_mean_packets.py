@@ -14,31 +14,36 @@ def _plot_mean_std(x, mean, std, color, label="", marker="."):
     plt.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
 
 
-def generate_packet_image(packet_array: np.array):
+def generate_packet_image(packet_array: np.array, degree: int):
     """Arrange a  packet array  as an image for imshow.
 
     Args:
         packet_array ([np.array): The [packet_no, height, width] packets
+        degree (int): The degree of the transformation.
     Returns:
         [np.array]: The image of shape [height, width]
     """
-    packet_count = packet_array.shape[0]
-    count = 0
-    img_rows = None
-    img = []
-    for node_no in range(packet_count):
-        packet = packet_array[node_no]
-        if img_rows is not None:
-            img_rows = np.concatenate([img_rows, packet], axis=1)
+
+    def cat_sector(elements: np.array,
+                   level: int,
+                   max_level: int):
+        element_lst = np.split(elements, 4)
+        if level < max_level - 1:
+            img0 = cat_sector(element_lst[0], level+1, max_level)
+            img1 = cat_sector(element_lst[1], level+1, max_level)
+            img2 = cat_sector(element_lst[2], level+1, max_level)
+            img3 = cat_sector(element_lst[3], level+1, max_level)
+            return np.concatenate(
+                    [np.concatenate([img0, img1], axis=2),
+                     np.concatenate([img2, img3], axis=2)], 1)
         else:
-            img_rows = packet
-        count += 1
-        if count >= np.sqrt(packet_count):
-            count = 0
-            img.append(img_rows)
-            img_rows = None
-    img = np.concatenate(img, axis=0)
-    return img
+            img = np.concatenate(
+                [np.concatenate([element_lst[0], element_lst[1]], axis=2),
+                 np.concatenate([element_lst[2], element_lst[3]], axis=2)], 1)
+            return img
+
+ 
+    return cat_sector(packet_array, 0, degree).squeeze()
 
 
 def generate_packet_image_tensor(packet_array: torch.tensor):
@@ -76,8 +81,7 @@ def main():
     # train_packet_set = LoadNumpyDataset("/home/ndv/projects/wavelets/frequency-forensics_felix/data/\
     # lsun_bedroom_200k_png_baseline_logpackets_train/")
     train_packet_set = LoadNumpyDataset(
-        "/home/ndv/projects/wavelets/frequency-forensics_felix/data/celeba_align_png_crop"
-        "ped_baselines_logpackets_train"
+        "/nvme/mwolter/ffhq1024x1024_log_packets_val"
     )
 
     style_gan_list = []
@@ -105,12 +109,14 @@ def main():
 
     # mean image plots
     gan_mean_packet_image = generate_packet_image(
-        np.mean(style_gan_array, axis=(0, -1))
-    )
-    ffhq_mean_packet_image = generate_packet_image(np.mean(ffhq_array, axis=(0, -1)))
+        np.mean(style_gan_array, axis=(0, -1)), degree=3)
+    ffhq_mean_packet_image = generate_packet_image(
+        np.mean(ffhq_array, axis=(0, -1)), degree=3)
     # std image plots
-    gan_std_packet_image = generate_packet_image(np.std(style_gan_array, axis=(0, -1)))
-    ffhq_std_packet_image = generate_packet_image(np.std(ffhq_array, axis=(0, -1)))
+    gan_std_packet_image = generate_packet_image(
+        np.std(style_gan_array, axis=(0, -1)), degree=3)
+    ffhq_std_packet_image = generate_packet_image(
+        np.std(ffhq_array, axis=(0, -1)), degree=3)
 
     fig = plt.figure(figsize=(8, 6))
     columns = 3

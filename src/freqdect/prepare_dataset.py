@@ -274,7 +274,6 @@ def pre_process_folder(
                         2
                     ]
                 )
-
             else:
                 # real data
                 if get_label_of_folder(folder, binary_classification=True) == 0:
@@ -428,12 +427,13 @@ def parse_args():
     parser.add_argument(
         "--gan-split-factor",
         type=float,
-        default=1 / 3,
-        help="scaling factor for GAN subsets in the binary classification split. If a missing label is specified, the "
-        "classification task changes to classifying whether the data was generated or not. In this case, the share"
-        " of the GAN subsets in the split sets should be reduced to balance both classes (i.e. real and generated "
-        "data). So, for each GAN the training and validation split subset sizes are then calculated as the general"
-        " subset size in the split (i.e. the size specified by '--train-size' etc.) times this factor.",
+        default=1./3.,
+        help="scaling factor for GAN subsets in the binary classification split. If a missing label is specified, the"
+        " classification task changes to classifying whether the data was generated or not. In this case, the share"
+        " of the GAN subsets in the split sets should be reduced to balance both classes (i.e. real and generated"
+        " data). So, for each GAN the training and validation split subset sizes are then calculated as the general"
+        " subset size in the split (i.e. the size specified by '--train-size' etc.) times this factor."
+        " Defaults to 1./3.",
     )
     return parser.parse_args()
 
