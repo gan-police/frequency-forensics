@@ -149,8 +149,9 @@ def main():
     )
     plot_count += 1
 
-    if 1:
+    if 0:
         import tikzplotlib
+
         tikzplotlib.save("celeba_packet_mean_std_plot.tex", standalone=True)
     plt.show()
     print("first plot done")
@@ -174,7 +175,7 @@ def main():
     plt.ylabel("mean absolute coefficient magnitude")
     plt.title("Mean absolute coefficient comparison real data-GAN")
 
-    if 1:
+    if 0:
         import tikzplotlib
 
         tikzplotlib.save("celeba_mean_absolute_coeff_comparison.tex", standalone=True)
