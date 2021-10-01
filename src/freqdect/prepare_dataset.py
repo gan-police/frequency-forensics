@@ -223,6 +223,8 @@ def pre_process_folder(
     val_size: int,
     test_size: int,
     feature: Optional[str] = None,
+    wavelet: str= 'db1',
+    boundary: str= 'reflect',
     missing_label: int = None,
     gan_split_factor: float = 1.0,
 ) -> None:
@@ -244,13 +246,15 @@ def pre_process_folder(
             a missing label is specified.
     """
     data_dir = Path(data_folder)
-    target_dir = data_dir.parent / f"{data_dir.name}_{feature}"
+    target_dir = data_dir.parent / f"{data_dir.name}_{feature}_{wavelet}_{boundary}"
 
     if feature == "packets":
-        processing_function = batch_packet_preprocessing
+        processing_function = functools.partial(batch_packet_preprocessing,
+            wavelet=wavelet, mode=boundary
+        )
     elif feature == "log_packets":
         processing_function = functools.partial(
-            batch_packet_preprocessing, log_scale=True
+            batch_packet_preprocessing, log_scale=True, wavelet=wavelet, mode=boundary
         )
     else:
         processing_function = identity_processing  # type: ignore
@@ -435,6 +439,18 @@ def parse_args():
         " subset size in the split (i.e. the size specified by '--train-size' etc.) times this factor."
         " Defaults to 1./3.",
     )
+    parser.add_argument(
+        "--wavelet",
+        type=str,
+        default="haar",
+        help="The wavelet to use. Choose one from pywt.wavelist(). Defaults to haar.",
+    )
+    parser.add_argument(
+        "--boundary",
+        type=str,
+        default="reflect",
+        help="The boundary treatment method to use. Choose zero, reflect, or boundary. Defaults to reflect.",
+    )
     return parser.parse_args()
 
 
@@ -457,4 +473,6 @@ if __name__ == "__main__":
         feature,
         missing_label=args.missing_label,
         gan_split_factor=args.gan_split_factor,
+        wavelet=args.wavelet,
+        boundary=args.boundary
     )

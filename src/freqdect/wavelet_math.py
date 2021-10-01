@@ -82,19 +82,23 @@ def compute_pytorch_packet_representation_2d_tensor(
     pt_data: torch.Tensor,
     wavelet_str: Optional[str] = "db5",
     max_lev: int = 5,
+    mode: str = 'reflect'
 ) -> torch.Tensor:
     """Compute the wavelet packet representation tensor for a batch of input images.
+
 
     Args:
         pt_data: Image tensor of shape [batch, height, width]
         wavelet_str: Wavelet description string. Must be Pywt compatible. Defaults to "db5".
         max_lev: The maximum decomposition level to compute. Defaults to 5.
+        mode: The desired boundary treatment approach. Choose zero, reflect or
+            boundary. Defaults to reflect.
 
     Returns:
     : The packet tensor of shape [batch_size, packet_no, packet_height, packet_width]
     """
     wavelet = pywt.Wavelet(wavelet_str)
-    ptwt_wp_tree = ptwt.WaveletPacket2D(data=pt_data, wavelet=wavelet, mode="reflect")
+    ptwt_wp_tree = ptwt.WaveletPacket2D(data=pt_data, wavelet=wavelet, mode=mode)
 
     # get the pytorch decomposition
     # batch_size = pt_data.shape[0]
@@ -112,7 +116,8 @@ def compute_pytorch_packet_representation_2d_tensor(
 
 
 def batch_packet_preprocessing(
-    image_batch, wavelet="db1", max_lev=3, eps=1e-12, log_scale=False
+    image_batch, wavelet="db1", max_lev=3, eps=1e-12, log_scale=False,
+    mode='reflect'
 ):
     """Preprosess image batches by computing the wavelet packet representation.
 
@@ -128,6 +133,7 @@ def batch_packet_preprocessing(
         log_scale: Use log-scaling if True.
                    Log-scaled coefficients aren't invertible.
                    Default: False.
+        mode: The boundary treatment method. Defaults to reflect.
 
     Returns:
         [np.array]: The wavelet packets [B, N, H, W, C].
@@ -138,7 +144,8 @@ def batch_packet_preprocessing(
     for channel in range(image_batch.shape[-1]):
         with torch.no_grad():
             channel_packets = compute_pytorch_packet_representation_2d_tensor(
-                image_batch[:, :, :, channel], wavelet_str=wavelet, max_lev=max_lev
+                image_batch[:, :, :, channel], wavelet_str=wavelet,
+                max_lev=max_lev, mode=mode
             )
         channels.append(channel_packets)
     packets = torch.stack(channels, -1)

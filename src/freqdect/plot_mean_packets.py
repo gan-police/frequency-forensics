@@ -46,6 +46,54 @@ def generate_packet_image(packet_array: np.array, degree: int):
     return cat_sector(packet_array, 0, degree).squeeze()
 
 
+
+def get_freq_order(level: int):
+    """ Get the frequency order for a given packet decomposition level.
+        Adapted from:
+        https://github.com/PyWavelets/pywt/blob/master/pywt/_wavelet_packets.py
+
+        The code elements denote the filter application order. The filters
+        are named following the pywt convention as:
+        a - LL, low-low coefficients
+        h - LH, low-high coefficients
+        v - HL, high-low coefficients
+        d - HH, high-high coefficients
+    """
+    wp_natural_path = list(product(["a", "h", "v", "d"], repeat=level))
+
+    def get_graycode_order(level, x='a', y='d'):
+        graycode_order = [x, y]
+        for i in range(level - 1):
+            graycode_order = [x + path for path in graycode_order] + \
+                            [y + path for path in graycode_order[::-1]]
+        return graycode_order
+
+    def expand_2d_path(path):
+        expanded_paths = {
+            'd': 'hh',
+            'h': 'hl',
+            'v': 'lh',
+            'a': 'll'
+        }
+        return (''.join([expanded_paths[p][0] for p in path]),
+                ''.join([expanded_paths[p][1] for p in path]))
+
+    nodes = {}
+    for (row_path, col_path), node in [
+        (expand_2d_path(node), node) for node in wp_natural_path
+    ]:
+        nodes.setdefault(row_path, {})[col_path] = node
+    graycode_order = get_graycode_order(level, x='l', y='h')
+    nodes = [nodes[path] for path in graycode_order if path in nodes]
+    result = []
+    for row in nodes:
+        result.append(
+            [row[path] for path in graycode_order if path in row]
+        )
+    return result
+
+
+
 def generate_packet_image_tensor(packet_array: torch.tensor):
     """Arrange a packet tensor  as an image for imshow.
 
@@ -81,7 +129,7 @@ def main():
     # train_packet_set = LoadNumpyDataset("/home/ndv/projects/wavelets/frequency-forensics_felix/data/\
     # lsun_bedroom_200k_png_baseline_logpackets_train/")
     train_packet_set = LoadNumpyDataset(
-        "/nvme/mwolter/ffhq1024x1024_log_packets_val"
+        "/nvme/mwolter/ffhq1024x1024_log_packets_train"
     )
 
     style_gan_list = []
@@ -155,10 +203,9 @@ def main():
     )
     plot_count += 1
 
-    if 0:
+    if 1:
         import tikzplotlib
-
-        tikzplotlib.save("celeba_packet_mean_std_plot.tex", standalone=True)
+        tikzplotlib.save("ffhq_style_packet_mean_std_plot.tex", standalone=True)
     plt.show()
     print("first plot done")
 
