@@ -14,7 +14,35 @@ def _plot_mean_std(x, mean, std, color, label="", marker="."):
     plt.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
 
 
-def generate_packet_image(packet_array: np.array, degree: int):
+
+def generate_packet_image_tensor(packet_array: torch.tensor):
+    """Arrange a packet tensor  as an image for imshow.
+
+    Args:
+        packet_array ([torch.tensor): The [bach_size, packet_no, height, width, channels] packets
+    Returns:
+        [torch.tensor]: The image of shape [batch_size, height, width, channels]
+    """
+    packet_count = packet_array.shape[1]
+    count = 0
+    img_rows = None
+    img = []
+    for node_no in range(packet_count):
+        packet = packet_array[:, node_no]
+        if img_rows is not None:
+            img_rows = torch.cat([img_rows, packet], axis=2)
+        else:
+            img_rows = packet
+        count += 1
+        if count >= np.sqrt(packet_count):
+            count = 0
+            img.append(img_rows)
+            img_rows = None
+    img = torch.cat(img, axis=1)
+    return img
+
+
+def generate_natural_packet_image(packet_array: np.array, degree: int):
     """Arrange a  packet array  as an image for imshow.
 
     Args:
@@ -23,16 +51,15 @@ def generate_packet_image(packet_array: np.array, degree: int):
     Returns:
         [np.array]: The image of shape [height, width]
     """
-
-    def cat_sector(elements: np.array,
+    def _cat_sector(elements: np.array,
                    level: int,
                    max_level: int):
         element_lst = np.split(elements, 4)
         if level < max_level - 1:
-            img0 = cat_sector(element_lst[0], level+1, max_level)
-            img1 = cat_sector(element_lst[1], level+1, max_level)
-            img2 = cat_sector(element_lst[2], level+1, max_level)
-            img3 = cat_sector(element_lst[3], level+1, max_level)
+            img0 = _cat_sector(element_lst[0], level+1, max_level)
+            img1 = _cat_sector(element_lst[1], level+1, max_level)
+            img2 = _cat_sector(element_lst[2], level+1, max_level)
+            img3 = _cat_sector(element_lst[3], level+1, max_level)
             return np.concatenate(
                     [np.concatenate([img0, img1], axis=2),
                      np.concatenate([img2, img3], axis=2)], 1)
@@ -41,10 +68,22 @@ def generate_packet_image(packet_array: np.array, degree: int):
                 [np.concatenate([element_lst[0], element_lst[1]], axis=2),
                  np.concatenate([element_lst[2], element_lst[3]], axis=2)], 1)
             return img
+    return _cat_sector(packet_array, 0, degree).squeeze()
 
- 
-    return cat_sector(packet_array, 0, degree).squeeze()
 
+def generate_frequency_packet_image(packet_array: np.array, degree: int):
+    wp_freq_path, wp_natural_path = get_freq_order(degree)
+
+    image = []
+    # go through the rows.
+    for row_paths in wp_freq_path:
+        row = []
+        for row_path in row_paths:
+            index = wp_natural_path.index(row_path)
+            packet = packet_array[index]
+            row.append(packet)
+        image.append(np.concatenate(row, -1))
+    return np.concatenate(image, 0)
 
 
 def get_freq_order(level: int):
@@ -85,40 +124,14 @@ def get_freq_order(level: int):
         nodes.setdefault(row_path, {})[col_path] = node
     graycode_order = get_graycode_order(level, x='l', y='h')
     nodes = [nodes[path] for path in graycode_order if path in nodes]
-    result = []
+    wp_frequency_path = []
     for row in nodes:
-        result.append(
+        wp_frequency_path.append(
             [row[path] for path in graycode_order if path in row]
         )
-    return result
+    return wp_frequency_path, wp_natural_path
 
 
-
-def generate_packet_image_tensor(packet_array: torch.tensor):
-    """Arrange a packet tensor  as an image for imshow.
-
-    Args:
-        packet_array ([torch.tensor): The [bach_size, packet_no, height, width, channels] packets
-    Returns:
-        [torch.tensor]: The image of shape [batch_size, height, width, channels]
-    """
-    packet_count = packet_array.shape[1]
-    count = 0
-    img_rows = None
-    img = []
-    for node_no in range(packet_count):
-        packet = packet_array[:, node_no]
-        if img_rows is not None:
-            img_rows = torch.cat([img_rows, packet], axis=2)
-        else:
-            img_rows = packet
-        count += 1
-        if count >= np.sqrt(packet_count):
-            count = 0
-            img.append(img_rows)
-            img_rows = None
-    img = torch.cat(img, axis=1)
-    return img
 
 
 def main():
@@ -126,11 +139,12 @@ def main():
     import matplotlib.pyplot as plt
 
     # raw images - use only the training set.
-    # train_packet_set = LoadNumpyDataset("/home/ndv/projects/wavelets/frequency-forensics_felix/data/\
-    # lsun_bedroom_200k_png_baseline_logpackets_train/")
     train_packet_set = LoadNumpyDataset(
-        "/nvme/mwolter/ffhq1024x1024_log_packets_train"
+         "/nvme/mwolter/ffhq1024x1024_log_packets_haar_reflect_val"
     )
+    # train_packet_set = LoadNumpyDataset(
+    #     "/nvme/mwolter/source_data_log_packets_db2_boundary_test"
+    # )
 
     style_gan_list = []
     ffhq_list = []
@@ -156,14 +170,14 @@ def main():
     print("train set loaded.", style_gan_array.shape, ffhq_array.shape)
 
     # mean image plots
-    gan_mean_packet_image = generate_packet_image(
+    gan_mean_packet_image = generate_frequency_packet_image(
         np.mean(style_gan_array, axis=(0, -1)), degree=3)
-    ffhq_mean_packet_image = generate_packet_image(
+    ffhq_mean_packet_image = generate_frequency_packet_image(
         np.mean(ffhq_array, axis=(0, -1)), degree=3)
     # std image plots
-    gan_std_packet_image = generate_packet_image(
+    gan_std_packet_image = generate_frequency_packet_image(
         np.std(style_gan_array, axis=(0, -1)), degree=3)
-    ffhq_std_packet_image = generate_packet_image(
+    ffhq_std_packet_image = generate_frequency_packet_image(
         np.std(ffhq_array, axis=(0, -1)), degree=3)
 
     fig = plt.figure(figsize=(8, 6))
@@ -203,7 +217,7 @@ def main():
     )
     plot_count += 1
 
-    if 1:
+    if 0:
         import tikzplotlib
         tikzplotlib.save("ffhq_style_packet_mean_std_plot.tex", standalone=True)
     plt.show()
