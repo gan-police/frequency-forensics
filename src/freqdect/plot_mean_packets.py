@@ -46,10 +46,10 @@ def generate_natural_packet_image(packet_array: np.array, degree: int):
     """Arrange a  packet array  as an image for imshow.
 
     Args:
-        packet_array ([np.array): The [packet_no, height, width] packets
+        packet_array ([np.array): The [packet_no, packet_height, packet_width] packets
         degree (int): The degree of the transformation.
     Returns:
-        [np.array]: The image of shape [height, width]
+        [np.array]: The image of shape [original_height, original_width]
     """
     def _cat_sector(elements: np.array,
                    level: int,
@@ -72,6 +72,16 @@ def generate_natural_packet_image(packet_array: np.array, degree: int):
 
 
 def generate_frequency_packet_image(packet_array: np.array, degree: int):
+    """ Given a packet array in natural order, creat an image which is
+        ready to plot in frequency order.
+
+    Args:
+        packet_array (np.array): [packet_no, height, width] in natural order.
+        degree (int): The degree of the packet decomposition.
+
+    Returns:
+        [type]: The image of shape [height, width]
+    """    
     wp_freq_path, wp_natural_path = get_freq_order(degree)
 
     image = []
@@ -139,12 +149,12 @@ def main():
     import matplotlib.pyplot as plt
 
     # raw images - use only the training set.
-    train_packet_set = LoadNumpyDataset(
-         "/nvme/mwolter/ffhq1024x1024_log_packets_haar_reflect_val"
-    )
     # train_packet_set = LoadNumpyDataset(
-    #     "/nvme/mwolter/source_data_log_packets_db2_boundary_test"
+    #      "/nvme/mwolter/ffhq1024x1024_log_packets_haar_reflect_val"
     # )
+    train_packet_set = LoadNumpyDataset(
+        "/nvme/mwolter/source_data_log_packets_db2_boundary_test"
+    )
 
     style_gan_list = []
     ffhq_list = []
