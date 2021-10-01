@@ -76,11 +76,12 @@ def generate_frequency_packet_image(packet_array: np.array, degree: int):
         ready to plot in frequency order.
 
     Args:
-        packet_array (np.array): [packet_no, height, width] in natural order.
+        packet_array (np.array): [packet_no, packet_height, packet_width]
+            in natural order.
         degree (int): The degree of the packet decomposition.
 
     Returns:
-        [type]: The image of shape [height, width]
+        [type]: The image of shape [original_height, original_width]
     """    
     wp_freq_path, wp_natural_path = get_freq_order(degree)
 
