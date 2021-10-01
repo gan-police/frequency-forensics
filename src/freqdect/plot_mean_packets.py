@@ -81,7 +81,7 @@ def generate_frequency_packet_image(packet_array: np.array, degree: int):
         degree (int): The degree of the packet decomposition.
 
     Returns:
-        [type]: The image of shape [original_height, original_width]
+        [np.array]: The image of shape [original_height, original_width]
     """    
     wp_freq_path, wp_natural_path = get_freq_order(degree)
 
