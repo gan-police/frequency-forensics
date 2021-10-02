@@ -2,14 +2,14 @@
 #
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
-#SBATCH --job-name=celeba_train_log
-#SBATCH --output=train_celeba-%j.out
-#SBATCH --error=train_celeba-%j.err
+#SBATCH --job-name=celeba_train_cnn
+#SBATCH --output=train_celeba_packets_sym2_boundary_cnn-%j.out
+#SBATCH --error=train_celeba_packets_sym2_boundary_cnn-%j.err
 #SBATCH -p gpu
 #SBATCH --gres gpu:v100:1
 #SBATCH --cpus-per-task=9
 #SBATCH --time=48:00:00
-#SBATCH --mem=90gb
+#SBATCH --mem=200gb
 
 for i in 0 1 2 3 4
 do
@@ -19,5 +19,6 @@ do
 	  --seed $i \
 	  --data-prefix /nvme/mwolter/celeba/celeba_align_png_cropped_log_packets_sym2_boundary \
 	  --nclasses 5 \
-	  --calc-normalization
+	  --calc-normalization \
+	  --model cnn
 done
