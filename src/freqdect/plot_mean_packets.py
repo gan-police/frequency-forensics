@@ -150,12 +150,12 @@ def main():
     import matplotlib.pyplot as plt
 
     # raw images - use only the training set.
-    # train_packet_set = LoadNumpyDataset(
-    #      "/nvme/mwolter/ffhq1024x1024_log_packets_haar_reflect_val"
-    # )
     train_packet_set = LoadNumpyDataset(
-        "/nvme/mwolter/source_data_log_packets_db2_boundary_test"
+        "/nvme/mwolter/ffhq1024x1024_log_packets_haar_reflect_train"
     )
+    # train_packet_set = LoadNumpyDataset(
+    #     "/nvme/mwolter/source_data_log_packets_train"
+    # )
 
     style_gan_list = []
     ffhq_list = []
@@ -228,7 +228,7 @@ def main():
     )
     plot_count += 1
 
-    if 0:
+    if 1:
         import tikzplotlib
         tikzplotlib.save("ffhq_style_packet_mean_std_plot.tex", standalone=True)
     plt.show()
@@ -253,10 +253,9 @@ def main():
     plt.ylabel("mean absolute coefficient magnitude")
     plt.title("Mean absolute coefficient comparison real data-GAN")
 
-    if 0:
+    if 1:
         import tikzplotlib
-
-        tikzplotlib.save("celeba_mean_absolute_coeff_comparison.tex", standalone=True)
+        tikzplotlib.save("absolute_coeff_comparison.tex", standalone=True)
     plt.show()
     print("done")
 

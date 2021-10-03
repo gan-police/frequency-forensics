@@ -406,6 +406,12 @@ def _parse_args():
         default="./log/celeba_align_png_cropped",
         help="shared file path prefix of the log files (default: ./log/celeba_align_png_cropped)",
     )
+    parser_shared.add_argument(
+        "--prefix-ffhq",
+        default="./log/source_data_log_packets",
+        help="shared file path prefix of the log files (default: ./log/source_data_log_packets)",
+    )
+
     parser_shared.set_defaults(func=plot_shared)
 
     # create subparser for plotting either LSUN or CelebA
