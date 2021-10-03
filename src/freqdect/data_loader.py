@@ -111,7 +111,7 @@ def main():
     file_name = f"{args.dir}/mean_std.pkl"
     with open(file_name, 'wb') as f:
         pickle.dump([mean.numpy(), std.numpy()], f)
-    print('stored in {file_name}')
+    print('stored in', file_name)
 
 if __name__ == "__main__":
     main()

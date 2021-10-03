@@ -98,6 +98,7 @@ def compute_pytorch_packet_representation_2d_tensor(
     : The packet tensor of shape [batch_size, packet_no, packet_height, packet_width]
     """
     wavelet = pywt.Wavelet(wavelet_str)
+    # print('wavelet', wavelet_str)
     ptwt_wp_tree = ptwt.WaveletPacket2D(data=pt_data, wavelet=wavelet, mode=mode)
 
     # get the pytorch decomposition
