@@ -21,3 +21,39 @@ do
 	  --nclasses 5 \
 	  --calc-normalization
 done
+
+for i in 0 1 2 3 4
+do
+  echo "packet experiment no: $i "
+  python -m freqdect.train_classifier \
+	  --features packets \
+	  --seed $i \
+	  --data-prefix /nvme/mwolter/celeba/celeba_align_png_cropped_log_packets_db2_boundary \
+	  --nclasses 5 \
+	  --calc-normalization
+done
+
+
+for i in 0 1 2 3 4
+do
+  echo "packet experiment no: $i "
+  python -m freqdect.train_classifier \
+	  --features packets \
+	  --seed $i \
+	  --data-prefix /nvme/mwolter/celeba/celeba_align_png_cropped_log_packets_db2_boundary \
+	  --nclasses 5 \
+	  --calc-normalization \
+	  --model cnn
+done
+
+for i in 0 1 2 3 4
+do
+  echo "packet experiment no: $i "
+  python -m freqdect.train_classifier \
+	  --features packets \
+	  --seed $i \
+	  --data-prefix /nvme/mwolter/celeba/celeba_align_png_cropped_log_packets_sym2_boundary \
+	  --nclasses 5 \
+	  --calc-normalization \
+	  --model cnn
+done

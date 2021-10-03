@@ -10,7 +10,11 @@ from typing import Optional
 
 import numpy as np
 from PIL import Image
+import torch
+import pickle
 
+
+from .data_loader import LoadNumpyDataset
 from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
@@ -240,13 +244,16 @@ def pre_process_folder(
         train_size (int): Desired size of the test subset of each folder.
         val_size (int): Desired size of the validation subset of each folder.
         test_size (int): Desired size of the test subset of each folder.
-        feature (str): The feature to pre-compute (choose packets, log_packets or None).
+        feature (str): The feature to pre-compute (choose packets, log_packets or raw).
         missing_label (int): label to leave out of training and validation set (choose from {0, 1, 2, 3, 4, None})
         gan_split_factor (float): factor by which the training and validation subset sizes are scaled for each GAN, if
             a missing label is specified.
     """
     data_dir = Path(data_folder)
-    target_dir = data_dir.parent / f"{data_dir.name}_{feature}_{wavelet}_{boundary}"
+    if feature == "raw":
+        target_dir = data_dir.parent / f"{data_dir.name}_{feature}"
+    else:
+        target_dir = data_dir.parent / f"{data_dir.name}_{feature}_{wavelet}_{boundary}"
 
     if feature == "packets":
         processing_function = functools.partial(batch_packet_preprocessing,
@@ -365,6 +372,25 @@ def pre_process_folder(
     )
     print("training set stored.", flush=True)
 
+    # compute training normalization.
+    # load train data and compute mean and std
+    print("computing mean and std values.")
+    train_data_set = LoadNumpyDataset(f"{target_dir}{dir_suffix}_train")
+    img_lst = []
+    for img_no in range(train_data_set.__len__()):
+        img_lst.append(train_data_set.__getitem__(img_no)["image"])
+    img_data = torch.stack(img_lst, 0)
+    # average all axis except the color channel
+    axis = tuple(np.arange(len(img_data.shape[:-1])))
+    # calculate mean and std in double to avoid precision problems
+    mean = torch.mean(img_data.double(), axis).float()
+    std = torch.std(img_data.double(), axis).float()
+    del img_data
+    print("mean", mean, "std:", std)
+    with open(f"{target_dir}{dir_suffix}_train/mean_std.pkl", 'wb') as f:
+        pickle.dump([mean.numpy(), std.numpy()], f)
+
+    
 
 def parse_args():
     """Parse command line arguments."""
