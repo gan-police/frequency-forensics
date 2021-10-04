@@ -375,7 +375,7 @@ def pre_process_folder(
     # compute training normalization.
     # load train data and compute mean and std
     print("computing mean and std values.")
-    train_data_set = LoadNumpyDataset(f"{target_dir}{dir_suffix}_train")
+    train_data_set = LoadNumpyDataset(f"{target_dir}_train{dir_suffix}")
     img_lst = []
     for img_no in range(train_data_set.__len__()):
         img_lst.append(train_data_set.__getitem__(img_no)["image"])
@@ -387,7 +387,7 @@ def pre_process_folder(
     std = torch.std(img_data.double(), axis).float()
     del img_data
     print("mean", mean, "std:", std)
-    with open(f"{target_dir}{dir_suffix}_train/mean_std.pkl", 'wb') as f:
+    with open(f"{target_dir}_train{dir_suffix}/mean_std.pkl", 'wb') as f:
         pickle.dump([mean.numpy(), std.numpy()], f)
 
     
