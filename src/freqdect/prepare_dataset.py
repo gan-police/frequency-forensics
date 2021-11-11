@@ -12,6 +12,7 @@ import numpy as np
 from PIL import Image
 
 from .wavelet_math import batch_packet_preprocessing, identity_processing
+from .pre_processing import jpeg_compression, random_rotation, random_resized_crop
 
 
 def get_label_of_folder(
@@ -94,7 +95,8 @@ def get_label(path_to_image: Path, binary_classification: bool) -> int:
     return get_label_of_folder(path_to_image.parent, binary_classification)
 
 
-def load_and_stack(path_list: list, binary_classification: bool = False) -> tuple:
+def load_and_stack(path_list: list, binary_classification: bool = False,
+                   jpeg_compression: int = None) -> tuple:
     """Transform a lists of paths into a batches of numpy arrays and record their labels.
 
     Args:
@@ -102,6 +104,7 @@ def load_and_stack(path_list: list, binary_classification: bool = False) -> tupl
             The stings must follow the convention outlined
             in the get_label function.
         binary_classification (bool): If flag is set, we only classify binarily, i.e. whether an image is real or fake.
+        jpeg_compression (int): jpeg comression factor used for robustness testing. Defaults to None.
 
     Returns:
         tuple: A numpy array of size
@@ -111,7 +114,12 @@ def load_and_stack(path_list: list, binary_classification: bool = False) -> tupl
     image_list = []
     label_list = []
     for path_to_image in path_list:
-        image_list.append(np.array(Image.open(path_to_image)))
+        image = Image.open(path_to_image)
+
+        if jpeg_compression:
+            image = jpeg_compression(image, jpeg_compression)
+
+        image_list.append(np.array(image))
         label_list.append(np.array(get_label(path_to_image, binary_classification)))
     return np.stack(image_list), label_list
 
@@ -225,6 +233,7 @@ def pre_process_folder(
     feature: Optional[str] = None,
     missing_label: int = None,
     gan_split_factor: float = 1.0,
+    jpeg_compression: int = None,
 ) -> None:
     """Preprocess a folder containing sub-directories with images from different sources.
 
@@ -435,6 +444,14 @@ def parse_args():
         "data). So, for each GAN the training and validation split subset sizes are then calculated as the general"
         " subset size in the split (i.e. the size specified by '--train-size' etc.) times this factor.",
     )
+
+    parser.add_argument(
+        "--jpeg",
+        type=int,
+        default=None,
+        help="Use jpeg compression to measure the robustness of our method."
+    )
+
     return parser.parse_args()
 
 
@@ -457,4 +474,5 @@ if __name__ == "__main__":
         feature,
         missing_label=args.missing_label,
         gan_split_factor=args.gan_split_factor,
+        jpeg_compression=args.jpeg
     )
