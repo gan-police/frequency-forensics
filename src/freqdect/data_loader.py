@@ -66,8 +66,9 @@ class LoadNumpyDataset(Dataset):
 
 
 def main():
-    """Compute dataset mean and standard deviation."""
+    """Compute dataset mean and standard deviation and store it."""
     import argparse
+    import pickle
 
     parser = argparse.ArgumentParser(description="Calculate mean and std")
     parser.add_argument(
@@ -75,13 +76,6 @@ def main():
         type=str,
         help="path of training data for which mean and std are computed",
     )
-    parser.add_argument(
-        "-c",
-        "--channelwise",
-        action="store_true",
-        help="calculate the mean and std for each channel of the data separately",
-    )
-
     args = parser.parse_args()
 
     print(args)
@@ -104,27 +98,20 @@ def main():
         img_data = torch.stack(img_lst, 0)
 
         # average all axis except the color channel
-        if args.channelwise:
-            axis = tuple(np.arange(len(img_data.shape[:-1])))
-
-            # calculate mean and std in double to avoid precision problems
-            mean = torch.mean(img_data.double(), axis).float()
-            std = torch.std(img_data.double(), axis).float()
-        else:
-            # calculate mean and std in double to avoid precision problems
-            mean = torch.mean(img_data.double()).float()
-            std = torch.std(img_data.double()).float()
-
+        axis = tuple(np.arange(len(img_data.shape[:-1])))
+        # calculate mean and std in double to avoid precision problems
+        mean = torch.mean(img_data.double(), axis).float()
+        std = torch.std(img_data.double(), axis).float()
         return img_data, mean, std
 
-    data, data_mean, data_std = compute_mean_std(data)
+    data, mean, std = compute_mean_std(data)
 
-    print("mean", data_mean)
-    print("std", data_std)
-
-    norm = (data - data_mean) / data_std
-    print("norm test", torch.mean(norm))
-    print("std test", torch.std(norm))
+    print("mean", mean)
+    print("std", std)
+    file_name = f"{args.dir}/mean_std.pkl"
+    with open(file_name, "wb") as f:
+        pickle.dump([mean.numpy(), std.numpy()], f)
+    print("stored in", file_name)
 
 
 if __name__ == "__main__":
