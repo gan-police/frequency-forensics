@@ -129,7 +129,7 @@ def load_and_stack(
     for path_to_image in path_list:
         image = Image.open(path_to_image)
 
-        if jpeg_compression:
+        if type(jpeg_compression_number) is int:
             image = jpeg_compression(image, jpeg_compression_number)
         if rotation_and_crop:
             image = random_resized_crop(random_rotation(image))
