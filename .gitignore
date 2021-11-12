@@ -3,6 +3,7 @@ src/data_download/lsun
 data
 runs
 log
+scripts
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,linux,pycharm,python,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,linux,pycharm,python,windows
