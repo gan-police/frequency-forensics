@@ -12,3 +12,4 @@
 #SBATCH --mem=10gb
 
 PYTHONPATH=. python ./scripts/multi_train_lsun.py
+
