@@ -204,7 +204,7 @@ def main():
         )
         # fig.colorbar(im)
         # shape = real.shape
-        # keys = list(product(['a', 'd', 'h', 'v'], repeat=max_lev))
+        # keys = list(product(['a', 'h', 'v', 'd'], repeat=max_lev))
         # draw_2d_wp_basis(shape, keys, ax=ax3, label_levels=max_lev)
         # ax3.set_title('packet labels')
         plt.show()

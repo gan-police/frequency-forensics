@@ -10,7 +10,11 @@ from typing import Optional
 
 import numpy as np
 from PIL import Image
+import torch
+import pickle
 
+
+from .data_loader import LoadNumpyDataset
 from .wavelet_math import batch_packet_preprocessing, identity_processing
 from .pre_processing import jpeg_compression, random_rotation, random_resized_crop
 
@@ -231,6 +235,8 @@ def pre_process_folder(
     val_size: int,
     test_size: int,
     feature: Optional[str] = None,
+    wavelet: str= 'db1',
+    boundary: str= 'reflect',
     missing_label: int = None,
     gan_split_factor: float = 1.0,
     jpeg_compression: int = None,
@@ -247,19 +253,24 @@ def pre_process_folder(
         train_size (int): Desired size of the test subset of each folder.
         val_size (int): Desired size of the validation subset of each folder.
         test_size (int): Desired size of the test subset of each folder.
-        feature (str): The feature to pre-compute (choose packets, log_packets or None).
+        feature (str): The feature to pre-compute (choose packets, log_packets or raw).
         missing_label (int): label to leave out of training and validation set (choose from {0, 1, 2, 3, 4, None})
         gan_split_factor (float): factor by which the training and validation subset sizes are scaled for each GAN, if
             a missing label is specified.
     """
     data_dir = Path(data_folder)
-    target_dir = data_dir.parent / f"{data_dir.name}_{feature}"
+    if feature == "raw":
+        target_dir = data_dir.parent / f"{data_dir.name}_{feature}"
+    else:
+        target_dir = data_dir.parent / f"{data_dir.name}_{feature}_{wavelet}_{boundary}"
 
     if feature == "packets":
-        processing_function = batch_packet_preprocessing
+        processing_function = functools.partial(batch_packet_preprocessing,
+            wavelet=wavelet, mode=boundary
+        )
     elif feature == "log_packets":
         processing_function = functools.partial(
-            batch_packet_preprocessing, log_scale=True
+            batch_packet_preprocessing, log_scale=True, wavelet=wavelet, mode=boundary
         )
     else:
         processing_function = identity_processing  # type: ignore
@@ -283,7 +294,6 @@ def pre_process_folder(
                         2
                     ]
                 )
-
             else:
                 # real data
                 if get_label_of_folder(folder, binary_classification=True) == 0:
@@ -371,6 +381,25 @@ def pre_process_folder(
     )
     print("training set stored.", flush=True)
 
+    # compute training normalization.
+    # load train data and compute mean and std
+    print("computing mean and std values.")
+    train_data_set = LoadNumpyDataset(f"{target_dir}_train{dir_suffix}")
+    img_lst = []
+    for img_no in range(train_data_set.__len__()):
+        img_lst.append(train_data_set.__getitem__(img_no)["image"])
+    img_data = torch.stack(img_lst, 0)
+    # average all axis except the color channel
+    axis = tuple(np.arange(len(img_data.shape[:-1])))
+    # calculate mean and std in double to avoid precision problems
+    mean = torch.mean(img_data.double(), axis).float()
+    std = torch.std(img_data.double(), axis).float()
+    del img_data
+    print("mean", mean, "std:", std)
+    with open(f"{target_dir}_train{dir_suffix}/mean_std.pkl", 'wb') as f:
+        pickle.dump([mean.numpy(), std.numpy()], f)
+
+    
 
 def parse_args():
     """Parse command line arguments."""
@@ -437,12 +466,25 @@ def parse_args():
     parser.add_argument(
         "--gan-split-factor",
         type=float,
-        default=1 / 3,
-        help="scaling factor for GAN subsets in the binary classification split. If a missing label is specified, the "
-        "classification task changes to classifying whether the data was generated or not. In this case, the share"
-        " of the GAN subsets in the split sets should be reduced to balance both classes (i.e. real and generated "
-        "data). So, for each GAN the training and validation split subset sizes are then calculated as the general"
-        " subset size in the split (i.e. the size specified by '--train-size' etc.) times this factor.",
+        default=1./3.,
+        help="scaling factor for GAN subsets in the binary classification split. If a missing label is specified, the"
+        " classification task changes to classifying whether the data was generated or not. In this case, the share"
+        " of the GAN subsets in the split sets should be reduced to balance both classes (i.e. real and generated"
+        " data). So, for each GAN the training and validation split subset sizes are then calculated as the general"
+        " subset size in the split (i.e. the size specified by '--train-size' etc.) times this factor."
+        " Defaults to 1./3.",
+    )
+    parser.add_argument(
+        "--wavelet",
+        type=str,
+        default="haar",
+        help="The wavelet to use. Choose one from pywt.wavelist(). Defaults to haar.",
+    )
+    parser.add_argument(
+        "--boundary",
+        type=str,
+        default="reflect",
+        help="The boundary treatment method to use. Choose zero, reflect, or boundary. Defaults to reflect.",
     )
 
     parser.add_argument(
@@ -474,5 +516,7 @@ if __name__ == "__main__":
         feature,
         missing_label=args.missing_label,
         gan_split_factor=args.gan_split_factor,
+        wavelet=args.wavelet,
+        boundary=args.boundary
         jpeg_compression=args.jpeg
     )

@@ -1,5 +1,5 @@
 """Calculating confusion matrices from trained models that classify deepfake image data."""
-
+import pickle
 import argparse
 from collections import defaultdict
 from typing import List
@@ -32,7 +32,30 @@ def calculate_confusion_matrix(args):
 
     # noqa: DAR401
     """
-    if args.normalize:
+    if args.calc_normalization:
+        # load train data and compute mean and std
+        try:
+            with open(f"{args.data_prefix}_train/mean_std.pkl", "rb") as file:
+                mean, std = pickle.load(file)
+                mean = torch.from_numpy(mean.astype(np.float32))
+                std = torch.from_numpy(std.astype(np.float32))
+        except:
+            print("loading mean and std from file failed. Re-computing.")
+            train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
+
+            img_lst = []
+            for img_no in range(train_data_set.__len__()):
+                img_lst.append(train_data_set.__getitem__(img_no)["image"])
+            img_data = torch.stack(img_lst, 0)
+
+            # average all axis except the color channel
+            axis = tuple(np.arange(len(img_data.shape[:-1])))
+
+            # calculate mean and std in double to avoid precision problems
+            mean = torch.mean(img_data.double(), axis).float()
+            std = torch.std(img_data.double(), axis).float()
+            del img_data
+    elif args.normalize:
         num_of_norm_vals = len(args.normalize)
         if not (num_of_norm_vals == 2 or num_of_norm_vals == 6):
             raise ValueError("incorrect mean and standard deviation input values.")
@@ -41,7 +64,7 @@ def calculate_confusion_matrix(args):
     else:
         mean, std = [None, None]
 
-    test_data_set = LoadNumpyDataset(args.data, mean=mean, std=std)
+    test_data_set = LoadNumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
     test_data_loader = DataLoader(
         test_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2
     )
@@ -98,7 +121,30 @@ def calculate_generalized_confusion_matrix(args):
 
     # noqa: DAR401
     """
-    if args.normalize:
+    if args.calc_normalization:
+        # load train data and compute mean and std
+        try:
+            with open(f"{args.data_prefix}_train/mean_std.pkl", "rb") as file:
+                mean, std = pickle.load(file)
+                mean = torch.from_numpy(mean.astype(np.float32))
+                std = torch.from_numpy(std.astype(np.float32))
+        except:
+            print("loading mean and std from file failed. Re-computing.")
+            train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
+
+            img_lst = []
+            for img_no in range(train_data_set.__len__()):
+                img_lst.append(train_data_set.__getitem__(img_no)["image"])
+            img_data = torch.stack(img_lst, 0)
+
+            # average all axis except the color channel
+            axis = tuple(np.arange(len(img_data.shape[:-1])))
+
+            # calculate mean and std in double to avoid precision problems
+            mean = torch.mean(img_data.double(), axis).float()
+            std = torch.std(img_data.double(), axis).float()
+            del img_data
+    elif args.normalize:
         num_of_norm_vals = len(args.normalize)
         if not (num_of_norm_vals == 2 or num_of_norm_vals == 6):
             raise ValueError("incorrect mean and standard deviation arguments.")
@@ -107,7 +153,7 @@ def calculate_generalized_confusion_matrix(args):
     else:
         mean, std = [None, None]
 
-    test_data_set = LoadNumpyDataset(args.data, mean=mean, std=std)
+    test_data_set = LoadNumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
     test_data_loader = DataLoader(
         test_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2
     )
@@ -185,18 +231,26 @@ def output_confusion_matrix_stats(matrix, label_names: List[str], plot: bool = F
         plt.show()
 
 
+def output_generalized_stats(matrix):
+    accuracy = (matrix[0, 0] + matrix[1:, 1].sum()) / matrix.sum()
+    known_acc = (matrix[0, 0] + matrix[1:-1, 1].sum()) / matrix[:-1, :].sum()
+    unknown_acc = matrix[-1, 1] / matrix[-1, :].sum()
+
+    print(f"{accuracy:.2f}% {known_acc:.2f}% {unknown_acc:.2f}% (corrected)")
+
+
 def _parse_args():
     parser = argparse.ArgumentParser(description="Calculate the confusion matrix")
     parser.add_argument(
         "--classifier-path", type=str, help="path to classifier model file"
     )
     parser.add_argument(
-        "--data", type=str, help="path of folder containing the test data"
+        "--data-prefix", type=str, help="shared prefix of the path of folders containing the train/test data"
     )
     parser.add_argument(
         "--model",
-        choices=["regression", "CNN"],
-        help="The model type. Choose regression or CNN.",
+        choices=["regression", "cnn"],
+        help="The model type. Choose regression or cnn.",
     )
     parser.add_argument(
         "--features",
@@ -209,14 +263,6 @@ def _parse_args():
         type=int,
         default=512,
         help="input batch size for testing (default: 512)",
-    )
-    parser.add_argument(
-        "--normalize",
-        nargs="+",
-        type=float,
-        metavar=("MEAN", "STD"),
-        help="normalize with specified values for mean and standard deviation (either 2 or 6 values "
-        "are accepted)",
     )
     parser.add_argument(
         "--label-names",
@@ -240,6 +286,27 @@ def _parse_args():
         help="Calculates a generalized confusion matrix for the binary classification \
               task differentiating fake from real images.",
     )
+    parser.add_argument(
+        "--store-path",
+        type=str,
+        default=None
+    )
+    # one should not specify normalization parameters and request their calculation at the same time
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--normalize",
+        nargs="+",
+        type=float,
+        metavar=("MEAN", "STD"),
+        help="normalize with specified values for mean and standard deviation (either 2 or 6 values "
+        "are accepted)",
+    )
+    group.add_argument(
+        "--calc-normalization",
+        action="store_true",
+        help="calculates mean and standard deviation used in normalization"
+        "from the training data",
+    )
     return parser.parse_args()
 
 
@@ -249,11 +316,19 @@ def _main():
     if args.generalized:
         matrix = calculate_generalized_confusion_matrix(args)
         print(matrix)
+        print(output_generalized_stats(matrix))
+
+        if args.store_path is not None:
+            np.save(open(args.store_path, "wb"), matrix)
+
     else:
         matrix = calculate_confusion_matrix(args)
         print(matrix)
 
         output_confusion_matrix_stats(matrix, args.label_names, args.plot)
+
+        if args.store_path is not None:
+            np.save(open(args.store_path, "wb"), matrix)
 
 
 if __name__ == "__main__":
