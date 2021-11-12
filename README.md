@@ -4,9 +4,21 @@
 </p>
 -->
 
+
+
+
 # Wavelet-Packet Powered Deepfake Image Detection
 
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+<p align="center">
+<a href="https://github.com/gan-police/frequency-forensics/actions/workflows/tests.yml">
+    <img src="https://github.com/gan-police/frequency-forensics/actions/workflows/tests.yml/badge.svg"
+         alt="GitHub Actions">
+<a href="https://github.com/psf/black">
+    <img src="https://img.shields.io/badge/code%20style-black-000000.svg"
+         alt="PyPI - Project">
+</a>
+</p>
+
 
 This is the supplementary source code for our paper [Wavelet-Packet Powered Deepfake Image Detection](https://arxiv.org/abs/2106.09369), which is currently
 under review.
