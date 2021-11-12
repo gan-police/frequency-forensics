@@ -121,7 +121,7 @@ def get_freq_order(level: int):
     """
     wp_natural_path = list(product(["a", "h", "v", "d"], repeat=level))
 
-    def get_graycode_order(level, x="a", y="d"):
+    def _get_graycode_order(level, x="a", y="d"):
         graycode_order = [x, y]
         for _ in range(level - 1):
             graycode_order = [x + path for path in graycode_order] + [
@@ -129,7 +129,7 @@ def get_freq_order(level: int):
             ]
         return graycode_order
 
-    def expand_2d_path(path):
+    def _expand_2d_path(path):
         expanded_paths = {"d": "hh", "h": "hl", "v": "lh", "a": "ll"}
         return (
             "".join([expanded_paths[p][0] for p in path]),
@@ -138,10 +138,10 @@ def get_freq_order(level: int):
 
     nodes: dict = {}
     for (row_path, col_path), node in [
-        (expand_2d_path(node), node) for node in wp_natural_path
+        (_expand_2d_path(node), node) for node in wp_natural_path
     ]:
         nodes.setdefault(row_path, {})[col_path] = node
-    graycode_order = get_graycode_order(level, x="l", y="h")
+    graycode_order = _get_graycode_order(level, x="l", y="h")
     nodes_list: list = [nodes[path] for path in graycode_order if path in nodes]
     wp_frequency_path = []
     for row in nodes_list:
