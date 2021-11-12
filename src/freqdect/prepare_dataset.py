@@ -294,12 +294,12 @@ def pre_process_folder(
     if feature == "raw":
         target_dir = (
             data_dir.parent
-            / f"{data_dir.name}_{feature}_jpeg_{jpeg_compression_number}_cr_{crop_rotate}"
+            / f"{data_dir.name}_{feature}_j_{jpeg_compression_number}_cr_{crop_rotate}"
         )
     else:
         target_dir = (
             data_dir.parent
-            / f"{data_dir.name}_{feature}_{wavelet}_{boundary}_jpeg_{jpeg_compression_number}_cr_{crop_rotate}"
+            / f"{data_dir.name}_{feature}_{wavelet}_{boundary}_j_{jpeg_compression_number}_cr_{crop_rotate}"
         )
 
     if feature == "packets":
