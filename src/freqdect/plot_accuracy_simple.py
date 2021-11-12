@@ -3,28 +3,29 @@ import argparse
 import pickle
 
 import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.axes import Axes
 
 from .plot_accuracy_results import (
-    stack_list,
-    _get_steps_mean_std,
     get_plot_tuple,
     get_test_acc_mean_std_max,
 )
 
 
 def plot_mean_std(steps, mean, std, color, label="", marker="."):
+    """Plot means and standard deviations with shaded areas."""
     plt.plot(steps, mean, label=label, color=color, marker=marker)
     plt.fill_between(steps, mean - std, mean + std, color=color, alpha=0.2)
 
+
 def _parse_args():
+    """Parse the command line."""
     parser = argparse.ArgumentParser(description="Simply plot validation accuracy")
-    parser.add_argument('prefix_one', type=str)
-    parser.add_argument('prefix_two', type=str)
+    parser.add_argument("prefix_one", type=str)
+    parser.add_argument("prefix_two", type=str)
     return parser.parse_args()
 
+
 def main(args):
+    """Plot two experiments."""
     print(args.prefix_one)
     print(args.prefix_two)
     first_logs = pickle.load(open(f"./log/{args.prefix_one}.pkl", "rb"))
@@ -55,10 +56,11 @@ def main(args):
     plt.legend()
     if 1:
         import tikzplotlib as tikz
+
         tikz.save("ffhq_style_style2.tex", standalone=True)
     plt.show()
-    print('done')
+    print("done")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(_parse_args())

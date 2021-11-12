@@ -82,10 +82,9 @@ def compute_pytorch_packet_representation_2d_tensor(
     pt_data: torch.Tensor,
     wavelet_str: Optional[str] = "db5",
     max_lev: int = 5,
-    mode: str = 'reflect'
+    mode: str = "reflect",
 ) -> torch.Tensor:
     """Compute the wavelet packet representation tensor for a batch of input images.
-
 
     Args:
         pt_data: Image tensor of shape [batch, height, width]
@@ -104,7 +103,9 @@ def compute_pytorch_packet_representation_2d_tensor(
     # get the pytorch decomposition
     # batch_size = pt_data.shape[0]
     wp_keys = list(
-        product(["a", "h", "v", "d"], repeat=max_lev,
+        product(
+            ["a", "h", "v", "d"],
+            repeat=max_lev,
         )
     )
     packet_list = []
@@ -117,8 +118,7 @@ def compute_pytorch_packet_representation_2d_tensor(
 
 
 def batch_packet_preprocessing(
-    image_batch, wavelet="db1", max_lev=3, eps=1e-12, log_scale=False,
-    mode='reflect'
+    image_batch, wavelet="db1", max_lev=3, eps=1e-12, log_scale=False, mode="reflect"
 ):
     """Preprosess image batches by computing the wavelet packet representation.
 
@@ -145,8 +145,10 @@ def batch_packet_preprocessing(
     for channel in range(image_batch.shape[-1]):
         with torch.no_grad():
             channel_packets = compute_pytorch_packet_representation_2d_tensor(
-                image_batch[:, :, :, channel], wavelet_str=wavelet,
-                max_lev=max_lev, mode=mode
+                image_batch[:, :, :, channel],
+                wavelet_str=wavelet,
+                max_lev=max_lev,
+                mode=mode,
             )
         channels.append(channel_packets)
     packets = torch.stack(channels, -1)

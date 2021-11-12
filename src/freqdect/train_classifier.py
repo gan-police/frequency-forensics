@@ -116,14 +116,6 @@ def _parse_args():
     # one should not specify normalization parameters and request their calculation at the same time
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
-        "--normalize",
-        nargs="+",
-        type=float,
-        metavar=("MEAN", "STD"),
-        help="normalize with specified values for mean and standard deviation (either 2 or 6 values "
-        "are accepted)",
-    )
-    group.add_argument(
         "--calc-normalization",
         action="store_true",
         help="calculates mean and standard deviation used in normalization"
@@ -159,7 +151,7 @@ def main():
                 mean, std = pickle.load(file)
                 mean = torch.from_numpy(mean.astype(np.float32))
                 std = torch.from_numpy(std.astype(np.float32))
-        except:
+        except BaseException:
             print("loading mean and std from file failed. Re-computing.")
             train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
 
@@ -175,12 +167,6 @@ def main():
             mean = torch.mean(img_data.double(), axis).float()
             std = torch.std(img_data.double(), axis).float()
             del img_data
-    elif args.normalize:
-        num_of_norm_vals = len(args.normalize)
-        if not (num_of_norm_vals == 2 or num_of_norm_vals == 6):
-            raise ValueError("incorrect mean and standard deviation input values.")
-        mean = torch.tensor(args.normalize[: num_of_norm_vals // 2])
-        std = torch.tensor(args.normalize[(num_of_norm_vals // 2) :])
     else:
         mean = None
         std = None

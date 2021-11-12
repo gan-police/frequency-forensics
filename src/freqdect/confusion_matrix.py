@@ -1,6 +1,6 @@
 """Calculating confusion matrices from trained models that classify deepfake image data."""
-import pickle
 import argparse
+import pickle
 from collections import defaultdict
 from typing import List
 
@@ -39,7 +39,7 @@ def calculate_confusion_matrix(args):
                 mean, std = pickle.load(file)
                 mean = torch.from_numpy(mean.astype(np.float32))
                 std = torch.from_numpy(std.astype(np.float32))
-        except:
+        except BaseException:
             print("loading mean and std from file failed. Re-computing.")
             train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
 
@@ -128,7 +128,7 @@ def calculate_generalized_confusion_matrix(args):
                 mean, std = pickle.load(file)
                 mean = torch.from_numpy(mean.astype(np.float32))
                 std = torch.from_numpy(std.astype(np.float32))
-        except:
+        except BaseException:
             print("loading mean and std from file failed. Re-computing.")
             train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
 
@@ -232,6 +232,7 @@ def output_confusion_matrix_stats(matrix, label_names: List[str], plot: bool = F
 
 
 def output_generalized_stats(matrix):
+    """Compute generalized statistics."""
     accuracy = (matrix[0, 0] + matrix[1:, 1].sum()) / matrix.sum()
     known_acc = (matrix[0, 0] + matrix[1:-1, 1].sum()) / matrix[:-1, :].sum()
     unknown_acc = matrix[-1, 1] / matrix[-1, :].sum()
@@ -245,7 +246,9 @@ def _parse_args():
         "--classifier-path", type=str, help="path to classifier model file"
     )
     parser.add_argument(
-        "--data-prefix", type=str, help="shared prefix of the path of folders containing the train/test data"
+        "--data-prefix",
+        type=str,
+        help="shared prefix of the path of folders containing the train/test data",
     )
     parser.add_argument(
         "--model",
@@ -286,11 +289,7 @@ def _parse_args():
         help="Calculates a generalized confusion matrix for the binary classification \
               task differentiating fake from real images.",
     )
-    parser.add_argument(
-        "--store-path",
-        type=str,
-        default=None
-    )
+    parser.add_argument("--store-path", type=str, default=None)
     # one should not specify normalization parameters and request their calculation at the same time
     group = parser.add_mutually_exclusive_group()
     group.add_argument(

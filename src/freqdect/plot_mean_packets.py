@@ -14,7 +14,6 @@ def _plot_mean_std(x, mean, std, color, label="", marker="."):
     plt.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
 
 
-
 def generate_packet_image_tensor(packet_array: torch.tensor):
     """Arrange a packet tensor  as an image for imshow.
 
@@ -51,29 +50,39 @@ def generate_natural_packet_image(packet_array: np.array, degree: int):
     Returns:
         [np.array]: The image of shape [original_height, original_width]
     """
-    def _cat_sector(elements: np.array,
-                   level: int,
-                   max_level: int):
+
+    def _cat_sector(elements: np.array, level: int, max_level: int):
         element_lst = np.split(elements, 4)
         if level < max_level - 1:
-            img0 = _cat_sector(element_lst[0], level+1, max_level)
-            img1 = _cat_sector(element_lst[1], level+1, max_level)
-            img2 = _cat_sector(element_lst[2], level+1, max_level)
-            img3 = _cat_sector(element_lst[3], level+1, max_level)
+            img0 = _cat_sector(element_lst[0], level + 1, max_level)
+            img1 = _cat_sector(element_lst[1], level + 1, max_level)
+            img2 = _cat_sector(element_lst[2], level + 1, max_level)
+            img3 = _cat_sector(element_lst[3], level + 1, max_level)
             return np.concatenate(
-                    [np.concatenate([img0, img1], axis=2),
-                     np.concatenate([img2, img3], axis=2)], 1)
+                [
+                    np.concatenate([img0, img1], axis=2),
+                    np.concatenate([img2, img3], axis=2),
+                ],
+                1,
+            )
         else:
             img = np.concatenate(
-                [np.concatenate([element_lst[0], element_lst[1]], axis=2),
-                 np.concatenate([element_lst[2], element_lst[3]], axis=2)], 1)
+                [
+                    np.concatenate([element_lst[0], element_lst[1]], axis=2),
+                    np.concatenate([element_lst[2], element_lst[3]], axis=2),
+                ],
+                1,
+            )
             return img
+
     return _cat_sector(packet_array, 0, degree).squeeze()
 
 
 def generate_frequency_packet_image(packet_array: np.array, degree: int):
-    """ Given a packet array in natural order, creat an image which is
-        ready to plot in frequency order.
+    """Create a ready-to-polt image with frequency-order packages.
+
+       Given a packet array in natural order, creat an image which is
+       ready to plot in frequency order.
 
     Args:
         packet_array (np.array): [packet_no, packet_height, packet_width]
@@ -82,7 +91,7 @@ def generate_frequency_packet_image(packet_array: np.array, degree: int):
 
     Returns:
         [np.array]: The image of shape [original_height, original_width]
-    """    
+    """
     wp_freq_path, wp_natural_path = get_freq_order(degree)
 
     image = []
@@ -98,51 +107,46 @@ def generate_frequency_packet_image(packet_array: np.array, degree: int):
 
 
 def get_freq_order(level: int):
-    """ Get the frequency order for a given packet decomposition level.
-        Adapted from:
-        https://github.com/PyWavelets/pywt/blob/master/pywt/_wavelet_packets.py
+    """Get the frequency order for a given packet decomposition level.
 
-        The code elements denote the filter application order. The filters
-        are named following the pywt convention as:
-        a - LL, low-low coefficients
-        h - LH, low-high coefficients
-        v - HL, high-low coefficients
-        d - HH, high-high coefficients
+    Adapted from:
+    https://github.com/PyWavelets/pywt/blob/master/pywt/_wavelet_packets.py
+
+    The code elements denote the filter application order. The filters
+    are named following the pywt convention as:
+    a - LL, low-low coefficients
+    h - LH, low-high coefficients
+    v - HL, high-low coefficients
+    d - HH, high-high coefficients
     """
     wp_natural_path = list(product(["a", "h", "v", "d"], repeat=level))
 
-    def get_graycode_order(level, x='a', y='d'):
+    def get_graycode_order(level, x="a", y="d"):
         graycode_order = [x, y]
-        for i in range(level - 1):
-            graycode_order = [x + path for path in graycode_order] + \
-                            [y + path for path in graycode_order[::-1]]
+        for _ in range(level - 1):
+            graycode_order = [x + path for path in graycode_order] + [
+                y + path for path in graycode_order[::-1]
+            ]
         return graycode_order
 
     def expand_2d_path(path):
-        expanded_paths = {
-            'd': 'hh',
-            'h': 'hl',
-            'v': 'lh',
-            'a': 'll'
-        }
-        return (''.join([expanded_paths[p][0] for p in path]),
-                ''.join([expanded_paths[p][1] for p in path]))
+        expanded_paths = {"d": "hh", "h": "hl", "v": "lh", "a": "ll"}
+        return (
+            "".join([expanded_paths[p][0] for p in path]),
+            "".join([expanded_paths[p][1] for p in path]),
+        )
 
     nodes = {}
     for (row_path, col_path), node in [
         (expand_2d_path(node), node) for node in wp_natural_path
     ]:
         nodes.setdefault(row_path, {})[col_path] = node
-    graycode_order = get_graycode_order(level, x='l', y='h')
+    graycode_order = get_graycode_order(level, x="l", y="h")
     nodes = [nodes[path] for path in graycode_order if path in nodes]
     wp_frequency_path = []
     for row in nodes:
-        wp_frequency_path.append(
-            [row[path] for path in graycode_order if path in row]
-        )
+        wp_frequency_path.append([row[path] for path in graycode_order if path in row])
     return wp_frequency_path, wp_natural_path
-
-
 
 
 def main():
@@ -182,14 +186,18 @@ def main():
 
     # mean image plots
     gan_mean_packet_image = generate_frequency_packet_image(
-        np.mean(style_gan_array, axis=(0, -1)), degree=3)
+        np.mean(style_gan_array, axis=(0, -1)), degree=3
+    )
     ffhq_mean_packet_image = generate_frequency_packet_image(
-        np.mean(ffhq_array, axis=(0, -1)), degree=3)
+        np.mean(ffhq_array, axis=(0, -1)), degree=3
+    )
     # std image plots
     gan_std_packet_image = generate_frequency_packet_image(
-        np.std(style_gan_array, axis=(0, -1)), degree=3)
+        np.std(style_gan_array, axis=(0, -1)), degree=3
+    )
     ffhq_std_packet_image = generate_frequency_packet_image(
-        np.std(ffhq_array, axis=(0, -1)), degree=3)
+        np.std(ffhq_array, axis=(0, -1)), degree=3
+    )
 
     fig = plt.figure(figsize=(8, 6))
     columns = 3
@@ -230,6 +238,7 @@ def main():
 
     if 1:
         import tikzplotlib
+
         tikzplotlib.save("ffhq_style_packet_mean_std_plot.tex", standalone=True)
     plt.show()
     print("first plot done")
@@ -255,6 +264,7 @@ def main():
 
     if 1:
         import tikzplotlib
+
         tikzplotlib.save("absolute_coeff_comparison.tex", standalone=True)
     plt.show()
     print("done")

@@ -3,20 +3,19 @@
 import argparse
 import functools
 import os
+import pickle
 import random
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Optional
 
 import numpy as np
-from PIL import Image
 import torch
-import pickle
+from PIL import Image
 
-
+from .corruption import jpeg_compression, random_resized_crop, random_rotation
 from .data_loader import LoadNumpyDataset
 from .wavelet_math import batch_packet_preprocessing, identity_processing
-from .pre_processing import jpeg_compression, random_rotation, random_resized_crop
 
 
 def get_label_of_folder(
@@ -75,13 +74,13 @@ def get_label_of_folder(
 def get_label(path_to_image: Path, binary_classification: bool) -> int:
     """Get the label based on the image path.
 
-        We assume:
+       The file structure must be as outlined in the README file.
+       We assume:
             A: Orignal data, B: First gan,
             C: Second gan, D: Third gan, E: Fourth gan.
-        A working folder structure could look like:
+       A working folder structure could look like:
             A_celeba  B_CramerGAN  C_MMDGAN  D_ProGAN  E_SNGAN
-        With each folder containing the images from the corresponding
-        source.
+       With each folder containing the images from the corresponding source.
 
     Args:
         path_to_image (Path): Image path string containing only a single
@@ -99,16 +98,26 @@ def get_label(path_to_image: Path, binary_classification: bool) -> int:
     return get_label_of_folder(path_to_image.parent, binary_classification)
 
 
-def load_and_stack(path_list: list, binary_classification: bool = False,
-                   jpeg_compression: int = None) -> tuple:
+def load_and_stack(
+    path_list: list,
+    binary_classification: bool = False,
+    jpeg_compression_number: int = None,
+    rotation_and_crop: bool = False,
+) -> tuple:
     """Transform a lists of paths into a batches of numpy arrays and record their labels.
+
+        If enabled, some images will be corruped here for robustness testing.
 
     Args:
         path_list (list): A list of Poxis paths strings.
             The stings must follow the convention outlined
             in the get_label function.
-        binary_classification (bool): If flag is set, we only classify binarily, i.e. whether an image is real or fake.
-        jpeg_compression (int): jpeg comression factor used for robustness testing. Defaults to None.
+        binary_classification (bool): If flag is set, we only classify binarily,
+            i.e. whether an image is real or fake.
+        jpeg_compression_number (int): jpeg comression factor used for robustness testing.
+            Defaults to None.
+        rotation_and_crop (bool): If true some images are randomly cropped or rotated.
+            Defaults to False.
 
     Returns:
         tuple: A numpy array of size
@@ -121,7 +130,9 @@ def load_and_stack(path_list: list, binary_classification: bool = False,
         image = Image.open(path_to_image)
 
         if jpeg_compression:
-            image = jpeg_compression(image, jpeg_compression)
+            image = jpeg_compression(image, jpeg_compression_number)
+        if rotation_and_crop:
+            image = random_resized_crop(random_rotation(image))
 
         image_list.append(np.array(image))
         label_list.append(np.array(get_label(path_to_image, binary_classification)))
@@ -167,6 +178,8 @@ def load_process_store(
     label_string,
     dir_suffix="",
     binary_classification: bool = False,
+    jpeg_compression_number: int = None,
+    rotation_and_crop: bool = False,
 ):
     """Load, process and store a file list according to a processing function.
 
@@ -177,6 +190,10 @@ def load_process_store(
             I.e. a wavelet packet encoding.
         target_dir (string): A directory where to save the processed files.
         label_string (string): A label we add to the target folder.
+        jpeg_compression_number (int): jpeg comression factor used for robustness testing.
+            Defaults to None.
+        rotation_and_crop (bool): If true some images are randomly cropped or rotated.
+            Defaults to False.
     """
     splits = int(len(file_list) / preprocessing_batch_size)
     batched_files = np.array_split(file_list, splits)
@@ -186,7 +203,10 @@ def load_process_store(
     for current_file_batch in batched_files:
         # load, process and store the current batch training set.
         image_batch, labels = load_and_stack(
-            current_file_batch, binary_classification=binary_classification
+            current_file_batch,
+            binary_classification=binary_classification,
+            jpeg_compression_number=jpeg_compression_number,
+            rotation_and_crop=rotation_and_crop,
         )
         all_labels.extend(labels)
         processed_batch = process(image_batch)
@@ -207,12 +227,19 @@ def load_folder(
     this functions will create Posix-path lists. A train, test, and
     validation set list is created.
 
-    :param folder: Path to a folder with images from the same source, i.e. A_ffhq .
-    :param train_size: Desired size of the training set.
-    :param val_size: Desired size of the validation set.
-    :param test_size: Desired size of the test set.
-    :return: Numpy array with the train, validation and test lists, in this order.
-    :raises ValueError: if the requested set sizes are not smaller or equal to the number of images available
+    Args:
+        folder: Path to a folder with images from the same source, i.e. A_ffhq .
+        train_size: Desired size of the training set.
+        val_size: Desired size of the validation set.
+        test_size: Desired size of the test set.
+
+    Returns:
+        Numpy array with the train, validation and test lists, in this order.
+
+    Raises:
+        ValueError: if the requested set sizes are not smaller or equal to the number of images available
+
+    # noqa: DAR401
     """
     file_list = list(folder.glob("./*.png"))
     if len(file_list) < train_size + val_size + test_size:
@@ -235,11 +262,12 @@ def pre_process_folder(
     val_size: int,
     test_size: int,
     feature: Optional[str] = None,
-    wavelet: str= 'db1',
-    boundary: str= 'reflect',
+    wavelet: str = "db1",
+    boundary: str = "reflect",
     missing_label: int = None,
     gan_split_factor: float = 1.0,
-    jpeg_compression: int = None,
+    jpeg_compression_number: int = None,
+    crop_rotate: bool = False,
 ) -> None:
     """Preprocess a folder containing sub-directories with images from different sources.
 
@@ -255,18 +283,28 @@ def pre_process_folder(
         test_size (int): Desired size of the test subset of each folder.
         feature (str): The feature to pre-compute (choose packets, log_packets or raw).
         missing_label (int): label to leave out of training and validation set (choose from {0, 1, 2, 3, 4, None})
-        gan_split_factor (float): factor by which the training and validation subset sizes are scaled for each GAN, if
-            a missing label is specified.
+        gan_split_factor (float): factor by which the training and validation subset sizes are scaled for each GAN,
+            if a missing label is specified.
+        jpeg_compression_number (int): jpeg comression factor used for robustness testing.
+            Defaults to None.
+        rotation_and_crop (bool): If true some images are randomly cropped or rotated.
+            Defaults to False.
     """
     data_dir = Path(data_folder)
     if feature == "raw":
-        target_dir = data_dir.parent / f"{data_dir.name}_{feature}"
+        target_dir = (
+            data_dir.parent
+            / f"{data_dir.name}_{feature}_jpeg_{jpeg_compression_number}_cr_{crop_rotate}"
+        )
     else:
-        target_dir = data_dir.parent / f"{data_dir.name}_{feature}_{wavelet}_{boundary}"
+        target_dir = (
+            data_dir.parent
+            / f"{data_dir.name}_{feature}_{wavelet}_{boundary}_jpeg_{jpeg_compression_number}_cr_{crop_rotate}"
+        )
 
     if feature == "packets":
-        processing_function = functools.partial(batch_packet_preprocessing,
-            wavelet=wavelet, mode=boundary
+        processing_function = functools.partial(
+            batch_packet_preprocessing, wavelet=wavelet, mode=boundary
         )
     elif feature == "log_packets":
         processing_function = functools.partial(
@@ -353,6 +391,8 @@ def pre_process_folder(
         "val",
         dir_suffix=dir_suffix,
         binary_classification=binary_classification,
+        jpeg_compression_number=jpeg_compression_number,
+        rotation_and_crop=crop_rotate,
     )
     print("validation set stored")
 
@@ -366,6 +406,8 @@ def pre_process_folder(
         "test",
         dir_suffix=dir_suffix,
         binary_classification=False,
+        jpeg_compression_number=jpeg_compression_number,
+        rotation_and_crop=crop_rotate,
     )
     print("test set stored")
 
@@ -378,6 +420,8 @@ def pre_process_folder(
         "train",
         dir_suffix=dir_suffix,
         binary_classification=binary_classification,
+        jpeg_compression_number=jpeg_compression_number,
+        rotation_and_crop=crop_rotate,
     )
     print("training set stored.", flush=True)
 
@@ -396,10 +440,9 @@ def pre_process_folder(
     std = torch.std(img_data.double(), axis).float()
     del img_data
     print("mean", mean, "std:", std)
-    with open(f"{target_dir}_train{dir_suffix}/mean_std.pkl", 'wb') as f:
+    with open(f"{target_dir}_train{dir_suffix}/mean_std.pkl", "wb") as f:
         pickle.dump([mean.numpy(), std.numpy()], f)
 
-    
 
 def parse_args():
     """Parse command line arguments."""
@@ -466,7 +509,7 @@ def parse_args():
     parser.add_argument(
         "--gan-split-factor",
         type=float,
-        default=1./3.,
+        default=1.0 / 3.0,
         help="scaling factor for GAN subsets in the binary classification split. If a missing label is specified, the"
         " classification task changes to classifying whether the data was generated or not. In this case, the share"
         " of the GAN subsets in the split sets should be reduced to balance both classes (i.e. real and generated"
@@ -491,9 +534,16 @@ def parse_args():
         "--jpeg",
         type=int,
         default=None,
-        help="Use jpeg compression to measure the robustness of our method."
+        help="Use jpeg compression to measure the robustness of our method. The compression factor"
+        "should be an integer on a scale from 0 (worst) to 95 (best).",
     )
 
+    parser.add_argument(
+        "--crop-rotate",
+        "-cr",
+        action="store_true",
+        help="If set some images will be randomly cropped or rotated.",
+    )
     return parser.parse_args()
 
 
@@ -517,6 +567,7 @@ if __name__ == "__main__":
         missing_label=args.missing_label,
         gan_split_factor=args.gan_split_factor,
         wavelet=args.wavelet,
-        boundary=args.boundary
-        jpeg_compression=args.jpeg
+        boundary=args.boundary,
+        jpeg_compression_number=args.jpeg,
+        crop_rotate=args.crop_rotate,
     )

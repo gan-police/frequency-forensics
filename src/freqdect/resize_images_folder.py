@@ -1,10 +1,11 @@
+"""Preprocessing module with code to resize all images in a folder."""
+
 import argparse
 import os
 from concurrent.futures import ProcessPoolExecutor
-from typing import Tuple
 from functools import partial
+from typing import Tuple
 
-import numpy as np
 from PIL import Image
 
 
@@ -37,7 +38,7 @@ def main(args):
     paths = os.listdir(args.DIRECTORY)[: args.SIZE]
     packed = map(lambda x: (x[0], args.DIRECTORY, x[1], args.OUTPUT), enumerate(paths))
     packed_list = list(packed)
-    print('image total', len(packed_list))
+    print("image total", len(packed_list))
     resize_shape = partial(resize_image, shape=(args.SHAPE, args.SHAPE))
 
     with ProcessPoolExecutor() as pool:
