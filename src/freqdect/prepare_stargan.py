@@ -212,19 +212,19 @@ def parse_args():
     parser.add_argument(
         "--train-size",
         type=int,
-        default=10,
+        default=63_000,
         help="Desired size of the training subset of each folder. (default: 63_000).",
     )
     parser.add_argument(
         "--test-size",
         type=int,
-        default=0,
+        default=5_000,
         help="Desired size of the test subset of each folder. (default: 5_000).",
     )
     parser.add_argument(
         "--val-size",
         type=int,
-        default=0,
+        default=2_000,
         help="Desired size of the validation subset of each folder. (default: 2_000).",
     )
     parser.add_argument(
