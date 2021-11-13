@@ -112,11 +112,17 @@ def pre_process_folder(
     folder_list = sorted(data_dir.glob("./*"))
 
     # Split only original images first and then replace half of them with corresponding StarGAN fakes
-    train_list, validation_list, test_list = load_folder(folder_list[0], train_size=train_size, val_size=val_size, test_size=test_size)
+    train_list, validation_list, test_list = load_folder(
+        folder_list[0], train_size=train_size, val_size=val_size, test_size=test_size
+    )
 
     num_of_classes = len(folder_list) - 1
+
     def _insert_cls_files(counter, folder, size, lst):
-        for idx in range(int(counter * 0.5 * size / num_of_classes), int((counter + 1) * 0.5 * size / num_of_classes)):
+        for idx in range(
+            int(counter * 0.5 * size / num_of_classes),
+            int((counter + 1) * 0.5 * size / num_of_classes),
+        ):
             lst[idx] = folder / lst[idx].name
 
     for cls_idx, cls_folder in enumerate(folder_list[1:]):
