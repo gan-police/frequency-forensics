@@ -111,8 +111,8 @@ def get_label(path_to_image: Path, binary_classification: bool) -> int:
 
 def load_perturb_and_stack(
     path_list: list,
+    perturbation: Perturbation,
     binary_classification: bool = False,
-    perturbation: Perturbation = None,
 ) -> tuple:
     """Transform a lists of paths into a batches of numpy arrays and record their labels.
 
@@ -122,9 +122,9 @@ def load_perturb_and_stack(
         path_list (list): A list of Poxis paths strings.
             The stings must follow the convention outlined
             in the get_label function.
+        perturbation (Perturbation): Tuple with the image perturbations to apply.
         binary_classification (bool): If flag is set, we only classify binarily,
             i.e. whether an image is real or fake.
-        perturbation (Perturbation): Tuple with the image perturbations to apply.
 
     Returns:
         tuple: A numpy array of size
@@ -189,9 +189,9 @@ def load_process_store(
     process,
     target_dir,
     label_string,
+    perturbation: Perturbation,
     dir_suffix="",
     binary_classification: bool = False,
-    perturbation: Perturbation = None,
 ):
     """Load, process and store a file list according to a processing function.
 
@@ -203,7 +203,7 @@ def load_process_store(
         target_dir (string): A directory where to save the processed files.
         label_string (string): A label we add to the target folder.
         perturbation (Perturbation): A tuple with potential image perturbations
-            to apply. Defaults to None.
+            to apply.
     """
     splits = int(len(file_list) / preprocessing_batch_size)
     batched_files = np.array_split(file_list, splits)
@@ -269,12 +269,12 @@ def pre_process_folder(
     train_size: int,
     val_size: int,
     test_size: int,
+    perturbataion: Perturbation,
     feature: Optional[str] = None,
     wavelet: str = "db1",
     boundary: str = "reflect",
     missing_label: int = None,
     gan_split_factor: float = 1.0,
-    perturbataion: Perturbation = None,
 ) -> None:
     """Preprocess a folder containing sub-directories with images from different sources.
 
@@ -582,12 +582,12 @@ if __name__ == "__main__":
         feature = "raw"
 
     pre_process_folder(
-        args.directory,
-        args.batch_size,
-        args.train_size,
-        args.val_size,
-        args.test_size,
-        feature,
+        data_folder=args.directory,
+        preprocessing_batch_size=args.batch_size,
+        train_size=args.train_size,
+        val_size=args.val_size,
+        test_size=args.test_size,
+        feature=feature,
         missing_label=args.missing_label,
         gan_split_factor=args.gan_split_factor,
         wavelet=args.wavelet,
