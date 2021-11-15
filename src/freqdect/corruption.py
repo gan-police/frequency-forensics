@@ -1,11 +1,13 @@
 """Image corruption code for robustness testing."""
 from io import BytesIO
 
+import numpy as np
+import cv2
 from PIL import Image
 from torchvision.transforms import RandomResizedCrop, RandomRotation
 
 
-def jpeg_compression(image: Image, jpeg_compression: int) -> Image:
+def jpeg_compression(image: Image) -> Image:
     """Compute a compressed version of the input image.
 
     Args:
@@ -17,7 +19,8 @@ def jpeg_compression(image: Image, jpeg_compression: int) -> Image:
         Image: The compressed image.
     """
     out = BytesIO()
-    image.save(out, format="JPEG", quality=jpeg_compression)
+    factor = np.random.randint(low=10, high=95)
+    image.save(out, format="JPEG", quality=factor)
     return Image.open(out)
 
 
@@ -43,4 +46,47 @@ def random_resized_crop(image: Image) -> Image:
     Returns:
         Image: The processed output image.
     """
-    return RandomResizedCrop((image.size[1], image.size[0]), scale=(0.9, 1.0))(image)
+    return RandomResizedCrop((image.size[1], image.size[0]), scale=(0.8, 1.0))(image)
+
+
+def noise(image: Image) -> Image:
+    """Add random variance noise with to test classifier resilience.
+    
+       Adapted from:
+       https://github.com/RUB-SysSec/GANDCTAnalysis/
+       -> create_perturbed_imagedata.py
+
+    Args:
+        image (Image): The input PIL.Image .
+
+    Returns:
+        Image: Output image with added noise.
+    """
+    image = np.array(image)
+    # variance from U[5.0,20.0]
+    variance = np.random.uniform(low=5., high=20.)
+    image = np.copy(image).astype(np.float64)
+    noise = variance * np.random.randn(*image.shape)
+    image += noise
+    return Image.fromarray(np.clip(image, 0., 255.).astype(np.uint8))
+
+
+def blur(image: Image) -> Image:
+    """ Applys a gaussian blur for resilience testing.
+
+       Adapted from:
+       https://github.com/RUB-SysSec/GANDCTAnalysis/
+       -> create_perturbed_imagedata.py
+
+    Args:
+        image (Image): The PIL.Image input.
+
+    Returns:
+        Image: Blurred output.
+    """    
+    # kernel size from [1, 3, 5, 7, 9]
+    image = np.array(image)
+    kernel_size = np.random.choice([3, 5, 7, 9])
+    blurred = cv2.GaussianBlur(
+        image, (kernel_size, kernel_size), sigmaX=cv2.BORDER_DEFAULT)
+    return Image.fromarray(np.clip(blurred, 0., 255.).astype(np.uint8))
