@@ -5,28 +5,29 @@ import functools
 import os
 import pickle
 import random
+from collections import namedtuple
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Optional
-from collections import namedtuple
+
 
 import numpy as np
 import torch
 from PIL import Image
 
 from .corruption import (
+    blur,
     jpeg_compression,
+    noise,
     random_resized_crop,
     random_rotation,
-    noise,
-    blur
 )
 from .data_loader import LoadNumpyDataset
 from .wavelet_math import batch_packet_preprocessing, identity_processing
-from freqdect import corruption
 
 
-Perturbation = namedtuple('Perturbation', ['rotate', 'crop', 'jpeg', 'noise', 'blur'])
+Perturbation = namedtuple("Perturbation", ["rotate", "crop", "jpeg", "noise", "blur"])
+
 
 def get_label_of_folder(
     path_of_folder: Path, binary_classification: bool = False
@@ -111,7 +112,7 @@ def get_label(path_to_image: Path, binary_classification: bool) -> int:
 def load_perturb_and_stack(
     path_list: list,
     binary_classification: bool = False,
-    perturbation: Perturbation = None
+    perturbation: Perturbation = None,
 ) -> tuple:
     """Transform a lists of paths into a batches of numpy arrays and record their labels.
 
@@ -190,7 +191,7 @@ def load_process_store(
     label_string,
     dir_suffix="",
     binary_classification: bool = False,
-    perturbation: Perturbation = None
+    perturbation: Perturbation = None,
 ):
     """Load, process and store a file list according to a processing function.
 
@@ -214,7 +215,7 @@ def load_process_store(
         image_batch, labels = load_perturb_and_stack(
             current_file_batch,
             binary_classification=binary_classification,
-            perturbation=perturbation
+            perturbation=perturbation,
         )
         all_labels.extend(labels)
         processed_batch = process(image_batch)
@@ -273,7 +274,7 @@ def pre_process_folder(
     boundary: str = "reflect",
     missing_label: int = None,
     gan_split_factor: float = 1.0,
-    perturbataion: Perturbation = None
+    perturbataion: Perturbation = None,
 ) -> None:
     """Preprocess a folder containing sub-directories with images from different sources.
 
@@ -301,16 +302,16 @@ def pre_process_folder(
         folder_name = f"{data_dir.name}_{feature}"
     else:
         folder_name = f"{data_dir.name}_{feature}_{wavelet}_{boundary}"
-    if perturbataion.jpeg: 
-        folder_name += f"_jpeg"
+    if perturbataion.jpeg:
+        folder_name += "_jpeg"
     if perturbataion.crop:
-        folder_name += f"_crop"
+        folder_name += "_crop"
     if perturbataion.rotate:
-        folder_name += f"_rotate"
+        folder_name += "_rotate"
     if perturbataion.noise:
-        folder_name += f"_noise"
+        folder_name += "_noise"
 
-    target_dir = data_dir.parent / folder_name 
+    target_dir = data_dir.parent / folder_name
 
     if feature == "packets":
         processing_function = functools.partial(
@@ -401,7 +402,7 @@ def pre_process_folder(
         "val",
         dir_suffix=dir_suffix,
         binary_classification=binary_classification,
-        perturbation=perturbataion
+        perturbation=perturbataion,
     )
     print("validation set stored")
 
@@ -415,7 +416,7 @@ def pre_process_folder(
         "test",
         dir_suffix=dir_suffix,
         binary_classification=False,
-        perturbation=perturbataion
+        perturbation=perturbataion,
     )
     print("test set stored")
 
@@ -428,7 +429,7 @@ def pre_process_folder(
         "train",
         dir_suffix=dir_suffix,
         binary_classification=binary_classification,
-        perturbation=perturbataion
+        perturbation=perturbataion,
     )
     print("training set stored.", flush=True)
 
@@ -596,6 +597,6 @@ if __name__ == "__main__":
             crop=args.crop,
             rotate=args.rotate,
             noise=args.noise,
-            blur=args.blur
-        )
+            blur=args.blur,
+        ),
     )

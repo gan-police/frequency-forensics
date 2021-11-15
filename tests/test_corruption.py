@@ -13,9 +13,7 @@ from freqdect.corruption import jpeg_compression, random_resized_crop, random_ro
 def test_jpeg_compression():
     """Test the jepeg compression function."""
     face = Image.fromarray(misc.face())
-    compressed = np.array(jpeg_compression(face, 95))
-    err = np.mean(np.abs(np.array(face) - compressed))
-    assert err < 40  # noqa: S101
+    compressed = np.array(jpeg_compression(face))
     assert np.array(face).shape == compressed.shape  # noqa: S101
 
 
@@ -44,7 +42,7 @@ if __name__ == "__main__":
     plt.imshow(np.array(face))
     plt.show()
 
-    second_face = np.array(random_rotation(jpeg_compression(face, 100)))
+    second_face = np.array(random_rotation(jpeg_compression(face)))
 
     plt.imshow(second_face)
     plt.show()

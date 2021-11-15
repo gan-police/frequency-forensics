@@ -1,8 +1,8 @@
-"""Image corruption code for robustness testing."""
+"""Corrupt images for robustness testing."""
 from io import BytesIO
 
-import numpy as np
 import cv2
+import numpy as np
 from PIL import Image
 from torchvision.transforms import RandomResizedCrop, RandomRotation
 
@@ -51,7 +51,7 @@ def random_resized_crop(image: Image) -> Image:
 
 def noise(image: Image) -> Image:
     """Add random variance noise with to test classifier resilience.
-    
+
        Adapted from:
        https://github.com/RUB-SysSec/GANDCTAnalysis/
        -> create_perturbed_imagedata.py
@@ -64,15 +64,15 @@ def noise(image: Image) -> Image:
     """
     image = np.array(image)
     # variance from U[5.0,20.0]
-    variance = np.random.uniform(low=5., high=20.)
+    variance = np.random.uniform(low=5.0, high=20.0)
     image = np.copy(image).astype(np.float64)
     noise = variance * np.random.randn(*image.shape)
     image += noise
-    return Image.fromarray(np.clip(image, 0., 255.).astype(np.uint8))
+    return Image.fromarray(np.clip(image, 0.0, 255.0).astype(np.uint8))
 
 
 def blur(image: Image) -> Image:
-    """ Applys a gaussian blur for resilience testing.
+    """Apply a gaussian blur for resilience testing.
 
        Adapted from:
        https://github.com/RUB-SysSec/GANDCTAnalysis/
@@ -83,10 +83,11 @@ def blur(image: Image) -> Image:
 
     Returns:
         Image: Blurred output.
-    """    
+    """
     # kernel size from [1, 3, 5, 7, 9]
     image = np.array(image)
     kernel_size = np.random.choice([3, 5, 7, 9])
     blurred = cv2.GaussianBlur(
-        image, (kernel_size, kernel_size), sigmaX=cv2.BORDER_DEFAULT)
-    return Image.fromarray(np.clip(blurred, 0., 255.).astype(np.uint8))
+        image, (kernel_size, kernel_size), sigmaX=cv2.BORDER_DEFAULT
+    )
+    return Image.fromarray(np.clip(blurred, 0.0, 255.0).astype(np.uint8))
