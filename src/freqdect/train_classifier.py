@@ -84,7 +84,7 @@ def _parse_args():
     parser.add_argument(
         "--validation-interval",
         type=int,
-        default=200,
+        default=500,
         help="number of training steps after which the model is tested on the validation data set (default: 200)",
     )
     parser.add_argument(

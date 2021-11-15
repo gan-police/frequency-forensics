@@ -310,6 +310,8 @@ def pre_process_folder(
         folder_name += "_rotate"
     if perturbataion.noise:
         folder_name += "_noise"
+    if perturbataion.blur:
+        folder_name += "_blur"
 
     target_dir = data_dir.parent / folder_name
 
