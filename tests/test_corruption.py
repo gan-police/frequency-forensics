@@ -50,4 +50,3 @@ if __name__ == "__main__":
     third_face = random_resized_crop(face)
     plt.imshow(third_face)
     plt.show()
-    print('done')
