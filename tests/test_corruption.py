@@ -42,7 +42,7 @@ if __name__ == "__main__":
     plt.imshow(np.array(face))
     plt.show()
 
-    second_face = np.array(random_rotation(jpeg_compression(face)))
+    second_face = np.array(jpeg_compression(face))
 
     plt.imshow(second_face)
     plt.show()
@@ -50,3 +50,4 @@ if __name__ == "__main__":
     third_face = random_resized_crop(face)
     plt.imshow(third_face)
     plt.show()
+    print('done')

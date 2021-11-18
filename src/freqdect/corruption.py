@@ -19,8 +19,8 @@ def jpeg_compression(image: Image) -> Image:
         Image: The compressed image.
     """
     out = BytesIO()
-    factor = np.random.randint(low=10, high=95)
-    image.save(out, format="JPEG", quality=factor)
+    factor = np.random.randint(low=70, high=90)
+    image.save(out, format="JPEG", quality=factor, subsampling=0)
     return Image.open(out)
 
 
