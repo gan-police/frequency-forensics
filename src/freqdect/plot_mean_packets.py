@@ -264,9 +264,9 @@ def main():
 
     if 1:
         import tikzplotlib
+
         tikzplotlib.save("absolute_coeff_comparison.tex", standalone=True)
     plt.show()
-    print("done")
 
 
 if __name__ == "__main__":
