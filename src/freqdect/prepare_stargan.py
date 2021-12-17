@@ -11,13 +11,13 @@ import numpy as np
 import torch
 
 from .data_loader import LoadNumpyDataset
-from .prepare_dataset import load_process_store, Perturbation
+from .prepare_dataset import Perturbation, load_process_store
 from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 def load_folder(
     folder: Path, train_size: int, val_size: int, test_size: int
-) -> np.array:
+) -> np.ndarray:
     """Create posix-path lists for png files in a folder.
 
     Given a folder containing JPG image files (*.jpg) this function
@@ -122,7 +122,7 @@ def pre_process_folder(
 
     num_of_classes = len(folder_list) - 1
 
-    def _insert_cls_files(counter, folder, size, lst):
+    def _insert_cls_files(counter: int, folder: Path, size: int, lst: list) -> None:
         for idx in range(
             int(counter * 0.5 * size / num_of_classes),
             int((counter + 1) * 0.5 * size / num_of_classes),
