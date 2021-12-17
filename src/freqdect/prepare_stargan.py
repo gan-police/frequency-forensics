@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from .data_loader import LoadNumpyDataset
-from .prepare_dataset import load_process_store
+from .prepare_dataset import load_process_store, Perturbation
 from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
@@ -20,8 +20,9 @@ def load_folder(
 ) -> np.array:
     """Create posix-path lists for png files in a folder.
 
-    Given a folder containing *.jpg files this functions will create Posix-path lists.
-    A train, test, and validation set list is created.
+    Given a folder containing JPG image files (*.jpg) this function
+    will create Posix-path lists. A train, test, and validation set
+    list is created.
 
     Args:
         folder: Path to a folder with images from the same source, i.e. A_ffhq .
@@ -48,7 +49,6 @@ def load_folder(
     train_list = file_list[:train_size]
     validation_list = file_list[train_size : (train_size + val_size)]
     test_list = file_list[(train_size + val_size) : (train_size + val_size + test_size)]
-
     return np.asarray([train_list, validation_list, test_list], dtype=object)
 
 
@@ -58,11 +58,10 @@ def pre_process_folder(
     train_size: int,
     val_size: int,
     test_size: int,
+    perturbataion: Perturbation,
     feature: Optional[str] = None,
     wavelet: str = "db1",
     boundary: str = "reflect",
-    jpeg_compression_number: int = None,
-    crop_rotate: bool = False,
 ) -> None:
     """Preprocess a folder containing sub-directories with images from different sources.
 
@@ -87,15 +86,21 @@ def pre_process_folder(
 
     data_dir = Path(data_folder)
     if feature == "raw":
-        target_dir = (
-            data_dir.parent
-            / f"{data_dir.name}_{feature}_j_{jpeg_compression_number}_cr_{crop_rotate}"
-        )
+        folder_name = f"{data_dir.name}_{feature}"
     else:
-        target_dir = (
-            data_dir.parent
-            / f"{data_dir.name}_{feature}_{wavelet}_{boundary}_j_{jpeg_compression_number}_cr_{crop_rotate}"
-        )
+        folder_name = f"{data_dir.name}_{feature}_{wavelet}_{boundary}"
+    if perturbataion.jpeg:
+        folder_name += "_jpeg"
+    if perturbataion.crop:
+        folder_name += "_crop"
+    if perturbataion.rotate:
+        folder_name += "_rotate"
+    if perturbataion.noise:
+        folder_name += "_noise"
+    if perturbataion.blur:
+        folder_name += "_blur"
+
+    target_dir = data_dir.parent / folder_name
 
     if feature == "packets":
         processing_function = functools.partial(
@@ -129,7 +134,6 @@ def pre_process_folder(
         _insert_cls_files(cls_idx, cls_folder, val_size, validation_list)
         _insert_cls_files(cls_idx, cls_folder, test_size, test_list)
 
-    # fix the seed to make results reproducible.
     random.shuffle(train_list)
     random.shuffle(validation_list)
     random.shuffle(test_list)
@@ -147,8 +151,7 @@ def pre_process_folder(
         "val",
         dir_suffix=dir_suffix,
         binary_classification=binary_classification,
-        jpeg_compression_number=jpeg_compression_number,
-        rotation_and_crop=crop_rotate,
+        perturbation=perturbataion,
     )
     print("validation set stored")
 
@@ -162,8 +165,7 @@ def pre_process_folder(
         "test",
         dir_suffix=dir_suffix,
         binary_classification=False,
-        jpeg_compression_number=jpeg_compression_number,
-        rotation_and_crop=crop_rotate,
+        perturbation=perturbataion,
     )
     print("test set stored")
 
@@ -176,8 +178,7 @@ def pre_process_folder(
         "train",
         dir_suffix=dir_suffix,
         binary_classification=binary_classification,
-        jpeg_compression_number=jpeg_compression_number,
-        rotation_and_crop=crop_rotate,
+        perturbation=perturbataion,
     )
     print("training set stored.", flush=True)
 
@@ -269,18 +270,34 @@ def parse_args():
 
     parser.add_argument(
         "--jpeg",
-        type=int,
-        default=None,
-        help="Use jpeg compression to measure the robustness of our method. The compression factor"
-        "should be an integer on a scale from 0 (worst) to 95 (best).",
+        action="store_true",
+        help="Apply jpeg compression to measure the robustness of our method.",
     )
 
     parser.add_argument(
-        "--crop-rotate",
-        "-cr",
+        "--crop",
         action="store_true",
-        help="If set some images will be randomly cropped or rotated.",
+        help="If set some images will be randomly cropped.",
     )
+
+    parser.add_argument(
+        "--rotate",
+        action="store_true",
+        help="If set some images will be randomly rotated.",
+    )
+
+    parser.add_argument(
+        "--noise",
+        action="store_true",
+        help="If set noise will added to some images.",
+    )
+
+    parser.add_argument(
+        "--blur",
+        action="store_true",
+        help="If set a gaussian blur will be applied to all images.",
+    )
+
     return parser.parse_args()
 
 
@@ -295,14 +312,19 @@ if __name__ == "__main__":
         feature = "raw"
 
     pre_process_folder(
-        args.directory,
-        args.batch_size,
-        args.train_size,
-        args.val_size,
-        args.test_size,
-        feature,
+        data_folder=args.directory,
+        preprocessing_batch_size=args.batch_size,
+        train_size=args.train_size,
+        val_size=args.val_size,
+        test_size=args.test_size,
+        feature=feature,
         wavelet=args.wavelet,
         boundary=args.boundary,
-        jpeg_compression_number=args.jpeg,
-        crop_rotate=args.crop_rotate,
+        perturbataion=Perturbation(
+            jpeg=args.jpeg,
+            crop=args.crop,
+            rotate=args.rotate,
+            noise=args.noise,
+            blur=args.blur,
+        ),
     )
