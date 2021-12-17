@@ -242,6 +242,7 @@ def load_folder(
     # noqa: DAR401
     """
     file_list = list(folder.glob("./*.png"))
+    random.shuffle(file_list)
     if len(file_list) < train_size + val_size + test_size:
         raise ValueError(
             "Requested set sizes must be smaller or equal to the number of images available."
@@ -290,6 +291,9 @@ def pre_process_folder(
         rotation_and_crop (bool): If true some images are randomly cropped or rotated.
             Defaults to False.
     """
+    # fix the seed to make results reproducible.
+    random.seed(42)
+
     data_dir = Path(data_folder)
     if feature == "raw":
         target_dir = (
@@ -368,8 +372,6 @@ def pre_process_folder(
         ]
         test_list = [img for folder in results[:, 2] for img in folder]  # type: ignore
 
-    # fix the seed to make results reproducible.
-    random.seed(42)
     random.shuffle(train_list)
     random.shuffle(validation_list)
     random.shuffle(test_list)
