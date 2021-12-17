@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+# mypy: ignore-errors
 
 """
 @author: Luca Bondi (luca.bondi@polimi.it)

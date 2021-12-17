@@ -14,13 +14,13 @@ def _plot_mean_std(x, mean, std, color, label="", marker="."):
     plt.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
 
 
-def generate_packet_image_tensor(packet_array: torch.tensor):
+def generate_packet_image_tensor(packet_array: torch.Tensor) -> torch.Tensor:
     """Arrange a packet tensor  as an image for imshow.
 
     Args:
-        packet_array ([torch.tensor): The [bach_size, packet_no, height, width, channels] packets
+        packet_array ([torch.Tensor): The [bach_size, packet_no, height, width, channels] packets
     Returns:
-        [torch.tensor]: The image of shape [batch_size, height, width, channels]
+        [torch.Tensor]: The image of shape [batch_size, height, width, channels]
     """
     packet_count = packet_array.shape[1]
     count = 0
@@ -37,21 +37,20 @@ def generate_packet_image_tensor(packet_array: torch.tensor):
             count = 0
             img.append(img_rows)
             img_rows = None
-    img = torch.cat(img, axis=1)
-    return img
+    return torch.cat(img, dim=1)
 
 
-def generate_natural_packet_image(packet_array: np.array, degree: int):
+def generate_natural_packet_image(packet_array: np.ndarray, degree: int):
     """Arrange a  packet array  as an image for imshow.
 
     Args:
-        packet_array ([np.array): The [packet_no, packet_height, packet_width] packets
+        packet_array ([np.ndarray): The [packet_no, packet_height, packet_width] packets
         degree (int): The degree of the transformation.
     Returns:
-        [np.array]: The image of shape [original_height, original_width]
+        [np.ndarray]: The image of shape [original_height, original_width]
     """
 
-    def _cat_sector(elements: np.array, level: int, max_level: int):
+    def _cat_sector(elements: np.ndarray, level: int, max_level: int):
         element_lst = np.split(elements, 4)
         if level < max_level - 1:
             img0 = _cat_sector(element_lst[0], level + 1, max_level)
@@ -78,19 +77,19 @@ def generate_natural_packet_image(packet_array: np.array, degree: int):
     return _cat_sector(packet_array, 0, degree).squeeze()
 
 
-def generate_frequency_packet_image(packet_array: np.array, degree: int):
+def generate_frequency_packet_image(packet_array: np.ndarray, degree: int):
     """Create a ready-to-polt image with frequency-order packages.
 
        Given a packet array in natural order, creat an image which is
        ready to plot in frequency order.
 
     Args:
-        packet_array (np.array): [packet_no, packet_height, packet_width]
+        packet_array (np.ndarray): [packet_no, packet_height, packet_width]
             in natural order.
         degree (int): The degree of the packet decomposition.
 
     Returns:
-        [np.array]: The image of shape [original_height, original_width]
+        [np.ndarray]: The image of shape [original_height, original_width]
     """
     wp_freq_path, wp_natural_path = get_freq_order(degree)
 

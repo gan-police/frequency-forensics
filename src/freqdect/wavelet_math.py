@@ -15,17 +15,17 @@ import torch
 
 def compute_packet_rep_2d(
     image, wavelet_str: str = "haar", max_lev: int = 3
-) -> np.array:
+) -> np.ndarray:
     """Numpy based computation of a 2d full-packet representation.
 
     Args:
-        image (np.aray): Image of shape [height, width].
+        image (np.ndaray): Image of shape [height, width].
         wavelet_str (str, optional): The wavelet to use. Defaults to "haar".
         max_lev (int, optional): The number of levels in the representation.
             Defaults to 3.
 
     Returns:
-        np.array: A ready to plot wavelet packet image.
+        np.ndarray: A ready to plot wavelet packet image.
     """
     wavelet = pywt.Wavelet(wavelet_str)
     wp_tree = pywt.WaveletPacket2D(data=image, wavelet=wavelet, mode="reflect")
@@ -63,9 +63,9 @@ def compute_pytorch_packet_representation_2d_image(
     img_pt = []
     img_rows_pt = None
     for node in wp_keys:
-        packet = torch.squeeze(ptwt_wp_tree["".join(node)], axis=1)
+        packet = torch.squeeze(ptwt_wp_tree["".join(node)], dim=1)
         if img_rows_pt is not None:
-            img_rows_pt = torch.cat([img_rows_pt, packet], axis=2)
+            img_rows_pt = torch.cat([img_rows_pt, packet], dim=2)
         else:
             img_rows_pt = packet
         count += 1
@@ -74,7 +74,7 @@ def compute_pytorch_packet_representation_2d_image(
             img_pt.append(img_rows_pt)
             img_rows_pt = None
 
-    wp_pt = torch.cat(img_pt, axis=1)
+    wp_pt = torch.cat(img_pt, dim=1)
     return wp_pt
 
 
@@ -110,10 +110,10 @@ def compute_pytorch_packet_representation_2d_tensor(
     )
     packet_list = []
     for node in wp_keys:
-        packet = torch.squeeze(ptwt_wp_tree["".join(node)], axis=1)
+        packet = torch.squeeze(ptwt_wp_tree["".join(node)], dim=1)
         packet_list.append(packet)
 
-    wp_pt = torch.stack(packet_list, axis=1)
+    wp_pt = torch.stack(packet_list, dim=1)
     return wp_pt
 
 
@@ -125,7 +125,7 @@ def batch_packet_preprocessing(
     The raw as well as an absolute log scaled version can be computed.
 
     Args:
-        image_batch (np.array): An image of shape (B, H, W, C)
+        image_batch (np.ndarray): An image of shape (B, H, W, C)
         wavelet (str, optional): A pywt-compatible wavelet string.
             Defaults to 'db1'.
         max_lev (int, optional): The number of decomposition scales
@@ -137,7 +137,7 @@ def batch_packet_preprocessing(
         mode: The boundary treatment method. Defaults to reflect.
 
     Returns:
-        [np.array]: The wavelet packets [B, N, H, W, C].
+        [np.ndarray]: The wavelet packets [B, N, H, W, C].
     """
     image_batch = torch.from_numpy(image_batch.astype(np.float32)).cuda()
     # transform to from H, W, C to C, H, W

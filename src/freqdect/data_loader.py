@@ -93,7 +93,7 @@ def main():
         """
         # compute mean and std
         img_lst = []
-        for img_no in range(data_set.__len__()):
+        for img_no in range(data_set.__len__()):  # type: ignore[attr-defined]
             img_lst.append(data_set.__getitem__(img_no)["image"])
         img_data = torch.stack(img_lst, 0)
 

@@ -34,8 +34,8 @@ def val_test_loop(
     """
     with torch.no_grad():
         model.eval()
-        val_total = 0
-        val_ok = 0
+        val_total = 0.0
+        val_ok = 0.0
         for val_batch in iter(data_loader):
             batch_images = val_batch["image"].cuda(non_blocking=True)
             batch_labels = val_batch["label"].cuda(non_blocking=True)
