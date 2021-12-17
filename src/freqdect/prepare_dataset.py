@@ -153,7 +153,7 @@ def load_perturb_and_stack(
 
 
 def save_to_disk(
-    data_batch: np.array,
+    data_batch: np.ndarray,
     directory: str,
     previous_file_count: int = 0,
     dir_suffix: str = "",
@@ -161,7 +161,7 @@ def save_to_disk(
     """Save images to disk using their position on the dataset as filename.
 
     Args:
-        data_batch (np.array): The image batch to store.
+        data_batch (np.ndarray): The image batch to store.
         directory (str): The place to store the images at.
         previous_file_count (int, optional): The number of previously stored images.
             Defaults to 0.
@@ -229,7 +229,7 @@ def load_process_store(
 
 def load_folder(
     folder: Path, train_size: int, val_size: int, test_size: int
-) -> np.array:
+) -> np.ndarray:
     """Create posix-path lists for png files in a folder.
 
     Given a folder containing portable network graphics (*.png) files
@@ -376,8 +376,8 @@ def pre_process_folder(
             load_folder, train_size=train_size, val_size=val_size, test_size=test_size
         )
         with ThreadPoolExecutor(max_workers=len(folder_list)) as pool:
-            results = list(pool.map(func_load_folder, folder_list))
-        results = np.array(results)
+            result_lst = list(pool.map(func_load_folder, folder_list))
+        results = np.asarray(result_lst)
 
         train_list = [img for folder in results[:, 0] for img in folder]  # type: ignore
         validation_list = [

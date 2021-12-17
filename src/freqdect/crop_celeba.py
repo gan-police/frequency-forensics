@@ -36,7 +36,7 @@ def crop_image(packed: Tuple[int, str, str, str]):
             x_upper = min(121 + 64, x)
             y_upper = min(89 + 64, y)
             image = image[x_upper - 128 : x_upper, y_upper - 128 : y_upper]
-            image = np.clip(image, 0, 255.0).astype(np.uint8)
+            image = np.clip(image, 0, 255.0).astype(np.uint8)  # type: ignore
 
         if not (image.shape[0] == 128 and image.shape[1] == 128):
             print("Aborting")
