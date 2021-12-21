@@ -5,7 +5,6 @@ for image analysis and gan-content recognition.
 """
 
 from itertools import product
-from typing import Optional
 
 import numpy as np
 import ptwt
@@ -19,7 +18,7 @@ def compute_packet_rep_2d(
     """Numpy based computation of a 2d full-packet representation.
 
     Args:
-        image (np.ndaray): Image of shape [height, width].
+        image (np.ndarray): Image of shape [height, width].
         wavelet_str (str, optional): The wavelet to use. Defaults to "haar".
         max_lev (int, optional): The number of levels in the representation.
             Defaults to 3.
@@ -80,7 +79,7 @@ def compute_pytorch_packet_representation_2d_image(
 
 def compute_pytorch_packet_representation_2d_tensor(
     pt_data: torch.Tensor,
-    wavelet_str: Optional[str] = "db5",
+    wavelet_str: str = "db5",
     max_lev: int = 5,
     mode: str = "reflect",
 ) -> torch.Tensor:
