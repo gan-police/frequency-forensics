@@ -77,6 +77,8 @@ def get_label_of_folder(
             label = 3
         elif label_str == "E":
             label = 4
+        elif label_str == "F":
+            label = 5
         else:
             raise NotImplementedError(label_str)
         return label
