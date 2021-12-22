@@ -17,7 +17,7 @@ def compute_parameter_total(net: torch.nn.Module) -> int:
     for p in net.parameters():
         if p.requires_grad:
             print(p.shape)
-            total += np.prod(p.shape)
+            total += np.prod(p.shape)  # type: ignore
     return total
 
 
@@ -60,18 +60,18 @@ class CNN(torch.nn.Module):
             self.linear = torch.nn.Linear(32 * 28 * 28, classes)
         self.logsoftmax = torch.nn.LogSoftmax(dim=-1)
 
-    def forward(self, x: torch.tensor) -> torch.tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Compute the CNN forward pass.
 
         Args:
-            x (torch.tensor): An input image of shape
+            x (torch.Tensor): An input image of shape
                 [batch_size, packets, height, width, channels]
                 for packet inputs and
                 [batch_size, height, width, channels]
                 else.
 
         Returns:
-            torch.tensor: A logsoftmax scaled output of shape
+            torch.Tensor: A logsoftmax scaled output of shape
                 [batch_size, classes].
         """
         # x = generate_packet_image_tensor(x)
@@ -106,15 +106,15 @@ class Regression(torch.nn.Module):
         # self.activation = torch.nn.Sigmoid()
         self.logsoftmax = torch.nn.LogSoftmax(dim=-1)
 
-    def forward(self, x: torch.tensor) -> torch.tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Compute the regression forward pass.
 
         Args:
-            x (torch.tensor): An input tensor of shape
+            x (torch.Tensor): An input tensor of shape
                 [batch_size, ...]
 
         Returns:
-            torch.tensor: A logsoftmax scaled output of shape
+            torch.Tensor: A logsoftmax scaled output of shape
                 [batch_size, classes].
         """
         x_flat = torch.reshape(x, [x.shape[0], -1])
@@ -155,11 +155,11 @@ class MLP(torch.nn.Module):
         """Compute the mlp forward pass.
 
         Args:
-            x (torch.tensor): An input tensor of shape
+            x (torch.Tensor): An input tensor of shape
                 [batch_size, ...]
 
         Returns:
-            torch.tensor: A logsoftmax scaled output of shape
+            torch.Tensor: A logsoftmax scaled output of shape
                 [batch_size, classes].
         """
         x_flat = torch.reshape(x, [x.shape[0], -1])
