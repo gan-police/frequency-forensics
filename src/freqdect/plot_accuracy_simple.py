@@ -54,7 +54,7 @@ def main(args):
     plt.xlabel("training steps")
     plt.title("Accuracy source identification")
     plt.legend()
-    if 1:
+    if 0:
         import tikzplotlib as tikz
 
         tikz.save("ffhq_style_style2.tex", standalone=True)

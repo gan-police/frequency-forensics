@@ -158,6 +158,17 @@ def batch_packet_preprocessing(
         packets = torch.log(packets + eps)
     return packets.cpu().numpy()
 
+def overcomplete_batch_packet_preprocessing(
+    image_batch, wavelet="db1", max_lev=3, eps=1e-12, log_scale=False, mode="reflect"
+    ):
+    overcomplete_features = [image_batch]
+    for level in range(1, max_lev):
+        overcomplete_features.append(batch_packet_preprocessing(
+            image_batch, wavelet, level, eps, log_scale, mode
+        ))
+    return overcomplete_features 
+
+
 
 def identity_processing(image_batch):
     """Return the input unchanged."""
