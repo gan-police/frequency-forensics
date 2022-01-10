@@ -23,11 +23,7 @@ from .corruption import (
     random_rotation,
 )
 from .data_loader import LoadNumpyDataset
-from .wavelet_math import (
-    batch_packet_preprocessing,
-    overcomplete_batch_packet_preprocessing,
-    identity_processing
-)
+from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 Perturbation = namedtuple("Perturbation", ["rotate", "crop", "jpeg", "noise", "blur"])
@@ -181,7 +177,7 @@ def save_to_disk(
     file_count = previous_file_count
     for pre_processed_image in data_batch:
         with open(f"{directory}{dir_suffix}/{file_count:06}.npy", "wb") as numpy_file:
-            np.save(numpy_file, pre_processed_image, allow_pickle=True)
+            np.save(numpy_file, pre_processed_image)
         file_count += 1
 
     return file_count
@@ -326,10 +322,6 @@ def pre_process_folder(
     elif feature == "log_packets":
         processing_function = functools.partial(
             batch_packet_preprocessing, log_scale=True, wavelet=wavelet, mode=boundary
-        )
-    elif feature == "overcomplete_log_packets":
-        processing_function = functools.partial(
-            overcomplete_batch_packet_preprocessing, log_scale=True, wavelet=wavelet, mode=boundary
         )
     else:
         processing_function = identity_processing  # type: ignore
@@ -516,13 +508,6 @@ def parse_args():
         action="store_true",
     )
 
-    group.add_argument(
-        "--overcomplete-log-packets",
-        "-op",
-        help="Save image data as log-scaled wavelet packets.",
-        action="store_true",
-    )
-
     parser.add_argument(
         "--missing-label",
         type=int,
@@ -595,8 +580,6 @@ if __name__ == "__main__":
         feature = "packets"
     elif args.log_packets:
         feature = "log_packets"
-    elif args.overcomplete_log_packets:
-        feature = "overcomplete_log_packets"
     else:
         feature = "raw"
 
