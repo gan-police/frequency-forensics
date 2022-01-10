@@ -275,6 +275,7 @@ def pre_process_folder(
     boundary: str = "reflect",
     missing_label: int = None,
     gan_split_factor: float = 1.0,
+    level: int = 3,
 ) -> None:
     """Preprocess a folder containing sub-directories with images from different sources.
 
@@ -301,7 +302,7 @@ def pre_process_folder(
     if feature == "raw":
         folder_name = f"{data_dir.name}_{feature}"
     else:
-        folder_name = f"{data_dir.name}_{feature}_{wavelet}_{boundary}"
+        folder_name = f"{data_dir.name}_{feature}_{wavelet}_{boundary}_{level}"
     if perturbataion.jpeg:
         folder_name += "_jpeg"
     if perturbataion.crop:
@@ -317,11 +318,11 @@ def pre_process_folder(
 
     if feature == "packets":
         processing_function = functools.partial(
-            batch_packet_preprocessing, wavelet=wavelet, mode=boundary
+            batch_packet_preprocessing, wavelet=wavelet, mode=boundary, max_lev=level
         )
     elif feature == "log_packets":
         processing_function = functools.partial(
-            batch_packet_preprocessing, log_scale=True, wavelet=wavelet, mode=boundary
+            batch_packet_preprocessing, log_scale=True, wavelet=wavelet, mode=boundary, max_lev=level
         )
     else:
         processing_function = identity_processing  # type: ignore
@@ -570,6 +571,13 @@ def parse_args():
         help="If set a gaussian blur will be applied to all images.",
     )
 
+    parser.add_argument(
+        "--level",
+        type=int,
+        default=3,
+        help="Sets the maximum decomposition level if a packet representation is chosen."
+    )
+
     return parser.parse_args()
 
 
@@ -601,4 +609,5 @@ if __name__ == "__main__":
             noise=args.noise,
             blur=args.blur,
         ),
+        level=args.level,
     )
