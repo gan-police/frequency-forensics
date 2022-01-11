@@ -24,7 +24,7 @@ from .corruption import (
 )
 from .data_loader import LoadNumpyDataset
 from .wavelet_math import batch_packet_preprocessing, identity_processing
-
+from .fourier_math import batch_fourier_preprocessing
 
 Perturbation = namedtuple("Perturbation", ["rotate", "crop", "jpeg", "noise", "blur"])
 
@@ -324,6 +324,13 @@ def pre_process_folder(
         processing_function = functools.partial(
             batch_packet_preprocessing, log_scale=True, wavelet=wavelet, mode=boundary, max_lev=level
         )
+    elif feature == "fourier":
+        processing_function = functools.partial(
+            batch_fourier_preprocessing
+        )
+    elif feature == "log_fourier":
+        processing_function = functools.partial(
+            batch_fourier_preprocessing, log_scale=True)
     else:
         processing_function = identity_processing  # type: ignore
 
@@ -387,6 +394,9 @@ def pre_process_folder(
     random.shuffle(train_list)
     random.shuffle(validation_list)
     random.shuffle(test_list)
+
+    # train_list[0]
+    # PosixPath('/nvme/mwolter/celeba/celeba_align_png_cropped/D_ProGAN/ProGAN_00101489.png')
 
     if missing_label is not None:
         dir_suffix = f"_missing_{missing_label}"
@@ -508,6 +518,18 @@ def parse_args():
         help="Save image data as log-scaled wavelet packets.",
         action="store_true",
     )
+    group.add_argument(
+        "--fourier",
+        "-f",
+        help="Save image data as Fourier coefficients.",
+        action="store_true",
+    )
+    group.add_argument(
+        "--log-fourier",
+        "-lf",
+        help="Save image data as log-scaled Fourier coefficients.",
+        action="store_true",
+    )
 
     parser.add_argument(
         "--missing-label",
@@ -588,6 +610,10 @@ if __name__ == "__main__":
         feature = "packets"
     elif args.log_packets:
         feature = "log_packets"
+    elif args.fourier:
+        feature = "fourier"
+    elif args.log_fourier:
+        feature = "log_fourier"
     else:
         feature = "raw"
 

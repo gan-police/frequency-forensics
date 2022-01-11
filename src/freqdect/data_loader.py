@@ -21,14 +21,20 @@ class LoadNumpyDataset(Dataset):
     """Create a data loader to load pre-processed numpy arrays into memory."""
 
     def __init__(
-        self, data_dir: str, mean: Optional[float] = None, std: Optional[float] = None
+        self, data_dir: str, mean: Optional[float] = None, std: Optional[float] = None,
+        key: Optional[str] = 'image'
     ):
         """Create a Numpy-dataset object.
 
-        :param data_dir: A path to a pre-processed folder with numpy files.
-        :param mean: Pre-computed mean to normalize with. Defaults to None.
-        :param std: Pre-computed standard deviation to normalize with. Defaults to None.
-        :raises ValueError: If an unexpected file name is given
+        Args:
+            data_dir: A path to a pre-processed folder with numpy files.
+            mean: Pre-computed mean to normalize with. Defaults to None.
+            std: Pre-computed standard deviation to normalize with. Defaults to None.
+            key: The key for the input or 'x' component of the dataset.
+                Defaults to "image".
+
+        Raises:
+            ValueError: If an unexpected file name is given
         """
         self.data_dir = data_dir
         self.file_lst = sorted(Path(data_dir).glob("./*.npy"))
@@ -39,6 +45,7 @@ class LoadNumpyDataset(Dataset):
         self.images = self.file_lst[:-1]
         self.mean = mean
         self.std = std
+        self.key = key
 
     def __len__(self):
         """Return the data set length."""
@@ -51,7 +58,8 @@ class LoadNumpyDataset(Dataset):
             idx (int): The element index of the data pair to return.
 
         Returns:
-            [dict]: Returns a dictionary with the "image" and label "keys".
+            [dict]: Returns a dictionary with the self.key
+                    default ("image") and "label" keys.
         """
         img_path = self.images[idx]
         image = np.load(img_path)
@@ -61,8 +69,33 @@ class LoadNumpyDataset(Dataset):
             image = (image - self.mean) / self.std
         label = self.labels[idx]
         label = torch.tensor(int(label))
-        sample = {"image": image, "label": label}
+        sample = {self.key: image, "label": label}
         return sample
+
+
+class OvercompleteDataset(Dataset):
+    def __init__(self, sets: list):
+        """Create an merged dataset, combining many numpy datasets.
+
+        Args:
+            sets (list): A list of LoadNumpyDataset objects.
+        """        
+        self.sets = sets
+        self.len = len(sets[0])
+        assert not any(self.len != len(s) for s in sets)
+
+    def __len__(self):
+        """Return the data set length."""
+        return self.len
+
+    def __getitem__(self, idx: int):
+        label_list = [s.__getitem__(idx)["label"] for s in self.sets]
+        # the labels should all be the same
+        assert not any([label_list[0] != l for l in label_list])
+        label = label_list[0]
+        dict = {set.key: set.__getitem__(idx)[set.key] for set in self.sets}
+        dict["label"] = label
+        return dict
 
 
 def main():
@@ -115,4 +148,24 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import matplotlib.pyplot as plt
+    path1 = "/nvme/mwolter/celeba/celeba_align_png_cropped_raw_train"
+    path2 = "/nvme/mwolter/celeba/celeba_align_png_cropped_log_fourier_haar_reflect_3_train"
+
+    data1 = LoadNumpyDataset(path1, key='raw')
+    data2 = LoadNumpyDataset(path2, key='fft')
+
+
+    data = OvercompleteDataset([data1, data2])
+    item = data.__getitem__(0)
+
+    for no in range(len(data)):
+        item = data.__getitem__(no)
+        fft = torch.log(torch.abs(
+            torch.fft.fft(item['raw'][..., 0])) + 1e-12)
+        fft2 = item['fft'][..., 0]
+        print("{:2.2f}".format(torch.max(torch.abs(fft - fft2)).item()))
+
+    print('stop')
+
+    # main()

@@ -9,7 +9,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
 
-from .data_loader import LoadNumpyDataset
+from .data_loader import LoadNumpyDataset, OvercompleteDataset
 from .models import CNN, MLP, Regression, compute_parameter_total, save_model
 
 
@@ -60,6 +60,7 @@ def _parse_args():
         default="packets",
         help="the representation type",
     )
+
     parser.add_argument(
         "--batch-size",
         type=int,
