@@ -56,7 +56,7 @@ def _parse_args():
     parser = argparse.ArgumentParser(description="Train an image classifier")
     parser.add_argument(
         "--features",
-        choices=["raw", "packets"],
+        choices=["raw", "packets", "all-packets", "fourier"],
         default="packets",
         help="the representation type",
     )
@@ -91,7 +91,8 @@ def _parse_args():
     parser.add_argument(
         "--data-prefix",
         type=str,
-        default="./data/source_data_packets",
+        nargs="+",
+        default=["./data/source_data_packets"],
         help="shared prefix of the data paths (default: ./data/source_data_packets)",
     )
     parser.add_argument(
@@ -145,45 +146,66 @@ def main():
     # fix the seed in the interest of reproducible results.
     torch.manual_seed(args.seed)
 
-    if args.calc_normalization:
-        # load train data and compute mean and std
-        try:
-            with open(f"{args.data_prefix}_train/mean_std.pkl", "rb") as file:
-                mean, std = pickle.load(file)
-                mean = torch.from_numpy(mean.astype(np.float32))
-                std = torch.from_numpy(std.astype(np.float32))
-        except BaseException:
-            print("loading mean and std from file failed. Re-computing.")
-            train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
+    data_set_list = []
+    for data_prefix_el in args.data_prefix:
+        if args.calc_normalization:
+            # load train data and compute mean and std
+            try:
+                with open(f"{data_prefix_el}_train/mean_std.pkl", "rb") as file:
+                    mean, std = pickle.load(file)
+                    mean = torch.from_numpy(mean.astype(np.float32))
+                    std = torch.from_numpy(std.astype(np.float32))
+            except BaseException:
+                print("loading mean and std from file failed. Re-computing.")
+                train_data_set = LoadNumpyDataset(data_prefix_el + "_train")
 
-            img_lst = []
-            for img_no in range(train_data_set.__len__()):
-                img_lst.append(train_data_set.__getitem__(img_no)["image"])
-            img_data = torch.stack(img_lst, 0)
+                img_lst = []
+                for img_no in range(train_data_set.__len__()):
+                    img_lst.append(train_data_set.__getitem__(img_no)["image"])
+                img_data = torch.stack(img_lst, 0)
 
-            # average all axis except the color channel
-            axis = tuple(np.arange(len(img_data.shape[:-1])))
+                # average all axis except the color channel
+                axis = tuple(np.arange(len(img_data.shape[:-1])))
 
-            # calculate mean and std in double to avoid precision problems
-            mean = torch.mean(img_data.double(), axis).float()
-            std = torch.std(img_data.double(), axis).float()
-            del img_data
+                # calculate mean and std in double to avoid precision problems
+                mean = torch.mean(img_data.double(), axis).float()
+                std = torch.std(img_data.double(), axis).float()
+                del img_data
+        else:
+            mean = None
+            std = None
+
+
+        print("mean", mean, "std", std)
+        key = "image"
+        if "raw" in data_prefix_el.split("_"):
+            key = "raw"
+        elif "log_packets" in data_prefix_el.split("_"):
+            key = "log_packets"
+        elif "fourier" in data_prefix_el.split("_"):
+            key = "fourier"
+        
+        train_data_set = LoadNumpyDataset(
+            data_prefix_el + "_train", mean=mean, std=std, key=key)
+        val_data_set = LoadNumpyDataset(data_prefix_el + "_val", mean=mean, std=std)
+        test_data_set = LoadNumpyDataset(data_prefix_el + "_test", mean=mean, std=std)
+        data_set_list.append((train_data_set, val_data_set, test_data_set))
+
+    if len(data_set_list) == 1:
+        train_data_loader = DataLoader(
+            train_data_set, batch_size=args.batch_size, shuffle=True, num_workers=2
+        )
+        val_data_loader = DataLoader(
+            val_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2
+        )
+    elif len(data_set_list) > 1:
+        train_data_set = [el[0] for el in data_set_list]
+        val_data_set = [el[1] for el in data_set_list]
+        test_data_set = [el[2] for el in data_set_list]
+        train_data_loader = OvercompleteDataset(train_data_set)
+        val_data_loader = OvercompleteDataset(val_data_set)
     else:
-        mean = None
-        std = None
-
-    print("mean", mean, "std", std)
-
-    train_data_set = LoadNumpyDataset(args.data_prefix + "_train", mean=mean, std=std)
-    val_data_set = LoadNumpyDataset(args.data_prefix + "_val", mean=mean, std=std)
-    test_data_set = LoadNumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
-
-    train_data_loader = DataLoader(
-        train_data_set, batch_size=args.batch_size, shuffle=True, num_workers=2
-    )
-    val_data_loader = DataLoader(
-        val_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2
-    )
+        raise RuntimeError("Failed to load data from the specified prefixes.")
 
     validation_list = []
     loss_list = []
@@ -212,6 +234,7 @@ def main():
         for it, batch in enumerate(iter(train_data_loader)):
             model.train()
             optimizer.zero_grad()
+            # find the bug.
             batch_images = batch["image"].cuda(non_blocking=True)
             batch_labels = batch["label"].cuda(non_blocking=True)
 
@@ -276,6 +299,9 @@ def main():
 
     # Run over the test set.
     print("Training done testing....")
+    if type(test_data_set) is list:
+        test_data_set = OvercompleteDataset(test_data_set)
+
     test_data_loader = DataLoader(
         test_data_set, args.batch_size, shuffle=False, num_workers=2
     )
