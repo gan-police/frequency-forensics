@@ -22,7 +22,7 @@ from .corruption import (
     random_resized_crop,
     random_rotation,
 )
-from .data_loader import LoadNumpyDataset
+from .data_loader import NumpyDataset
 from .wavelet_math import batch_packet_preprocessing, identity_processing
 from .fourier_math import batch_fourier_preprocessing
 
@@ -449,7 +449,7 @@ def pre_process_folder(
     # compute training normalization.
     # load train data and compute mean and std
     print("computing mean and std values.")
-    train_data_set = LoadNumpyDataset(f"{target_dir}_train{dir_suffix}")
+    train_data_set = NumpyDataset(f"{target_dir}_train{dir_suffix}")
     img_lst = []
     for img_no in range(train_data_set.__len__()):
         img_lst.append(train_data_set.__getitem__(img_no)["image"])

@@ -13,11 +13,12 @@ import torch
 from torch.utils.data import Dataset
 
 __all__ = [
-    "LoadNumpyDataset",
+    "NumpyDataset",
+    "CombinedDataset"
 ]
 
 
-class LoadNumpyDataset(Dataset):
+class NumpyDataset(Dataset):
     """Create a data loader to load pre-processed numpy arrays into memory."""
 
     def __init__(
@@ -47,7 +48,7 @@ class LoadNumpyDataset(Dataset):
         self.std = std
         self.key = key
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the data set length."""
         return len(self.labels)
 
@@ -73,22 +74,26 @@ class LoadNumpyDataset(Dataset):
         return sample
 
 
-class OvercompleteDataset(Dataset):
+class CombinedDataset(Dataset):
     def __init__(self, sets: list):
         """Create an merged dataset, combining many numpy datasets.
 
         Args:
-            sets (list): A list of LoadNumpyDataset objects.
+            sets (list): A list of NumpyDataset objects.
         """        
         self.sets = sets
         self.len = len(sets[0])
         assert not any(self.len != len(s) for s in sets)
 
-    def __len__(self):
+    @property
+    def key(self) -> list:
+        return [d.key for d in self.sets]   
+
+    def __len__(self) -> int:
         """Return the data set length."""
         return self.len
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> dict:
         label_list = [s.__getitem__(idx)["label"] for s in self.sets]
         # the labels should all be the same
         assert not any([label_list[0] != l for l in label_list])
@@ -113,7 +118,7 @@ def main():
 
     print(args)
 
-    data = LoadNumpyDataset(args.dir)
+    data = NumpyDataset(args.dir)
 
     def compute_mean_std(data_set: Dataset) -> tuple:
         """Compute mean and stad values by looping over a dataset.
@@ -152,11 +157,11 @@ if __name__ == "__main__":
     path1 = "/nvme/mwolter/celeba/celeba_align_png_cropped_raw_train"
     path2 = "/nvme/mwolter/celeba/celeba_align_png_cropped_log_fourier_haar_reflect_3_train"
 
-    data1 = LoadNumpyDataset(path1, key='raw')
-    data2 = LoadNumpyDataset(path2, key='fft')
+    data1 = NumpyDataset(path1, key='raw')
+    data2 = NumpyDataset(path2, key='fft')
 
 
-    data = OvercompleteDataset([data1, data2])
+    data = CombinedDataset([data1, data2])
     item = data.__getitem__(0)
 
     for no in range(len(data)):

@@ -9,7 +9,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
 
-from .data_loader import LoadNumpyDataset, OvercompleteDataset
+from .data_loader import NumpyDataset, CombinedDataset
 from .models import CNN, MLP, Regression, compute_parameter_total, save_model
 
 
@@ -37,7 +37,12 @@ def val_test_loop(
         val_total = 0
         val_ok = 0
         for val_batch in iter(data_loader):
-            batch_images = val_batch["image"].cuda(non_blocking=True)
+            if type(data_loader.dataset) is CombinedDataset:
+                batch_images = {key: val_batch[key].cuda(non_blocking=True)
+                                for key in data_loader.dataset.key}
+            else:
+                batch_images = val_batch[
+                    data_loader.dataset.key].cuda(non_blocking=True)
             batch_labels = val_batch["label"].cuda(non_blocking=True)
             out = model(batch_images)
             if make_binary_labels:
@@ -157,7 +162,7 @@ def main():
                     std = torch.from_numpy(std.astype(np.float32))
             except BaseException:
                 print("loading mean and std from file failed. Re-computing.")
-                train_data_set = LoadNumpyDataset(data_prefix_el + "_train")
+                train_data_set = NumpyDataset(data_prefix_el + "_train")
 
                 img_lst = []
                 for img_no in range(train_data_set.__len__()):
@@ -175,35 +180,40 @@ def main():
             mean = None
             std = None
 
-
         print("mean", mean, "std", std)
         key = "image"
         if "raw" in data_prefix_el.split("_"):
             key = "raw"
-        elif "log_packets" in data_prefix_el.split("_"):
-            key = "log_packets"
+        elif "packets" in data_prefix_el.split("_"):
+            key = "packets" + data_prefix_el.split("_")[-1]
         elif "fourier" in data_prefix_el.split("_"):
             key = "fourier"
         
-        train_data_set = LoadNumpyDataset(
+        train_data_set = NumpyDataset(
             data_prefix_el + "_train", mean=mean, std=std, key=key)
-        val_data_set = LoadNumpyDataset(data_prefix_el + "_val", mean=mean, std=std)
-        test_data_set = LoadNumpyDataset(data_prefix_el + "_test", mean=mean, std=std)
+        val_data_set = NumpyDataset(data_prefix_el + "_val", mean=mean, std=std, key=key)
+        test_data_set = NumpyDataset(data_prefix_el + "_test", mean=mean, std=std, key=key)
         data_set_list.append((train_data_set, val_data_set, test_data_set))
 
     if len(data_set_list) == 1:
         train_data_loader = DataLoader(
-            train_data_set, batch_size=args.batch_size, shuffle=True, num_workers=2
+            train_data_set, batch_size=args.batch_size, shuffle=True, num_workers=3
         )
         val_data_loader = DataLoader(
-            val_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2
+            val_data_set, batch_size=args.batch_size, shuffle=False, num_workers=3
         )
     elif len(data_set_list) > 1:
         train_data_set = [el[0] for el in data_set_list]
         val_data_set = [el[1] for el in data_set_list]
         test_data_set = [el[2] for el in data_set_list]
-        train_data_loader = OvercompleteDataset(train_data_set)
-        val_data_loader = OvercompleteDataset(val_data_set)
+        train_data_loader = DataLoader(
+            CombinedDataset(train_data_set),
+            batch_size=args.batch_size, shuffle=True, num_workers=3
+            )
+        val_data_loader = DataLoader(
+            CombinedDataset(val_data_set),
+            batch_size=args.batch_size, shuffle=False, num_workers=3
+            )
     else:
         raise RuntimeError("Failed to load data from the specified prefixes.")
 
@@ -215,7 +225,7 @@ def main():
     if args.model == "mlp":
         model = MLP(args.nclasses).cuda()
     elif args.model == "cnn":
-        model = CNN(args.nclasses, args.features == "packets").cuda()
+        model = CNN(args.nclasses, args.features).cuda()
     else:
         model = Regression(args.nclasses).cuda()
 
@@ -235,7 +245,13 @@ def main():
             model.train()
             optimizer.zero_grad()
             # find the bug.
-            batch_images = batch["image"].cuda(non_blocking=True)
+            if type(train_data_loader.dataset) is CombinedDataset:
+                batch_images = {key: batch[key].cuda(non_blocking=True)
+                                for key in train_data_loader.dataset.key}
+            else:
+                batch_images = batch[
+                    train_data_loader.dataset.key].cuda(non_blocking=True)
+
             batch_labels = batch["label"].cuda(non_blocking=True)
 
             out = model(batch_images)
@@ -300,10 +316,10 @@ def main():
     # Run over the test set.
     print("Training done testing....")
     if type(test_data_set) is list:
-        test_data_set = OvercompleteDataset(test_data_set)
+        test_data_set = CombinedDataset(test_data_set)
 
     test_data_loader = DataLoader(
-        test_data_set, args.batch_size, shuffle=False, num_workers=2
+        test_data_set, args.batch_size, shuffle=False, num_workers=3
     )
     with torch.no_grad():
         test_acc, test_loss = val_test_loop(

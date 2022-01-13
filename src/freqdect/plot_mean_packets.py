@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-from .data_loader import LoadNumpyDataset
+from .data_loader import NumpyDataset
 
 
 def _plot_mean_std(x, mean, std, color, label="", marker="."):
@@ -154,10 +154,10 @@ def main():
     import matplotlib.pyplot as plt
 
     # raw images - use only the training set.
-    train_packet_set = LoadNumpyDataset(
+    train_packet_set = NumpyDataset(
         "/nvme/mwolter/ffhq1024x1024_log_packets_haar_reflect_train"
     )
-    # train_packet_set = LoadNumpyDataset(
+    # train_packet_set = NumpyDataset(
     #     "/nvme/mwolter/source_data_log_packets_train"
     # )
 
