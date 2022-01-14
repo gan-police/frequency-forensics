@@ -65,7 +65,6 @@ def _parse_args():
         default="packets",
         help="the representation type",
     )
-
     parser.add_argument(
         "--batch-size",
         type=int,
@@ -303,7 +302,8 @@ def main():
 
     model_file = (
         "./log/"
-        + args.data_prefix.split("/")[-1]
+        + args.features
+        # + args.data_prefix.split("/")[-1]
         + "_"
         + str(args.model)
         + "_"
@@ -331,7 +331,7 @@ def main():
         writer.add_scalar("test_accuracy", test_acc, step_total)
         writer.add_scalar("test_loss", test_loss, step_total)
 
-    log_name = "./log/" + args.data_prefix.split("/")[-1] + "_" + str(args.model)
+    log_name = "./log/" + args.features + "_" + str(args.model)
     stats_file = log_name + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
