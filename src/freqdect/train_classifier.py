@@ -2,7 +2,7 @@
 
 import argparse
 import pickle
-from typing import Any, Tuple, Union, List
+from typing import Any, Tuple
 
 import numpy as np
 import torch
@@ -171,7 +171,7 @@ def create_data_loaders(data_prefix: str, batch_size: int) -> tuple:
         val_data_set = NumpyDataset(
             data_prefix_el + "_val", mean=mean, std=std, key=key
         )
-        test_data_set: Union[List[NumpyDataset], NumpyDataset] = NumpyDataset(
+        test_data_set = NumpyDataset(
             data_prefix_el + "_test", mean=mean, std=std, key=key
         )
         data_set_list.append((train_data_set, val_data_set, test_data_set))
@@ -183,10 +183,11 @@ def create_data_loaders(data_prefix: str, batch_size: int) -> tuple:
         val_data_loader = DataLoader(
             val_data_set, batch_size=batch_size, shuffle=False, num_workers=3
         )
+        test_data_sets = test_data_set
     elif len(data_set_list) > 1:
         train_data_sets = [el[0] for el in data_set_list]
         val_data_sets = [el[1] for el in data_set_list]
-        test_data_set = [el[2] for el in data_set_list]
+        test_data_sets = [el[2] for el in data_set_list]
         train_data_loader = DataLoader(
             CombinedDataset(train_data_sets),
             batch_size=batch_size,
@@ -202,7 +203,7 @@ def create_data_loaders(data_prefix: str, batch_size: int) -> tuple:
     else:
         raise RuntimeError("Failed to load data from the specified prefixes.")
 
-    return train_data_loader, val_data_loader, test_data_set
+    return train_data_loader, val_data_loader, test_data_sets
 
 
 def main():
