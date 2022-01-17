@@ -47,6 +47,7 @@ def generate_natural_packet_image(packet_array: np.array, degree: int):
     Args:
         packet_array ([np.array): The [packet_no, packet_height, packet_width] packets
         degree (int): The degree of the transformation.
+
     Returns:
         [np.array]: The image of shape [original_height, original_width]
     """

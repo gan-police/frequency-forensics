@@ -1,6 +1,4 @@
 """This module contains code for deepfake detection models."""
-from typing import Union
-
 import numpy as np
 import torch
 
@@ -84,11 +82,11 @@ class CNN(torch.nn.Module):
             self.linear = torch.nn.Linear(32 * 28 * 28, classes)
         self.logsoftmax = torch.nn.LogSoftmax(dim=-1)
 
-    def forward(self, x: Union[torch.tensor, dict]) -> torch.tensor:
+    def forward(self, x) -> torch.Tensor:
         """Compute the CNN forward pass.
 
         Args:
-            x (torch.tensor or dict): An input image of shape
+            x (torch.Tensor or dict): An input image of shape
                 [batch_size, packets, height, width, channels]
                 for packet inputs and
                 [batch_size, height, width, channels]
@@ -97,6 +95,7 @@ class CNN(torch.nn.Module):
         Returns:
             torch.tensor: A logsoftmax scaled output of shape
                 [batch_size, classes].
+
         """
         # x = generate_packet_image_tensor(x)
         if self.feature == "packets":
