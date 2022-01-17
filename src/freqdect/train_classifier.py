@@ -2,7 +2,7 @@
 
 import argparse
 import pickle
-from typing import Any, Tuple
+from typing import Any, Tuple, Union, List
 
 import numpy as np
 import torch
@@ -171,7 +171,7 @@ def create_data_loaders(data_prefix: str, batch_size: int) -> tuple:
         val_data_set = NumpyDataset(
             data_prefix_el + "_val", mean=mean, std=std, key=key
         )
-        test_data_set = NumpyDataset(
+        test_data_set: Union[List[NumpyDataset], NumpyDataset] = NumpyDataset(
             data_prefix_el + "_test", mean=mean, std=std, key=key
         )
         data_set_list.append((train_data_set, val_data_set, test_data_set))
@@ -184,17 +184,17 @@ def create_data_loaders(data_prefix: str, batch_size: int) -> tuple:
             val_data_set, batch_size=batch_size, shuffle=False, num_workers=3
         )
     elif len(data_set_list) > 1:
-        train_data_set = [el[0] for el in data_set_list]
-        val_data_set = [el[1] for el in data_set_list]
+        train_data_sets = [el[0] for el in data_set_list]
+        val_data_sets = [el[1] for el in data_set_list]
         test_data_set = [el[2] for el in data_set_list]
         train_data_loader = DataLoader(
-            CombinedDataset(train_data_set),
+            CombinedDataset(train_data_sets),
             batch_size=batch_size,
             shuffle=True,
             num_workers=3,
         )
         val_data_loader = DataLoader(
-            CombinedDataset(val_data_set),
+            CombinedDataset(val_data_sets),
             batch_size=batch_size,
             shuffle=False,
             num_workers=3,
