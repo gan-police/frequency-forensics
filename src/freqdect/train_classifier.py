@@ -2,7 +2,7 @@
 
 import argparse
 import pickle
-from typing import Any, List, Union, Tuple
+from typing import Any, Tuple
 
 import numpy as np
 import torch
