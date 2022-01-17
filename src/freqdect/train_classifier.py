@@ -133,7 +133,7 @@ def _parse_args():
     return parser.parse_args()
 
 
-def create_data_loaders(data_prefix: str, batch_size: int) -> list:
+def create_data_loaders(data_prefix: str, batch_size: int) -> tuple:
     """Create the data loaders needed for training.
 
     The test set is created outside a loader.
