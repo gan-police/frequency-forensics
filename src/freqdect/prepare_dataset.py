@@ -23,8 +23,9 @@ from .corruption import (
     random_rotation,
 )
 from .data_loader import NumpyDataset
-from .wavelet_math import batch_packet_preprocessing, identity_processing
 from .fourier_math import batch_fourier_preprocessing
+from .wavelet_math import batch_packet_preprocessing, identity_processing
+
 
 Perturbation = namedtuple("Perturbation", ["rotate", "crop", "jpeg", "noise", "blur"])
 
@@ -322,15 +323,18 @@ def pre_process_folder(
         )
     elif feature == "log_packets":
         processing_function = functools.partial(
-            batch_packet_preprocessing, log_scale=True, wavelet=wavelet, mode=boundary, max_lev=level
+            batch_packet_preprocessing,
+            log_scale=True,
+            wavelet=wavelet,
+            mode=boundary,
+            max_lev=level,
         )
     elif feature == "fourier":
-        processing_function = functools.partial(
-            batch_fourier_preprocessing
-        )
+        processing_function = functools.partial(batch_fourier_preprocessing)
     elif feature == "log_fourier":
         processing_function = functools.partial(
-            batch_fourier_preprocessing, log_scale=True)
+            batch_fourier_preprocessing, log_scale=True
+        )
     else:
         processing_function = identity_processing  # type: ignore
 
@@ -597,7 +601,7 @@ def parse_args():
         "--level",
         type=int,
         default=3,
-        help="Sets the maximum decomposition level if a packet representation is chosen."
+        help="Sets the maximum decomposition level if a packet representation is chosen.",
     )
 
     return parser.parse_args()

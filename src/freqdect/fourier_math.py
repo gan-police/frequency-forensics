@@ -1,10 +1,14 @@
-import torch
+"""Module implementing Fourier related math functions.
+
+The goal here is to make the Fourier-transform useful for
+image analysis and gan-content recognition.
+"""
+
 import numpy as np
+import torch
 
 
-def batch_fourier_preprocessing(
-    image_batch, eps=1e-12, log_scale=False
-):
+def batch_fourier_preprocessing(image_batch, eps=1e-12, log_scale=False):
     """Preprosess image batches by computing the Fourier-representation.
 
     The raw as well as an absolute log scaled version can be computed.
@@ -23,14 +27,12 @@ def batch_fourier_preprocessing(
     # transform to from H, W, C to C, H, W
     channels = []
     for channel in range(image_batch.shape[-1]):
-            channels.append(torch.fft.fft2((image_batch[..., channel])))
+        channels.append(torch.fft.fft2((image_batch[..., channel])))
     freq = torch.stack(channels, -1)
     del channels
     if log_scale:
         freq = torch.abs(freq)
         freq = torch.log(freq + eps)
     else:
-        freq = torch.cat(
-            [torch.real(freq),
-             torch.imag(freq)], -1)
+        freq = torch.cat([torch.real(freq), torch.imag(freq)], -1)
     return freq.cpu().numpy()

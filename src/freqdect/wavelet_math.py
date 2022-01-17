@@ -1,6 +1,6 @@
 """Module implementing wavelet related math functions.
 
-The ides is to provide functionality to make the packet transform useful
+The idea is to provide functionality to make the packet transform useful
 for image analysis and gan-content recognition.
 """
 

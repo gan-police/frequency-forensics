@@ -9,8 +9,8 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
 
-from .data_loader import NumpyDataset, CombinedDataset
-from .models import CNN, MLP, Regression, compute_parameter_total, save_model
+from .data_loader import CombinedDataset, NumpyDataset
+from .models import CNN, Regression, compute_parameter_total, save_model
 
 
 def val_test_loop(
@@ -38,11 +38,14 @@ def val_test_loop(
         val_ok = 0
         for val_batch in iter(data_loader):
             if type(data_loader.dataset) is CombinedDataset:
-                batch_images = {key: val_batch[key].cuda(non_blocking=True)
-                                for key in data_loader.dataset.key}
+                batch_images = {
+                    key: val_batch[key].cuda(non_blocking=True)
+                    for key in data_loader.dataset.key
+                }
             else:
-                batch_images = val_batch[
-                    data_loader.dataset.key].cuda(non_blocking=True)
+                batch_images = val_batch[data_loader.dataset.key].cuda(
+                    non_blocking=True
+                )
             batch_labels = val_batch["label"].cuda(non_blocking=True)
             out = model(batch_images)
             if make_binary_labels:
@@ -108,7 +111,7 @@ def _parse_args():
 
     parser.add_argument(
         "--model",
-        choices=["regression", "cnn", "mlp"],
+        choices=["regression", "cnn"],
         default="regression",
         help="The model type chosse regression or CNN. Default: Regression.",
     )
@@ -187,11 +190,16 @@ def main():
             key = "packets" + data_prefix_el.split("_")[-1]
         elif "fourier" in data_prefix_el.split("_"):
             key = "fourier"
-        
+
         train_data_set = NumpyDataset(
-            data_prefix_el + "_train", mean=mean, std=std, key=key)
-        val_data_set = NumpyDataset(data_prefix_el + "_val", mean=mean, std=std, key=key)
-        test_data_set = NumpyDataset(data_prefix_el + "_test", mean=mean, std=std, key=key)
+            data_prefix_el + "_train", mean=mean, std=std, key=key
+        )
+        val_data_set = NumpyDataset(
+            data_prefix_el + "_val", mean=mean, std=std, key=key
+        )
+        test_data_set = NumpyDataset(
+            data_prefix_el + "_test", mean=mean, std=std, key=key
+        )
         data_set_list.append((train_data_set, val_data_set, test_data_set))
 
     if len(data_set_list) == 1:
@@ -207,12 +215,16 @@ def main():
         test_data_set = [el[2] for el in data_set_list]
         train_data_loader = DataLoader(
             CombinedDataset(train_data_set),
-            batch_size=args.batch_size, shuffle=True, num_workers=3
-            )
+            batch_size=args.batch_size,
+            shuffle=True,
+            num_workers=3,
+        )
         val_data_loader = DataLoader(
             CombinedDataset(val_data_set),
-            batch_size=args.batch_size, shuffle=False, num_workers=3
-            )
+            batch_size=args.batch_size,
+            shuffle=False,
+            num_workers=3,
+        )
     else:
         raise RuntimeError("Failed to load data from the specified prefixes.")
 
@@ -221,9 +233,7 @@ def main():
     accuracy_list = []
     step_total = 0
 
-    if args.model == "mlp":
-        model = MLP(args.nclasses).cuda()
-    elif args.model == "cnn":
+    if args.model == "cnn":
         model = CNN(args.nclasses, args.features).cuda()
     else:
         model = Regression(args.nclasses).cuda()
@@ -245,11 +255,14 @@ def main():
             optimizer.zero_grad()
             # find the bug.
             if type(train_data_loader.dataset) is CombinedDataset:
-                batch_images = {key: batch[key].cuda(non_blocking=True)
-                                for key in train_data_loader.dataset.key}
+                batch_images = {
+                    key: batch[key].cuda(non_blocking=True)
+                    for key in train_data_loader.dataset.key
+                }
             else:
-                batch_images = batch[
-                    train_data_loader.dataset.key].cuda(non_blocking=True)
+                batch_images = batch[train_data_loader.dataset.key].cuda(
+                    non_blocking=True
+                )
 
             batch_labels = batch["label"].cuda(non_blocking=True)
 
@@ -301,14 +314,7 @@ def main():
     print(validation_list)
 
     model_file = (
-        "./log/"
-        + args.features
-        # + args.data_prefix.split("/")[-1]
-        + "_"
-        + str(args.model)
-        + "_"
-        + str(args.seed)
-        + ".pt"
+        "./log/" + args.features + "_" + str(args.model) + "_" + str(args.seed) + ".pt"
     )
     save_model(model, model_file)
     print(model_file, " saved.")
@@ -331,7 +337,7 @@ def main():
         writer.add_scalar("test_accuracy", test_acc, step_total)
         writer.add_scalar("test_loss", test_loss, step_total)
 
-    log_name = "./log/" + args.features + "_" + str(args.model) + "_" + str(args.seed)
+    log_name = f"./log/{args.features}_{args.model}_{args.seed}"
     stats_file = log_name + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))

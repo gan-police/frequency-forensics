@@ -37,7 +37,7 @@ class CNN(torch.nn.Module):
         super().__init__()
         self.feature = feature
 
-        if feature == 'packets':
+        if feature == "packets":
             self.layers = torch.nn.Sequential(
                 torch.nn.Conv2d(192, 24, 3),
                 torch.nn.ReLU(),
@@ -61,11 +61,11 @@ class CNN(torch.nn.Module):
             self.scale3 = torch.nn.Sequential(
                 torch.nn.Conv2d(64, 32, 3, padding=1),
                 torch.nn.ReLU(),
-                torch.nn.AvgPool2d(2,2)
+                torch.nn.AvgPool2d(2, 2),
             )
             self.scale4 = torch.nn.Sequential(
-                torch.nn.Conv2d(224, 32, 3, 1, padding=1),
-                torch.nn.ReLU())
+                torch.nn.Conv2d(224, 32, 3, 1, padding=1), torch.nn.ReLU()
+            )
             self.linear = torch.nn.Linear(32 * 16 * 16, classes)
         else:
             # assume an 128x128x3 image input.
@@ -84,8 +84,7 @@ class CNN(torch.nn.Module):
             self.linear = torch.nn.Linear(32 * 28 * 28, classes)
         self.logsoftmax = torch.nn.LogSoftmax(dim=-1)
 
-    def forward(self, x: Union[torch.tensor, dict]
-        ) -> torch.tensor:
+    def forward(self, x: Union[torch.tensor, dict]) -> torch.tensor:
         """Compute the CNN forward pass.
 
         Args:
@@ -100,7 +99,7 @@ class CNN(torch.nn.Module):
                 [batch_size, classes].
         """
         # x = generate_packet_image_tensor(x)
-        if self.feature == 'packets':
+        if self.feature == "packets":
             # batch_size, packets, height, width, channels
             shape = x.shape
             # batch_size, height, width, packets, channels
@@ -109,18 +108,20 @@ class CNN(torch.nn.Module):
             to_net = x.reshape([shape[0], shape[2], shape[3], shape[1] * shape[4]])
             # batch_size, packets*channels, height, width
         elif self.feature == "all-packets":
-            to_net = x['raw']
+            to_net = x["raw"]
         else:
             to_net = x
 
         to_net = to_net.permute([0, 3, 1, 2])
 
         if self.feature == "all-packets":
-            packets = [torch.reshape(x[key].permute([0, 2, 3, 1, 4]),
-                                     [x[key].shape[0], x[key].shape[2],
-                                      x[key].shape[3], -1]
-                                     ).permute(0, 3, 1, 2)
-                       for key in ['packets1', 'packets2', 'packets3']]
+            packets = [
+                torch.reshape(
+                    x[key].permute([0, 2, 3, 1, 4]),
+                    [x[key].shape[0], x[key].shape[2], x[key].shape[3], -1],
+                ).permute(0, 3, 1, 2)
+                for key in ["packets1", "packets2", "packets3"]
+            ]
             res = self.scale1(to_net)
             # shape: batch_size, packet_channels, height, widht, color_channels
             # cat along channel dim1.
@@ -167,51 +168,6 @@ class Regression(torch.nn.Module):
         """
         x_flat = torch.reshape(x, [x.shape[0], -1])
         return self.logsoftmax(self.linear(x_flat))
-
-
-class MLP(torch.nn.Module):
-    """Create a more involved Multi Layer Perceptron.
-
-    Args:
-        torch ([type]): [description]
-
-    - We did not end up using ths MLP in the paper -.
-    """
-
-    def __init__(self, classes: int):
-        """Create the MLP.
-
-        Args:
-            classes (int): The number of classes or sources to classify.
-        """
-        super().__init__()
-
-        self.classifier = torch.nn.Sequential(
-            torch.nn.Linear(49152, 2048, bias=True),
-            torch.nn.ReLU(inplace=True),
-            # torch.nn.Dropout(p=0.5, inplace=False),
-            torch.nn.Linear(2048, classes, bias=True),
-            # torch.nn.ReLU(inplace=True),
-            # torch.nn.Dropout(p=0.5, inplace=False),
-            # torch.nn.Linear(1024, classes, bias=True),
-        )
-
-        # self.activation = torch.nn.Sigmoid()
-        self.activation = torch.nn.LogSoftmax(dim=-1)
-
-    def forward(self, x):
-        """Compute the mlp forward pass.
-
-        Args:
-            x (torch.tensor): An input tensor of shape
-                [batch_size, ...]
-
-        Returns:
-            torch.tensor: A logsoftmax scaled output of shape
-                [batch_size, classes].
-        """
-        x_flat = torch.reshape(x, [x.shape[0], -1])
-        return self.activation(self.classifier(x_flat))
 
 
 def save_model(model: torch.nn.Module, path):

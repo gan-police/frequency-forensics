@@ -12,18 +12,18 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-__all__ = [
-    "NumpyDataset",
-    "CombinedDataset"
-]
+__all__ = ["NumpyDataset", "CombinedDataset"]
 
 
 class NumpyDataset(Dataset):
     """Create a data loader to load pre-processed numpy arrays into memory."""
 
     def __init__(
-        self, data_dir: str, mean: Optional[float] = None, std: Optional[float] = None,
-        key: Optional[str] = 'image'
+        self,
+        data_dir: str,
+        mean: Optional[float] = None,
+        std: Optional[float] = None,
+        key: Optional[str] = "image",
     ):
         """Create a Numpy-dataset object.
 
@@ -36,6 +36,8 @@ class NumpyDataset(Dataset):
 
         Raises:
             ValueError: If an unexpected file name is given
+
+        # noqa: DAR401
         """
         self.data_dir = data_dir
         self.file_lst = sorted(Path(data_dir).glob("./*.npy"))
@@ -75,25 +77,38 @@ class NumpyDataset(Dataset):
 
 
 class CombinedDataset(Dataset):
+    """Load data from multiple Numpy-Data sets using a singe object."""
+
     def __init__(self, sets: list):
         """Create an merged dataset, combining many numpy datasets.
 
         Args:
             sets (list): A list of NumpyDataset objects.
-        """        
+        """
         self.sets = sets
         self.len = len(sets[0])
-        assert not any(self.len != len(s) for s in sets)
+        # assert not any(self.len != len(s) for s in sets)
 
     @property
     def key(self) -> list:
-        return [d.key for d in self.sets]   
+        """Return the keys for all features in this dataset."""
+        return [d.key for d in self.sets]
 
     def __len__(self) -> int:
         """Return the data set length."""
         return self.len
 
     def __getitem__(self, idx: int) -> dict:
+        """Get a dataset element.
+
+        Args:
+            idx (int): The element index of the data pair to return.
+
+        Returns:
+            [dict]: Returns a dictionary with the self.key
+                    default ("image") and "label" keys.
+                    The key property will return a keylist.
+        """
         label_list = [s.__getitem__(idx)["label"] for s in self.sets]
         # the labels should all be the same
         # assert not any([label_list[0] != l for l in label_list])
@@ -153,24 +168,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    path1 = "/nvme/mwolter/celeba/celeba_align_png_cropped_raw_train"
-    path2 = "/nvme/mwolter/celeba/celeba_align_png_cropped_log_fourier_haar_reflect_3_train"
-
-    data1 = NumpyDataset(path1, key='raw')
-    data2 = NumpyDataset(path2, key='fft')
-
-
-    data = CombinedDataset([data1, data2])
-    item = data.__getitem__(0)
-
-    for no in range(len(data)):
-        item = data.__getitem__(no)
-        fft = torch.log(torch.abs(
-            torch.fft.fft(item['raw'][..., 0])) + 1e-12)
-        fft2 = item['fft'][..., 0]
-        print("{:2.2f}".format(torch.max(torch.abs(fft - fft2)).item()))
-
-    print('stop')
-
-    # main()
+    main()
