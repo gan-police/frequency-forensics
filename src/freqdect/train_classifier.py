@@ -2,7 +2,7 @@
 
 import argparse
 import pickle
-from typing import Any, Tuple
+from typing import Any, List, Union, Tuple
 
 import numpy as np
 import torch
@@ -14,7 +14,7 @@ from .models import CNN, Regression, compute_parameter_total, save_model
 
 
 def val_test_loop(
-    data_loader: DataLoader,
+    data_loader,
     model: torch.nn.Module,
     loss_fun,
     make_binary_labels: bool = False,
@@ -183,7 +183,7 @@ def create_data_loaders(data_prefix: str, batch_size: int) -> tuple:
         val_data_loader = DataLoader(
             val_data_set, batch_size=batch_size, shuffle=False, num_workers=3
         )
-        test_data_sets = test_data_set
+        test_data_sets: Any = test_data_set
     elif len(data_set_list) > 1:
         train_data_sets = [el[0] for el in data_set_list]
         val_data_sets = [el[1] for el in data_set_list]
