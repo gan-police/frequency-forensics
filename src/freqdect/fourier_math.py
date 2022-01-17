@@ -23,7 +23,7 @@ def batch_fourier_preprocessing(
     # transform to from H, W, C to C, H, W
     channels = []
     for channel in range(image_batch.shape[-1]):
-            channels.append(torch.fft.fft((image_batch[..., channel])))
+            channels.append(torch.fft.fft2((image_batch[..., channel])))
     freq = torch.stack(channels, -1)
     del channels
     if log_scale:

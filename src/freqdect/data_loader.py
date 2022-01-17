@@ -96,7 +96,7 @@ class CombinedDataset(Dataset):
     def __getitem__(self, idx: int) -> dict:
         label_list = [s.__getitem__(idx)["label"] for s in self.sets]
         # the labels should all be the same
-        assert not any([label_list[0] != l for l in label_list])
+        # assert not any([label_list[0] != l for l in label_list])
         label = label_list[0]
         dict = {set.key: set.__getitem__(idx)[set.key] for set in self.sets}
         dict["label"] = label

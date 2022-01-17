@@ -110,6 +110,8 @@ class CNN(torch.nn.Module):
             # batch_size, packets*channels, height, width
         elif self.feature == "all-packets":
             to_net = x['raw']
+        else:
+            to_net = x
 
         to_net = to_net.permute([0, 3, 1, 2])
 

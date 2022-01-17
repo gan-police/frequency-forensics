@@ -84,7 +84,7 @@ def _parse_args():
         help="weight decay for optimizer (default: 0)",
     )
     parser.add_argument(
-        "--epochs", type=int, default=10, help="number of epochs (default: 10)"
+        "--epochs", type=int, default=20, help="number of epochs (default: 10)"
     )
     parser.add_argument(
         "--validation-interval",
@@ -331,7 +331,7 @@ def main():
         writer.add_scalar("test_accuracy", test_acc, step_total)
         writer.add_scalar("test_loss", test_loss, step_total)
 
-    log_name = "./log/" + args.features + "_" + str(args.model)
+    log_name = "./log/" + args.features + "_" + str(args.model) + "_" + str(args.seed)
     stats_file = log_name + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
