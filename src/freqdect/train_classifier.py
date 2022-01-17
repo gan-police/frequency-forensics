@@ -133,54 +133,28 @@ def _parse_args():
     return parser.parse_args()
 
 
-def main():
-    """Trains a model to classify images.
+def create_data_loaders(data_prefix: str, batch_size: int) -> list:
+    """Create the data loaders needed for training.
 
-    All settings such as which model to use, parameters, normalization, data set path,
-    seed etc. are specified via cmd line args.
-    All training, validation and testing results are printed to stdout.
-    After the training is done, the results are stored in a pickle dump in the 'log' folder.
-    The state_dict of the trained model is stored there as well.
+    The test set is created outside a loader.
+
+    Args:
+        data_prefix (str): Where to look for the data.
 
     Raises:
-        ValueError: Raised if mean and std values are incomplete.
+        RuntimeError: Raised if the prefix is incorrect.
+
+    Returns:
+        list: train_data_loader, val_data_loader, test_data_set
 
     # noqa: DAR401
     """
-    args = _parse_args()
-    print(args)
-
-    # fix the seed in the interest of reproducible results.
-    torch.manual_seed(args.seed)
-
     data_set_list = []
-    for data_prefix_el in args.data_prefix:
-        if args.calc_normalization:
-            # load train data and compute mean and std
-            try:
-                with open(f"{data_prefix_el}_train/mean_std.pkl", "rb") as file:
-                    mean, std = pickle.load(file)
-                    mean = torch.from_numpy(mean.astype(np.float32))
-                    std = torch.from_numpy(std.astype(np.float32))
-            except BaseException:
-                print("loading mean and std from file failed. Re-computing.")
-                train_data_set = NumpyDataset(data_prefix_el + "_train")
-
-                img_lst = []
-                for img_no in range(train_data_set.__len__()):
-                    img_lst.append(train_data_set.__getitem__(img_no)["image"])
-                img_data = torch.stack(img_lst, 0)
-
-                # average all axis except the color channel
-                axis = tuple(np.arange(len(img_data.shape[:-1])))
-
-                # calculate mean and std in double to avoid precision problems
-                mean = torch.mean(img_data.double(), axis).float()
-                std = torch.std(img_data.double(), axis).float()
-                del img_data
-        else:
-            mean = None
-            std = None
+    for data_prefix_el in data_prefix:
+        with open(f"{data_prefix_el}_train/mean_std.pkl", "rb") as file:
+            mean, std = pickle.load(file)
+            mean = torch.from_numpy(mean.astype(np.float32))
+            std = torch.from_numpy(std.astype(np.float32))
 
         print("mean", mean, "std", std)
         key = "image"
@@ -204,10 +178,10 @@ def main():
 
     if len(data_set_list) == 1:
         train_data_loader = DataLoader(
-            train_data_set, batch_size=args.batch_size, shuffle=True, num_workers=3
+            train_data_set, batch_size=batch_size, shuffle=True, num_workers=3
         )
         val_data_loader = DataLoader(
-            val_data_set, batch_size=args.batch_size, shuffle=False, num_workers=3
+            val_data_set, batch_size=batch_size, shuffle=False, num_workers=3
         )
     elif len(data_set_list) > 1:
         train_data_set = [el[0] for el in data_set_list]
@@ -215,18 +189,45 @@ def main():
         test_data_set = [el[2] for el in data_set_list]
         train_data_loader = DataLoader(
             CombinedDataset(train_data_set),
-            batch_size=args.batch_size,
+            batch_size=batch_size,
             shuffle=True,
             num_workers=3,
         )
         val_data_loader = DataLoader(
             CombinedDataset(val_data_set),
-            batch_size=args.batch_size,
+            batch_size=batch_size,
             shuffle=False,
             num_workers=3,
         )
     else:
         raise RuntimeError("Failed to load data from the specified prefixes.")
+
+    return train_data_loader, val_data_loader, test_data_set
+
+
+def main():
+    """Trains a model to classify images.
+
+    All settings such as which model to use, parameters, normalization, data set path,
+    seed etc. are specified via cmd line args.
+    All training, validation and testing results are printed to stdout.
+    After the training is done, the results are stored in a pickle dump in the 'log' folder.
+    The state_dict of the trained model is stored there as well.
+
+    Raises:
+        ValueError: Raised if mean and std values are incomplete.
+
+    # noqa: DAR401
+    """
+    args = _parse_args()
+    print(args)
+
+    # fix the seed in the interest of reproducible results.
+    torch.manual_seed(args.seed)
+
+    train_data_loader, val_data_loader, test_data_set = create_data_loaders(
+        args.data_prefix, args.batch_size
+    )
 
     validation_list = []
     loss_list = []
