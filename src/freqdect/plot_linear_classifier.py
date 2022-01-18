@@ -33,18 +33,21 @@ def main(args):
     plt.imshow(np.concatenate([real_weights, fake_weights], axis=1))
     plt.title("Real and fake class weights side by side.")
     plt.colorbar()
+    plt.axis("off")
     plt.show()
 
-    plt.imshow(real_weights, cmap=plt.cm.viridis, vmax=0.2)
+    plt.imshow(real_weights, cmap=plt.cm.viridis, vmax=0.2, vmin=-0.2)
     plt.title("Real classifier weights")
     plt.colorbar()
+    plt.axis("off")
     tikz.save("real_classifier_weights.tex")
     plt.show()
 
-    plt.imshow(fake_weights, cmap=plt.cm.viridis, vmax=0.2)
+    plt.imshow(fake_weights, cmap=plt.cm.viridis, vmax=0.2, vmin=-0.2)
     plt.title("fake classifier weights")
     plt.colorbar()
     tikz.save("fake_classifier_weights.tex")
+    plt.axis("off")
     plt.show()
 
     print("stop")

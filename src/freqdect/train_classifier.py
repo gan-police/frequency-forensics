@@ -315,8 +315,9 @@ def main():
 
     print(validation_list)
 
+    data_prefix_folder = args.data_prefix[0].split("/")[-1]
     model_file = (
-        "./log/" + args.features + "_" + str(args.model) + "_" + str(args.seed) + ".pt"
+        f"./log/{args.features}_{args.model}_{data_prefix_folder}_{args.seed}.pt"
     )
     save_model(model, model_file)
     print(model_file, " saved.")
@@ -339,7 +340,7 @@ def main():
         writer.add_scalar("test_accuracy", test_acc, step_total)
         writer.add_scalar("test_loss", test_loss, step_total)
 
-    log_name = f"./log/{args.features}_{args.model}_{args.seed}"
+    log_name = f"./log/{args.features}_{args.model}_{data_prefix_folder}_{args.seed}"
     stats_file = log_name + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
