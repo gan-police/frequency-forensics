@@ -143,7 +143,9 @@ def batch_packet_preprocessing(
     Returns:
         [np.ndarray]: The wavelet packets [B, N, H, W, C].
     """
-    image_batch_tensor = torch.from_numpy(image_batch.astype(np.float32)).cuda()
+    image_batch_tensor = torch.from_numpy(image_batch.astype(np.float32))
+    if torch.cuda.is_available():
+        image_batch_tensor = image_batch_tensor.cuda()
     # transform to from H, W, C to C, H, W
     channels = []
     for channel in range(image_batch_tensor.shape[-1]):
