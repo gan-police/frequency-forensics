@@ -269,7 +269,7 @@ def pre_process_folder(
     train_size: int,
     val_size: int,
     test_size: int,
-    perturbataion: Perturbation,
+    perturbation: Perturbation,
     feature: Optional[str] = None,
     wavelet: str = "db1",
     boundary: str = "reflect",
@@ -302,15 +302,15 @@ def pre_process_folder(
         folder_name = f"{data_dir.name}_{feature}"
     else:
         folder_name = f"{data_dir.name}_{feature}_{wavelet}_{boundary}"
-    if perturbataion.jpeg:
+    if perturbation.jpeg:
         folder_name += "_jpeg"
-    if perturbataion.crop:
+    if perturbation.crop:
         folder_name += "_crop"
-    if perturbataion.rotate:
+    if perturbation.rotate:
         folder_name += "_rotate"
-    if perturbataion.noise:
+    if perturbation.noise:
         folder_name += "_noise"
-    if perturbataion.blur:
+    if perturbation.blur:
         folder_name += "_blur"
 
     target_dir = data_dir.parent / folder_name
@@ -404,7 +404,7 @@ def pre_process_folder(
         "val",
         dir_suffix=dir_suffix,
         binary_classification=binary_classification,
-        perturbation=perturbataion,
+        perturbation=perturbation,
     )
     print("validation set stored")
 
@@ -418,7 +418,7 @@ def pre_process_folder(
         "test",
         dir_suffix=dir_suffix,
         binary_classification=False,
-        perturbation=perturbataion,
+        perturbation=perturbation,
     )
     print("test set stored")
 
@@ -431,7 +431,7 @@ def pre_process_folder(
         "train",
         dir_suffix=dir_suffix,
         binary_classification=binary_classification,
-        perturbation=perturbataion,
+        perturbation=perturbation,
     )
     print("training set stored.", flush=True)
 
@@ -594,7 +594,7 @@ if __name__ == "__main__":
         gan_split_factor=args.gan_split_factor,
         wavelet=args.wavelet,
         boundary=args.boundary,
-        perturbataion=Perturbation(
+        perturbation=Perturbation(
             jpeg=args.jpeg,
             crop=args.crop,
             rotate=args.rotate,
