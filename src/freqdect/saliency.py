@@ -12,17 +12,17 @@ from .models import CNN, MLP, Regression
 
 
 def save_to_disk(
-    data_batch: np.ndarray,
+    array_dict: dict,
     directory: str,
     dir_suffix: str = "",
     counter: int = 0,
-    ):
+    ) -> None:
     """Save data batches (numpy arrays) to disk.
 
     Args:
-        data_batch (np.ndarray): The data batch to store.
+        array_dict (dict): The data dict to store of the form {str: np.ndarray}.
         directory (str): The place to store the data.
-        dir_suffix (str): A comment which is attatched to the output directory.
+        dir_suffix (str): A comment which is attached to the output directory.
         counter (int): Index of the file (sets filename).
 
     Returns:
@@ -34,21 +34,21 @@ def save_to_disk(
         print("creating", path)
         os.mkdir(path)
     with open(os.path.join(path, f"{counter:06}.npy"), "wb") as numpy_file:
-        np.save(numpy_file, data_batch)
+        np.savez(numpy_file, **array_dict)
 
 
 def saliency(model,
-             data_loader,
+             data_loader: DataLoader,
              directory: str,
              dir_suffix: str = "",
              ) -> int:
-    """Save images to disk using their position on the dataset as filename.
+    """Calculate raw gradients (d out/d in) for each data point of a data set given one model.
 
     Args:
         model: PyTorch model to use for predictions.
-        data_loader: 
+        data_loader: DataLoader instance in which the data is stored.
         directory (str): The place to store the images at.
-        dir_suffix (str): A comment which is attatched to the output directory.
+        dir_suffix (str): A comment which is attached to the output directory.
 
     Returns:
         int: The total number of processed gradients.
@@ -60,6 +60,7 @@ def saliency(model,
 
     counter = 0
     for it, batch in enumerate(iter(data_loader)):
+
         model.eval()
         batch_images = batch["image"]
         batch_labels = batch["label"]
@@ -67,21 +68,24 @@ def saliency(model,
             batch_images = batch_images.cuda(non_blocking=True)
             #batch_labels = batch_labels.cuda(non_blocking=True)
         batch_images.requires_grad = True
-        out = model(batch_images)
-        n_inputs = out.shape[0]
-        n_classes = out.shape[1]
+        out_batch = model(batch_images)
+        n_inputs = out_batch.shape[0]
+        n_classes = out_batch.shape[1]
         slc_batch = np.empty((n_inputs, n_classes) + batch_images[0,:].shape)
+
         print(slc_batch.shape)
         for i in range(n_inputs):
             for c in range(n_classes):
                 if batch_images.grad is not None:
                     batch_images.grad.zero_()
-                out[i, c].backward(retain_graph=True)
+                out_batch[i, c].backward(retain_graph=True)
                 slc = batch_images.grad[i].cpu().detach().numpy()
                 slc_batch[i,c,:] = slc
                 counter += 1
-        slc_batch = np.asarray(slc_batch)  # [idx_in_batch, class_idx, data...]
-        save_to_disk(slc_batch, directory, dir_suffix, it)
+
+        slc_batch = np.asarray(slc_batch)              # [idx_in_batch, class_idx, data...]
+        out_batch = out_batch.cpu().detach().numpy()   # [idx_in_batch, label]
+        save_to_disk({"S": slc_batch, "O": out_batch}, directory, dir_suffix, it)
 
     return counter
 
@@ -120,12 +124,12 @@ def main(args):
     print("mean", mean, "std", std)
 
     # Load data
-    train_data_set = LoadNumpyDataset(args.data_prefix + "_train", mean=mean, std=std, drop_last=False)
-    val_data_set = LoadNumpyDataset(args.data_prefix + "_val", mean=mean, std=std, drop_last=False)
-    test_data_set = LoadNumpyDataset(args.data_prefix + "_test", mean=mean, std=std, drop_last=False)
-    train_data_loader = DataLoader(train_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2)
-    val_data_loader = DataLoader(val_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2)
-    test_data_loader = DataLoader(test_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2)
+    train_data_set = LoadNumpyDataset(args.data_prefix + "_train", mean=mean, std=std)
+    val_data_set = LoadNumpyDataset(args.data_prefix + "_val", mean=mean, std=std)
+    test_data_set = LoadNumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
+    train_data_loader = DataLoader(train_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2, drop_last=False)
+    val_data_loader = DataLoader(val_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2, drop_last=False)
+    test_data_loader = DataLoader(test_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2, drop_last=False)
 
     # Build model
     if args.model == "mlp":
