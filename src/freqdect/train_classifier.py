@@ -84,7 +84,7 @@ def _parse_args():
     parser.add_argument(
         "--validation-interval",
         type=int,
-        default=900,
+        default=200,
         help="number of training steps after which the model is tested on the validation data set (default: 200)",
     )
     parser.add_argument(
@@ -113,6 +113,23 @@ def _parse_args():
         help="enables a tensorboard visualization.",
     )
 
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=2,
+        help="Number of worker processes started by the data loaders. Defaults to 2."
+    )
+
+    parser.add_argument(
+        "--class-weights",
+        type=float,
+        metavar='CLASS_WEIGHT',
+        nargs="+",
+        default=None,
+        help="If specified, training samples are weighted based on their class "
+            "in the loss calculation. Expects one weight per class."
+    )
+
     # one should not specify normalization parameters and request their calculation at the same time
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
@@ -134,12 +151,19 @@ def main():
     The state_dict of the trained model is stored there as well.
 
     Raises:
-        ValueError: Raised if mean and std values are incomplete.
+        ValueError: Raised if mean and std values are incomplete or if the number of
+            specified class weights does not match the number of classes.
 
     # noqa: DAR401
     """
     args = _parse_args()
     print(args)
+
+    if args.class_weights and len(args.class_weights) != args.nclasses:
+        raise ValueError(
+            f"The number of class_weights ({len(args.class_weights)}) must equal "
+            f"the number of classes ({args.nclasses})"
+        )
 
     # fix the seed in the interest of reproducible results.
     torch.manual_seed(args.seed)
