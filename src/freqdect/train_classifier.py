@@ -297,7 +297,7 @@ def main():
             accuracy_list.append([step_total, e, acc.item()])
 
             if args.tensorboard:
-                writer.add_scalar("train_loss", loss.item(), step_total)
+                writer.add_scalar("loss/train", loss.item(), step_total)
                 if it == 0:
                     writer.add_graph(model, batch_images)
 
@@ -316,8 +316,8 @@ def main():
                     break
 
                 if args.tensorboard:
-                    writer.add_scalar("validation_loss", val_loss, step_total)
-                    writer.add_scalar("validation_accuracy", val_acc, step_total)
+                    writer.add_scalar("loss/validation", val_loss, step_total)
+                    writer.add_scalar("accuracy/validation", val_acc, step_total)
 
         if args.tensorboard:
             writer.add_scalar("epochs", e, step_total)
@@ -355,8 +355,8 @@ def main():
         print("test acc", test_acc)
 
     if args.tensorboard:
-        writer.add_scalar("test_accuracy", test_acc, step_total)
-        writer.add_scalar("test_loss", test_loss, step_total)
+        writer.add_scalar("accuracy/test", test_acc, step_total)
+        writer.add_scalar("loss/test", test_loss, step_total)
 
     log_name = "./log/" + args.data_prefix.split("/")[-1] + "_" + str(args.model)
     stats_file = log_name + ".pkl"
@@ -381,6 +381,8 @@ def main():
     )
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, " saved.")
+    if args.tensorboard:
+        writer.close()
 
 
 if __name__ == "__main__":
