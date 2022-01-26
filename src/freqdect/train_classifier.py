@@ -202,10 +202,10 @@ def main():
     test_data_set = LoadNumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
 
     train_data_loader = DataLoader(
-        train_data_set, batch_size=args.batch_size, shuffle=True, num_workers=2
+        train_data_set, batch_size=args.batch_size, shuffle=True, num_workers=3*args.num_workers, pin_memory=True,
     )
     val_data_loader = DataLoader(
-        val_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2
+        val_data_set, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers
     )
 
     validation_list = []
@@ -300,7 +300,7 @@ def main():
     # Run over the test set.
     print("Training done testing....")
     test_data_loader = DataLoader(
-        test_data_set, args.batch_size, shuffle=False, num_workers=2
+        test_data_set, args.batch_size, shuffle=False, num_workers=args.num_workers,
     )
     with torch.no_grad():
         test_acc, test_loss = val_test_loop(
