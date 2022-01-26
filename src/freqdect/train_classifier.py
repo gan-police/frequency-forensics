@@ -243,7 +243,8 @@ def main():
     print("model parameter count:", compute_parameter_total(model))
 
     if args.tensorboard:
-        writer = SummaryWriter()
+        data_folder_str = args.data_prefix.split("/")[-1]
+        writer = SummaryWriter(f"runs/{data_folder_str}_{args.model}_{args.seed}")
 
     if args.class_weights:
         loss_fun = torch.nn.NLLLoss(weight=torch.tensor(args.class_weights).cuda())
