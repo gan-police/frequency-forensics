@@ -225,7 +225,10 @@ def main():
     if args.tensorboard:
         writer = SummaryWriter()
 
-    loss_fun = torch.nn.NLLLoss()
+    if args.class_weights:
+        loss_fun = torch.nn.NLLLoss(weight=torch.tensor(args.class_weights).cuda())
+    else:
+        loss_fun = torch.nn.NLLLoss()
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
     )
