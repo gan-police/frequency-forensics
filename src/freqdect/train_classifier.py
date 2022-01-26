@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
+from tqdm import tqdm
 
 from .data_loader import LoadNumpyDataset
 from .models import CNN, MLP, Regression, compute_parameter_total, save_model
@@ -18,6 +19,8 @@ def val_test_loop(
     model: torch.nn.Module,
     loss_fun,
     make_binary_labels: bool = False,
+    _description: str = "Validation",
+    pbar: bool = False,
 ) -> Tuple[float, Any]:
     """Test the performance of a model on a data set by calculating the prediction accuracy and loss of the model.
 
@@ -36,7 +39,9 @@ def val_test_loop(
         model.eval()
         val_total = 0.0
         val_ok = 0.0
-        for val_batch in iter(data_loader):
+        for val_batch in tqdm(
+            iter(data_loader), desc=_description, unit="batches", disable=not pbar
+        ):
             batch_images = val_batch["image"].cuda(non_blocking=True)
             batch_labels = val_batch["label"].cuda(non_blocking=True)
             out = model(batch_images)
@@ -111,6 +116,12 @@ def _parse_args():
         "--tensorboard",
         action="store_true",
         help="enables a tensorboard visualization.",
+    )
+
+    parser.add_argument(
+        "--pbar",
+        action="store_true",
+        help="enables progress bars",
     )
 
     parser.add_argument(
@@ -242,9 +253,18 @@ def main():
         model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
     )
 
-    for e in range(args.epochs):
+    for e in tqdm(
+        range(args.epochs), desc="Epochs", unit="epochs", disable=not args.pbar
+    ):
         # iterate over training data.
-        for it, batch in enumerate(iter(train_data_loader)):
+        for it, batch in enumerate(
+            tqdm(
+                iter(train_data_loader),
+                desc="Training",
+                unit="batches",
+                disable=not args.pbar,
+            )
+        ):
             model.train()
             optimizer.zero_grad()
             batch_images = batch["image"].cuda(non_blocking=True)
@@ -288,6 +308,7 @@ def main():
                     model,
                     loss_fun,
                     make_binary_labels=make_binary_labels,
+                    pbar=not args.pbar,
                 )
                 validation_list.append([step_total, e, val_acc])
                 if validation_list[-1] == 1.0:
@@ -325,7 +346,11 @@ def main():
     )
     with torch.no_grad():
         test_acc, test_loss = val_test_loop(
-            test_data_loader, model, loss_fun, make_binary_labels=make_binary_labels
+            test_data_loader,
+            model,
+            loss_fun,
+            make_binary_labels=make_binary_labels,
+            pbar=not args.pbar,
         )
         print("test acc", test_acc)
 
