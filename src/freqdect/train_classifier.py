@@ -201,6 +201,8 @@ def main():
     val_data_set = LoadNumpyDataset(args.data_prefix + "_val", mean=mean, std=std)
     test_data_set = LoadNumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
 
+    make_binary_labels = args.nclasses == 2
+
     train_data_loader = DataLoader(
         train_data_set, batch_size=args.batch_size, shuffle=True, num_workers=3*args.num_workers, pin_memory=True,
     )
@@ -240,6 +242,8 @@ def main():
             optimizer.zero_grad()
             batch_images = batch["image"].cuda(non_blocking=True)
             batch_labels = batch["label"].cuda(non_blocking=True)
+            if make_binary_labels:
+                batch_labels[batch_labels > 0] = 1
 
             out = model(batch_images)
             loss = loss_fun(torch.squeeze(out), batch_labels)
@@ -272,8 +276,7 @@ def main():
 
             # iterate over val batches.
             if step_total % args.validation_interval == 0:
-                print("validating....")
-                val_acc, val_loss = val_test_loop(val_data_loader, model, loss_fun)
+                val_acc, val_loss = val_test_loop(val_data_loader, model, loss_fun, make_binary_labels=make_binary_labels)
                 validation_list.append([step_total, e, val_acc])
                 if validation_list[-1] == 1.0:
                     print("val acc ideal stopping training.")
@@ -307,7 +310,7 @@ def main():
     )
     with torch.no_grad():
         test_acc, test_loss = val_test_loop(
-            test_data_loader, model, loss_fun, make_binary_labels=args.nclasses == 2
+            test_data_loader, model, loss_fun, make_binary_labels=make_binary_labels
         )
         print("test acc", test_acc)
 
