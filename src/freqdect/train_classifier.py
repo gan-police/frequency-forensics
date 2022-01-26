@@ -117,17 +117,17 @@ def _parse_args():
         "--num-workers",
         type=int,
         default=2,
-        help="Number of worker processes started by the data loaders. Defaults to 2."
+        help="Number of worker processes started by the data loaders. Defaults to 2.",
     )
 
     parser.add_argument(
         "--class-weights",
         type=float,
-        metavar='CLASS_WEIGHT',
+        metavar="CLASS_WEIGHT",
         nargs="+",
         default=None,
         help="If specified, training samples are weighted based on their class "
-            "in the loss calculation. Expects one weight per class."
+        "in the loss calculation. Expects one weight per class.",
     )
 
     # one should not specify normalization parameters and request their calculation at the same time
@@ -204,10 +204,17 @@ def main():
     make_binary_labels = args.nclasses == 2
 
     train_data_loader = DataLoader(
-        train_data_set, batch_size=args.batch_size, shuffle=True, num_workers=3*args.num_workers, pin_memory=True,
+        train_data_set,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=3 * args.num_workers,
+        pin_memory=True,
     )
     val_data_loader = DataLoader(
-        val_data_set, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers
+        val_data_set,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
     )
 
     validation_list = []
@@ -276,7 +283,12 @@ def main():
 
             # iterate over val batches.
             if step_total % args.validation_interval == 0:
-                val_acc, val_loss = val_test_loop(val_data_loader, model, loss_fun, make_binary_labels=make_binary_labels)
+                val_acc, val_loss = val_test_loop(
+                    val_data_loader,
+                    model,
+                    loss_fun,
+                    make_binary_labels=make_binary_labels,
+                )
                 validation_list.append([step_total, e, val_acc])
                 if validation_list[-1] == 1.0:
                     print("val acc ideal stopping training.")
@@ -306,7 +318,10 @@ def main():
     # Run over the test set.
     print("Training done testing....")
     test_data_loader = DataLoader(
-        test_data_set, args.batch_size, shuffle=False, num_workers=args.num_workers,
+        test_data_set,
+        args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
     )
     with torch.no_grad():
         test_acc, test_loss = val_test_loop(

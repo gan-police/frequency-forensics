@@ -54,7 +54,9 @@ def compute_pytorch_packet_representation_2d_image(
 ):
     """Create a packet image to plot."""
     wavelet = pywt.Wavelet(wavelet_str)
-    ptwt_wp_tree = ptwt.WaveletPacket2D(wavelet=wavelet, mode="reflect").transform(pt_data)
+    ptwt_wp_tree = ptwt.WaveletPacket2D(wavelet=wavelet, mode="reflect").transform(
+        pt_data
+    )
 
     # get the pytorch decomposition
     wp_keys = list(product(["a", "h", "v", "d"], repeat=max_lev))
