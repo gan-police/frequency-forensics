@@ -73,7 +73,7 @@ def get_test_acc_mean_std_max(dict_list: list, key: str):
 
 def _plot_on_ax(
     dataset: str,
-    model: str,
+    param_str: str,
     axs: Axes,
     logpacket_logs,
     packet_logs,
@@ -128,7 +128,7 @@ def _plot_on_ax(
                 f"No runs found for batch_size {batch_size} for one of 'raw', 'packets' or 'logpackets'"
             )
 
-    print(f"{dataset} {model}:")
+    print(f"{dataset} {param_str}:")
     print(
         "\traw seeds:", ", ".join([str(vars(run["args"])["seed"]) for run in raw_logs])
     )
@@ -317,10 +317,20 @@ def plot_shared(args):
 
 def plot_single(args):
     """Plot the validation and test accuracy for one data set."""
+    suffix_str = ""
+    params_str = f"{args.model}"
+    if args.wavelet:
+        suffix_str += f"_{args.wavelet}"
+        params_str += f" {args.wavelet}"
+    if args.mode:
+        suffix_str += f"_{args.mode}"
+        params_str += f" {args.mode}"
+    suffix_str += f"_{args.model}"
+
     logpacket_logs = pickle.load(
-        open(f"{args.prefix}_logpackets_{args.model}.pkl", "rb")
+        open(f"{args.prefix}_log_packets{suffix_str}.pkl", "rb")
     )
-    packet_logs = pickle.load(open(f"{args.prefix}_packets_{args.model}.pkl", "rb"))
+    packet_logs = pickle.load(open(f"{args.prefix}_packets{suffix_str}.pkl", "rb"))
     raw_logs = pickle.load(open(f"{args.prefix}_raw_{args.model}.pkl", "rb"))
 
     if args.skip_val_acc_indices is not None:
@@ -330,7 +340,7 @@ def plot_single(args):
 
     _plot_on_ax(
         dataset=args.dataset,
-        model=args.model,
+        param_str=params_str,
         axs=plt.gca(),
         logpacket_logs=logpacket_logs,
         packet_logs=packet_logs,
@@ -340,7 +350,7 @@ def plot_single(args):
         ylabel="accuracy",
         ylim=args.ylim,
         place_legend=True,
-        title=f"{args.dataset}-GAN {args.model} source identification",
+        title=f"{args.dataset}-GAN {params_str} source identification",
     )
 
     export_plots(args, output_prefix=args.dataset.lower())
@@ -351,7 +361,7 @@ def _parse_args():
 
     parent_parser = argparse.ArgumentParser(add_help=False)
 
-    parent_parser.add_argument("model", choices=["regression", "CNN"])
+    parent_parser.add_argument("model", choices=["regression", "cnn"])
     parent_parser.add_argument(
         "-p", "--png", action="store_true", help="save the plot as a png"
     )
@@ -373,6 +383,10 @@ def _parse_args():
     )
     parent_parser.add_argument(
         "--ylim", type=float, default=None, help="Maximal value of the y axis"
+    )
+    parent_parser.add_argument("--wavelet", type=str, default=None, help="Wavelet used")
+    parent_parser.add_argument(
+        "--mode", type=str, default=None, help="Boundary mode used"
     )
 
     subparsers = parser.add_subparsers(required=True)
@@ -450,6 +464,30 @@ def _parse_args():
     )
     parser_celeba.set_defaults(func=plot_single)
     parser_celeba.set_defaults(dataset="CelebA")
+
+    parser_other = subparsers.add_parser("other", parents=[parent_parser])
+    parser_other.add_argument(
+        "--dataset", type=str, default="other_dataset", help="Name of the dataset"
+    )
+    parser_other.add_argument(
+        "--prefix",
+        type=str,
+        default="./log/data",
+        help="shared file path prefix of the log files",
+    )
+    parser_other.add_argument(
+        "--epochs",
+        type=int,
+        default=None,
+        help="Filter the logs for only this number of epochs",
+    )
+    parser_other.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="Filter the logs for only this batch size",
+    )
+    parser_other.set_defaults(func=plot_single)
 
     return parser.parse_args()
 
