@@ -300,7 +300,7 @@ def main():
             if args.tensorboard:
                 writer.add_scalar("loss/train", loss.item(), step_total)
                 writer.add_scalar("accuracy/train", acc.item(), step_total)
-                if it == 0:
+                if step_total == 0:
                     writer.add_graph(model, batch_images)
 
             # iterate over val batches.
