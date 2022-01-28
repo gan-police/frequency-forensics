@@ -155,6 +155,7 @@ def main():
     # fix the seed in the interest of reproducible results.
     torch.manual_seed(args.seed)
 
+    # normalization
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6

@@ -28,11 +28,13 @@ class LoadNumpyDataset(Dataset):
         :param data_dir: A path to a pre-processed folder with numpy files.
         :param mean: Pre-computed mean to normalize with. Defaults to None.
         :param std: Pre-computed standard deviation to normalize with. Defaults to None.
-        :raises ValueError: If an unexpected file name is given
+        :raises ValueError: If an unexpected file name is given or directory is empty
         """
         self.data_dir = data_dir
         self.file_lst = sorted(Path(data_dir).glob("./*.npy"))
         print("Loading ", data_dir)
+        if len(self.file_lst) == 0:
+            raise ValueError("empty directory")
         if self.file_lst[-1].name != "labels.npy":
             raise ValueError("unexpected file name")
         self.labels = np.load(self.file_lst[-1])

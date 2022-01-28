@@ -80,7 +80,7 @@ def generate_natural_packet_image(packet_array: np.ndarray, degree: int):
 def generate_frequency_packet_image(packet_array: np.ndarray, degree: int):
     """Create a ready-to-polt image with frequency-order packages.
 
-       Given a packet array in natural order, creat an image which is
+       Given a packet array in natural order, create an image which is
        ready to plot in frequency order.
 
     Args:
