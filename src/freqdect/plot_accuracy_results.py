@@ -307,6 +307,8 @@ def plot_shared(args):
 
 def plot_single(args):
     """Plot the validation and test accuracy for one data set."""
+    plt.figure(figsize=(8, 5))
+
     suffix_str_packets = ""
     suffix_str_raw = ""
     params_str = f"{args.model}"
