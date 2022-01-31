@@ -45,12 +45,19 @@ class CNN(torch.nn.Module):
                 torch.nn.ReLU(),
             )
             self.linear = torch.nn.Linear(24, classes)
-        elif feature == "all-packets":
-            self.scale1 = torch.nn.Sequential(
-                torch.nn.Conv2d(3, 8, 3, 1, padding=1),
-                torch.nn.ReLU(),
-                torch.nn.AvgPool2d(2, 2),
-            )
+        elif feature == "all-packets" or "all-packets-fourier":
+            if feature == "all-packets-fourier":
+                self.scale1 = torch.nn.Sequential(
+                    torch.nn.Conv2d(6, 8, 3, 1, padding=1),
+                    torch.nn.ReLU(),
+                    torch.nn.AvgPool2d(2, 2),
+                )
+            else:
+                self.scale1 = torch.nn.Sequential(
+                    torch.nn.Conv2d(3, 8, 3, 1, padding=1),
+                    torch.nn.ReLU(),
+                    torch.nn.AvgPool2d(2, 2),
+                )
             self.scale2 = torch.nn.Sequential(
                 torch.nn.Conv2d(20, 16, 3, padding=1),
                 torch.nn.ReLU(),
@@ -108,12 +115,15 @@ class CNN(torch.nn.Module):
             # batch_size, packets*channels, height, width
         elif self.feature == "all-packets":
             to_net = x["raw"]
+        elif self.feature == "all-packets-fourier":
+            to_net = torch.cat([x["raw"], x["fourier"]], dim=-1)
         else:
             to_net = x
 
         to_net = to_net.permute([0, 3, 1, 2])
 
-        if self.feature == "all-packets":
+        if self.feature == "all-packets" or self.feature == "all-packets-fourier":
+            res = self.scale1(to_net)
             packets = [
                 torch.reshape(
                     x[key].permute([0, 2, 3, 1, 4]),
@@ -121,7 +131,6 @@ class CNN(torch.nn.Module):
                 ).permute(0, 3, 1, 2)
                 for key in ["packets1", "packets2", "packets3"]
             ]
-            res = self.scale1(to_net)
             # shape: batch_size, packet_channels, height, widht, color_channels
             # cat along channel dim1.
             to_net = torch.cat([packets[0], res], dim=1)

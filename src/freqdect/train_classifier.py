@@ -64,7 +64,7 @@ def _parse_args():
     parser = argparse.ArgumentParser(description="Train an image classifier")
     parser.add_argument(
         "--features",
-        choices=["raw", "packets", "all-packets", "fourier"],
+        choices=["raw", "packets", "all-packets", "fourier", "all-packets-fourier"],
         default="packets",
         help="the representation type",
     )
