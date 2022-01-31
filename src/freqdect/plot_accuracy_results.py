@@ -86,115 +86,94 @@ def _plot_on_ax(
     place_legend: bool = False,
 ):
     # convert logs to ndarrays to allow better indexing
-    raw_logs = np.array(raw_logs)
-    packet_logs = np.array(packet_logs)
-    logpacket_logs = np.array(logpacket_logs)
+    if raw_logs:
+        raw_logs = np.array(raw_logs)
+    if packet_logs:
+        packet_logs = np.array(packet_logs)
+    if logpacket_logs:
+        logpacket_logs = np.array(logpacket_logs)
+
+    log_names = ["raw", "packets", "log_packets"]
 
     # filter out all log entries that do not match the specified epoch number
     if epochs is not None:
-        indices_raw = [vars(run["args"])["epochs"] == epochs for run in raw_logs]
-        indices_packets = [vars(run["args"])["epochs"] == epochs for run in packet_logs]
-        indices_logpackets = [
-            vars(run["args"])["epochs"] == epochs for run in logpacket_logs
-        ]
+        if raw_logs is not None:
+            indices_raw = [vars(run["args"])["epochs"] == epochs for run in raw_logs]
+            raw_logs = raw_logs[indices_raw]
+        if packet_logs is not None:
+            indices_packets = [
+                vars(run["args"])["epochs"] == epochs for run in packet_logs
+            ]
+            packet_logs = packet_logs[indices_packets]
+        if logpacket_logs is not None:
+            indices_logpackets = [
+                vars(run["args"])["epochs"] == epochs for run in logpacket_logs
+            ]
+            logpacket_logs = logpacket_logs[indices_logpackets]
 
-        raw_logs = raw_logs[indices_raw]
-        packet_logs = packet_logs[indices_packets]
-        logpacket_logs = logpacket_logs[indices_logpackets]
-
-        if 0 in {len(raw_logs), len(packet_logs), len(logpacket_logs)}:
-            raise ValueError(
-                f"No runs found for {epochs} epochs for one of 'raw', 'packets' or 'logpackets'"
-            )
+        for logs, logs_name in zip([raw_logs, packet_logs, logpacket_logs], log_names):
+            if logs is not None and logs.size == 0:
+                print(f"No runs found for {epochs} epochs for {logs_name}")
 
     # filter out all log entries that do not match the specified batch_size number
     if batch_size is not None:
-        indices_raw = [
-            vars(run["args"])["batch_size"] == batch_size for run in raw_logs
-        ]
-        indices_packets = [
-            vars(run["args"])["batch_size"] == batch_size for run in packet_logs
-        ]
-        indices_logpackets = [
-            vars(run["args"])["batch_size"] == batch_size for run in logpacket_logs
-        ]
+        if raw_logs is not None:
+            indices_raw = [
+                vars(run["args"])["batch_size"] == epochs for run in raw_logs
+            ]
+            raw_logs = raw_logs[indices_raw]
+        if packet_logs is not None:
+            indices_packets = [
+                vars(run["args"])["batch_size"] == epochs for run in packet_logs
+            ]
+            packet_logs = packet_logs[indices_packets]
+        if logpacket_logs is not None:
+            indices_logpackets = [
+                vars(run["args"])["batch_size"] == epochs for run in logpacket_logs
+            ]
+            logpacket_logs = logpacket_logs[indices_logpackets]
 
-        raw_logs = raw_logs[indices_raw]
-        packet_logs = packet_logs[indices_packets]
-        logpacket_logs = logpacket_logs[indices_logpackets]
-
-        if 0 in {len(raw_logs), len(packet_logs), len(logpacket_logs)}:
-            raise ValueError(
-                f"No runs found for batch_size {batch_size} for one of 'raw', 'packets' or 'logpackets'"
-            )
+        for logs, logs_name in zip([raw_logs, packet_logs, logpacket_logs], log_names):
+            if logs is not None and logs.size == 0:
+                print(f"No runs found for {batch_size} epochs for {logs_name}")
 
     print(f"{dataset} {param_str}:")
-    print(
-        "\traw seeds:", ", ".join([str(vars(run["args"])["seed"]) for run in raw_logs])
-    )
-    print(
-        "\tpackets seeds:",
-        ", ".join([str(vars(run["args"])["seed"]) for run in packet_logs]),
-    )
-    print(
-        "\tlogpackets seeds:",
-        ", ".join([str(vars(run["args"])["seed"]) for run in logpacket_logs]),
-    )
 
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-
-    steps, mean, std = get_plot_tuple(raw_logs, "val_acc")
-    _plot_mean_std(axs, steps, mean, std, color=colors[0], label="raw validation acc")
-
-    steps, mean, std = get_plot_tuple(packet_logs, "val_acc")
-    _plot_mean_std(
-        axs, steps, mean, std, color=colors[1], label="packet validation acc"
-    )
-
-    steps, mean, std = get_plot_tuple(logpacket_logs, "val_acc")
-    _plot_mean_std(
-        axs, steps, mean, std, color=colors[2], label="logpacket validation acc"
-    )
-
-    lt_mean, lt_std, lt_max = get_test_acc_mean_std_max(logpacket_logs, "test_acc")
-    pt_mean, pt_std, pt_max = get_test_acc_mean_std_max(packet_logs, "test_acc")
-    rt_mean, rt_std, rt_max = get_test_acc_mean_std_max(raw_logs, "test_acc")
 
     def print_results(name, logs, logs_mean, logs_std, logs_max):
         """Print the max, mean and std of the accuracy of the runs on one feature."""
         print(f"{name} ({len(logs)} runs):")
         print(
+            f"\t{name} seeds:",
+            ", ".join([str(vars(run["args"])["seed"]) for run in logs]),
+        )
+        print(
             f"\t\tmax: {logs_max * 100:.2f}%\n\t\tmean: {logs_mean * 100:.2f}%\n\t\tstd: {logs_std * 100:.2f}"
         )
 
-    print_results("raw", raw_logs, rt_mean, rt_std, rt_max)
-    print_results("packets", packet_logs, pt_mean, pt_std, pt_max)
-    print_results("logpackets", logpacket_logs, lt_mean, lt_std, lt_max)
+    def _process_logs(name, logs, idx):
+        steps, mean, std = get_plot_tuple(logs, "val_acc")
+        _plot_mean_std(
+            axs, steps, mean, std, color=colors[idx], label=f"{name} validation acc"
+        )
+        t_mean, t_std, t_max = get_test_acc_mean_std_max(logs, "test_acc")
+        print_results(name, logs, t_mean, t_std, t_max)
 
-    axs.errorbar(
-        logpacket_logs[0]["train_acc"][-1][0],
-        lt_mean,
-        lt_std,
-        color=colors[3],
-        label="logpacket test acc",
-        marker="_",
-    )
-    axs.errorbar(
-        packet_logs[0]["train_acc"][-1][0],
-        pt_mean,
-        pt_std,
-        color=colors[6],
-        label="packet test acc",
-        marker="_",
-    )
-    axs.errorbar(
-        raw_logs[0]["train_acc"][-1][0],
-        rt_mean,
-        rt_std,
-        color=colors[9],
-        label="raw test acc",
-        marker="_",
-    )
+        axs.errorbar(
+            logs[0]["train_acc"][-1][0],
+            t_mean,
+            t_std,
+            color=colors[3 + idx],
+            label=f"{name} test acc",
+            marker="_",
+        )
+
+    for idx, (logs, logs_name) in enumerate(
+        zip([raw_logs, packet_logs, logpacket_logs], log_names)
+    ):
+        if logs is not None:
+            _process_logs(logs_name, logs, idx)
 
     axs.set_xlabel("training steps")
     if ylabel is not None:
@@ -336,7 +315,8 @@ def plot_single(args):
     if args.skip_val_acc_indices is not None:
         log_list = [raw_logs, packet_logs, logpacket_logs]
         for idx in args.skip_val_acc_indices:
-            skip_every_second_val_acc(log_list[idx])
+            if log_list[idx]:
+                skip_every_second_val_acc(log_list[idx])
 
     _plot_on_ax(
         dataset=args.dataset,
