@@ -316,7 +316,7 @@ def main():
                     model,
                     loss_fun,
                     make_binary_labels=make_binary_labels,
-                    pbar=not args.pbar,
+                    pbar=args.pbar,
                 )
                 validation_list.append([step_total, e, val_acc])
                 if validation_list[-1] == 1.0:
@@ -360,6 +360,7 @@ def main():
             loss_fun,
             make_binary_labels=make_binary_labels,
             pbar=not args.pbar,
+            _description="Testing",
         )
         print("test acc", test_acc)
 
