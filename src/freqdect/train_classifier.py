@@ -128,7 +128,9 @@ def _parse_args():
         "--num-workers",
         type=int,
         default=2,
-        help="Number of worker processes started by the data loaders. Defaults to 2.",
+        help="Number of worker processes started by the test and validation data loaders. The training data_loader "
+        "uses three times this argument many workers. Hence, this argument should probably be chosen below 10. "
+        "Defaults to 2.",
     )
 
     parser.add_argument(
