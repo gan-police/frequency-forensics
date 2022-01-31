@@ -200,14 +200,25 @@ def export_plots(args, output_prefix: str):
         args: The cmd line args settings.
         output_prefix (str): A prefix, with which the file names of the exported plots start.
     """
+    output_str = ""
+    if args.wavelet:
+        output_str += f"_{args.wavelet}"
+    if args.mode:
+        output_str += f"_{args.mode}"
+    if args.learning_rate:
+        output_str += f"_{args.learning_rate}"
+    if args.epochs:
+        output_str += f"_{args.epochs}e"
+    output_str += f"_{args.model}"
+
     if args.png:
-        print(f"saving {output_prefix}_{args.model}_accuracy.png")
-        plt.savefig(f"{output_prefix}_{args.model}_accuracy.png")
+        print(f"saving {output_prefix}{output_str}_accuracy.png")
+        plt.savefig(f"{output_prefix}{output_str}_accuracy.png")
     if args.tikz:
         import tikzplotlib
 
-        print(f"saving {output_prefix}_{args.model}_accuracy.tex")
-        tikzplotlib.save(f"{output_prefix}_{args.model}_accuracy.tex", standalone=True)
+        print(f"saving {output_prefix}{output_str}_accuracy.tex")
+        tikzplotlib.save(f"{output_prefix}{output_str}_accuracy.tex", standalone=True)
     if not args.hide:
         plt.show()
 
@@ -296,21 +307,48 @@ def plot_shared(args):
 
 def plot_single(args):
     """Plot the validation and test accuracy for one data set."""
-    suffix_str = ""
+    suffix_str_packets = ""
+    suffix_str_raw = ""
     params_str = f"{args.model}"
     if args.wavelet:
-        suffix_str += f"_{args.wavelet}"
+        suffix_str_packets += f"_{args.wavelet}"
         params_str += f" {args.wavelet}"
     if args.mode:
-        suffix_str += f"_{args.mode}"
+        suffix_str_packets += f"_{args.mode}"
         params_str += f" {args.mode}"
-    suffix_str += f"_{args.model}"
+    if args.learning_rate:
+        suffix_str_packets += f"_{args.learning_rate}"
+        suffix_str_raw += f"_{args.learning_rate}"
+        params_str += f" {args.learning_rate}"
+    if args.epochs:
+        suffix_str_packets += f"_{args.epochs}e"
+        suffix_str_raw += f"_{args.epochs}e"
+        params_str += f" {args.epochs}e"
+    suffix_str_packets += f"_{args.model}"
+    suffix_str_raw += f"_{args.model}"
 
-    logpacket_logs = pickle.load(
-        open(f"{args.prefix}_log_packets{suffix_str}.pkl", "rb")
-    )
-    packet_logs = pickle.load(open(f"{args.prefix}_packets{suffix_str}.pkl", "rb"))
-    raw_logs = pickle.load(open(f"{args.prefix}_raw_{args.model}.pkl", "rb"))
+    try:
+        logpacket_logs = pickle.load(
+            open(f"{args.prefix}_log_packets{suffix_str_packets}.pkl", "rb")
+        )
+    except FileNotFoundError:
+        print(f"{args.prefix}_log_packets{suffix_str_packets}.pkl not found!")
+        logpacket_logs = None
+    try:
+        packet_logs = pickle.load(
+            open(f"{args.prefix}_packets{suffix_str_packets}.pkl", "rb")
+        )
+    except FileNotFoundError:
+        print(f"{args.prefix}_packets{suffix_str_packets}.pkl not found!")
+        packet_logs = None
+    try:
+        raw_logs = pickle.load(open(f"{args.prefix}_raw{suffix_str_raw}.pkl", "rb"))
+    except FileNotFoundError:
+        raw_logs = None
+        print(f"{args.prefix}_raw{suffix_str_raw}.pkl not found!")
+
+    if not any([logpacket_logs, packet_logs, raw_logs]):
+        raise ValueError("Not log files found!")
 
     if args.skip_val_acc_indices is not None:
         log_list = [raw_logs, packet_logs, logpacket_logs]
@@ -330,7 +368,7 @@ def plot_single(args):
         ylabel="accuracy",
         ylim=args.ylim,
         place_legend=True,
-        title=f"{args.dataset}-GAN {params_str} source identification",
+        title=f"{args.dataset} {params_str} binary classification",
     )
 
     export_plots(args, output_prefix=args.dataset.lower())
@@ -367,6 +405,9 @@ def _parse_args():
     parent_parser.add_argument("--wavelet", type=str, default=None, help="Wavelet used")
     parent_parser.add_argument(
         "--mode", type=str, default=None, help="Boundary mode used"
+    )
+    parent_parser.add_argument(
+        "--learning-rate", type=float, default=None, help="Learning rate used"
     )
 
     subparsers = parser.add_subparsers(required=True)
