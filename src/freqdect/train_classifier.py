@@ -243,8 +243,14 @@ def main():
     print("model parameter count:", compute_parameter_total(model))
 
     if args.tensorboard:
-        data_folder_str = args.data_prefix.split("/")[-1]
-        writer = SummaryWriter(f"runs/{data_folder_str}_{args.model}_{args.seed}")
+        writer_str = "runs/"
+        writer_str += "params_test2/"
+        writer_str += f"{args.model}/"
+        writer_str += f"{args.batch_size}/"
+        writer_str += str(args.data_prefix.split("/")[-1]) + "/"
+        writer_str += f"{args.learning_rate}_"
+        writer_str += f"{args.seed}"
+        writer = SummaryWriter(writer_str, max_queue=100)
 
     if args.class_weights:
         loss_fun = torch.nn.NLLLoss(weight=torch.tensor(args.class_weights).cuda())
@@ -330,12 +336,13 @@ def main():
         "./log/"
         + args.data_prefix.split("/")[-1]
         + "_"
-        + str(args.model)
+        + str(args.learning_rate)
         + "_"
-        + str(args.seed)
-        + ".pt"
+        + f"{args.epochs}e"
+        + "_"
+        + str(args.model)
     )
-    save_model(model, model_file)
+    save_model(model, model_file + "_" + str(args.seed) + ".pt")
     print(model_file, " saved.")
 
     # Run over the test set.
@@ -360,8 +367,7 @@ def main():
         writer.add_scalar("accuracy/test", test_acc, step_total)
         writer.add_scalar("loss/test", test_loss, step_total)
 
-    log_name = "./log/" + args.data_prefix.split("/")[-1] + "_" + str(args.model)
-    stats_file = log_name + ".pkl"
+    stats_file = model_file + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
     except OSError as e:
