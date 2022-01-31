@@ -237,7 +237,8 @@ def main():
     )
     plot_count += 1
 
-    if 1:
+    plt.savefig("plot.png")
+    if 0:
         import tikzplotlib
 
         tikzplotlib.save("ffhq_style_packet_mean_std_plot.tex", standalone=True)
@@ -263,7 +264,8 @@ def main():
     plt.ylabel("mean absolute coefficient magnitude")
     plt.title("Mean absolute coefficient comparison real data-GAN")
 
-    if 1:
+    plt.savefig("plot2.png")
+    if 0:
         import tikzplotlib
 
         tikzplotlib.save("absolute_coeff_comparison.tex", standalone=True)
