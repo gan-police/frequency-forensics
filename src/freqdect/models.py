@@ -45,7 +45,7 @@ class CNN(torch.nn.Module):
                 torch.nn.ReLU(),
             )
             self.linear = torch.nn.Linear(24, classes)
-        elif feature == "all-packets" or feature  == "all-packets-fourier":
+        elif feature == "all-packets" or feature == "all-packets-fourier":
             if feature == "all-packets-fourier":
                 self.scale1 = torch.nn.Sequential(
                     torch.nn.Conv2d(6, 8, 3, padding=1),
