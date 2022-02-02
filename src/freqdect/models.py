@@ -45,16 +45,16 @@ class CNN(torch.nn.Module):
                 torch.nn.ReLU(),
             )
             self.linear = torch.nn.Linear(24, classes)
-        elif feature == "all-packets" or "all-packets-fourier":
+        elif feature == "all-packets" or feature  == "all-packets-fourier":
             if feature == "all-packets-fourier":
                 self.scale1 = torch.nn.Sequential(
-                    torch.nn.Conv2d(6, 8, 3, 1, padding=1),
+                    torch.nn.Conv2d(6, 8, 3, padding=1),
                     torch.nn.ReLU(),
                     torch.nn.AvgPool2d(2, 2),
                 )
             else:
                 self.scale1 = torch.nn.Sequential(
-                    torch.nn.Conv2d(3, 8, 3, 1, padding=1),
+                    torch.nn.Conv2d(3, 8, 3, padding=1),
                     torch.nn.ReLU(),
                     torch.nn.AvgPool2d(2, 2),
                 )
@@ -75,7 +75,7 @@ class CNN(torch.nn.Module):
         else:
             # assume an 128x128x3 image input.
             self.layers = torch.nn.Sequential(
-                torch.nn.Conv2d(3, 8, 3, 1),
+                torch.nn.Conv2d(3, 8, 3),
                 torch.nn.ReLU(),
                 torch.nn.Conv2d(8, 8, 3),
                 torch.nn.ReLU(),
