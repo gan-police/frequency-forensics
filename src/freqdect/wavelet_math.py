@@ -27,7 +27,7 @@ def compute_packet_rep_2d(
         np.ndarray: A ready to plot wavelet packet image.
     """
     wavelet = pywt.Wavelet(wavelet_str)
-    wp_tree = pywt.WaveletPacket2D(wavelet=wavelet, mode="reflect").transform(image)
+    wp_tree = pywt.WaveletPacket2D(image, wavelet=wavelet, mode="reflect")
     # Get the full decomposition
     wp_keys = list(product(["a", "h", "v", "d"], repeat=max_lev))
     count = 0
