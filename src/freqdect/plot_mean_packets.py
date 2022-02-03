@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-from .data_loader import LoadNumpyDataset
+from .data_loader import NumpyDataset
 
 
 def _plot_mean_std(x, mean, std, color, label="", marker="."):
@@ -46,6 +46,7 @@ def generate_natural_packet_image(packet_array: np.ndarray, degree: int):
     Args:
         packet_array ([np.ndarray): The [packet_no, packet_height, packet_width] packets
         degree (int): The degree of the transformation.
+
     Returns:
         [np.ndarray]: The image of shape [original_height, original_width]
     """
@@ -153,10 +154,10 @@ def main():
     import matplotlib.pyplot as plt
 
     # raw images - use only the training set.
-    train_packet_set = LoadNumpyDataset(
+    train_packet_set = NumpyDataset(
         "/nvme/mwolter/ffhq1024x1024_log_packets_haar_reflect_train"
     )
-    # train_packet_set = LoadNumpyDataset(
+    # train_packet_set = NumpyDataset(
     #     "/nvme/mwolter/source_data_log_packets_train"
     # )
 

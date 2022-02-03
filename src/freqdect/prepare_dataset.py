@@ -22,7 +22,8 @@ from .corruption import (
     random_resized_crop,
     random_rotation,
 )
-from .data_loader import LoadNumpyDataset
+from .data_loader import NumpyDataset
+from .fourier_math import batch_fourier_preprocessing
 from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
@@ -275,6 +276,7 @@ def pre_process_folder(
     boundary: str = "reflect",
     missing_label: int = None,
     gan_split_factor: float = 1.0,
+    level: int = 3,
 ) -> None:
     """Preprocess a folder containing sub-directories with images from different sources.
 
@@ -301,7 +303,7 @@ def pre_process_folder(
     if feature == "raw":
         folder_name = f"{data_dir.name}_{feature}"
     else:
-        folder_name = f"{data_dir.name}_{feature}_{wavelet}_{boundary}"
+        folder_name = f"{data_dir.name}_{feature}_{wavelet}_{boundary}_{level}"
     if perturbataion.jpeg:
         folder_name += "_jpeg"
     if perturbataion.crop:
@@ -317,11 +319,21 @@ def pre_process_folder(
 
     if feature == "packets":
         processing_function = functools.partial(
-            batch_packet_preprocessing, wavelet=wavelet, mode=boundary
+            batch_packet_preprocessing, wavelet=wavelet, mode=boundary, max_lev=level
         )
     elif feature == "log_packets":
         processing_function = functools.partial(
-            batch_packet_preprocessing, log_scale=True, wavelet=wavelet, mode=boundary
+            batch_packet_preprocessing,
+            log_scale=True,
+            wavelet=wavelet,
+            mode=boundary,
+            max_lev=level,
+        )
+    elif feature == "fourier":
+        processing_function = functools.partial(batch_fourier_preprocessing)
+    elif feature == "log_fourier":
+        processing_function = functools.partial(
+            batch_fourier_preprocessing, log_scale=True
         )
     else:
         processing_function = identity_processing  # type: ignore
@@ -387,6 +399,9 @@ def pre_process_folder(
     random.shuffle(validation_list)
     random.shuffle(test_list)
 
+    # train_list[0]
+    # PosixPath('/nvme/mwolter/celeba/celeba_align_png_cropped/D_ProGAN/ProGAN_00101489.png')
+
     if missing_label is not None:
         dir_suffix = f"_missing_{missing_label}"
     else:
@@ -438,7 +453,7 @@ def pre_process_folder(
     # compute training normalization.
     # load train data and compute mean and std
     print("computing mean and std values.")
-    train_data_set = LoadNumpyDataset(f"{target_dir}_train{dir_suffix}")
+    train_data_set = NumpyDataset(f"{target_dir}_train{dir_suffix}")
     img_lst = []
     for img_no in range(train_data_set.__len__()):
         img_lst.append(train_data_set.__getitem__(img_no)["image"])
@@ -507,6 +522,18 @@ def parse_args():
         help="Save image data as log-scaled wavelet packets.",
         action="store_true",
     )
+    group.add_argument(
+        "--fourier",
+        "-f",
+        help="Save image data as Fourier coefficients.",
+        action="store_true",
+    )
+    group.add_argument(
+        "--log-fourier",
+        "-lf",
+        help="Save image data as log-scaled Fourier coefficients.",
+        action="store_true",
+    )
 
     parser.add_argument(
         "--missing-label",
@@ -570,6 +597,13 @@ def parse_args():
         help="If set a gaussian blur will be applied to all images.",
     )
 
+    parser.add_argument(
+        "--level",
+        type=int,
+        default=3,
+        help="Sets the maximum decomposition level if a packet representation is chosen.",
+    )
+
     return parser.parse_args()
 
 
@@ -580,6 +614,10 @@ if __name__ == "__main__":
         feature = "packets"
     elif args.log_packets:
         feature = "log_packets"
+    elif args.fourier:
+        feature = "fourier"
+    elif args.log_fourier:
+        feature = "log_fourier"
     else:
         feature = "raw"
 
@@ -601,4 +639,5 @@ if __name__ == "__main__":
             noise=args.noise,
             blur=args.blur,
         ),
+        level=args.level,
     )
