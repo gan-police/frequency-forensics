@@ -387,7 +387,7 @@ def main():
         + f"{args.epochs}e"
         + "_"
         + str(args.model)
-
+    )
     save_model(model, model_file + "_" + str(args.seed) + ".pt")
     print(model_file, " saved.")
 
