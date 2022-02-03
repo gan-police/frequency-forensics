@@ -39,7 +39,7 @@ def val_test_loop(
     with torch.no_grad():
         model.eval()
         val_total = 0
-        val_ok = 0
+        val_ok = 0.
         for val_batch in iter(data_loader):
             if type(data_loader.dataset) is CombinedDataset:
                 batch_images = {
