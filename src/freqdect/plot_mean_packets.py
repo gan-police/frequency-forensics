@@ -14,13 +14,13 @@ def _plot_mean_std(x, mean, std, color, label="", marker="."):
     plt.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
 
 
-def generate_packet_image_tensor(packet_array: torch.tensor):
+def generate_packet_image_tensor(packet_array: torch.Tensor) -> torch.Tensor:
     """Arrange a packet tensor  as an image for imshow.
 
     Args:
-        packet_array ([torch.tensor): The [bach_size, packet_no, height, width, channels] packets
+        packet_array ([torch.Tensor): The [bach_size, packet_no, height, width, channels] packets
     Returns:
-        [torch.tensor]: The image of shape [batch_size, height, width, channels]
+        [torch.Tensor]: The image of shape [batch_size, height, width, channels]
     """
     packet_count = packet_array.shape[1]
     count = 0
@@ -37,22 +37,21 @@ def generate_packet_image_tensor(packet_array: torch.tensor):
             count = 0
             img.append(img_rows)
             img_rows = None
-    img = torch.cat(img, axis=1)
-    return img
+    return torch.cat(img, dim=1)
 
 
-def generate_natural_packet_image(packet_array: np.array, degree: int):
+def generate_natural_packet_image(packet_array: np.ndarray, degree: int):
     """Arrange a  packet array  as an image for imshow.
 
     Args:
-        packet_array ([np.array): The [packet_no, packet_height, packet_width] packets
+        packet_array ([np.ndarray): The [packet_no, packet_height, packet_width] packets
         degree (int): The degree of the transformation.
 
     Returns:
-        [np.array]: The image of shape [original_height, original_width]
+        [np.ndarray]: The image of shape [original_height, original_width]
     """
 
-    def _cat_sector(elements: np.array, level: int, max_level: int):
+    def _cat_sector(elements: np.ndarray, level: int, max_level: int):
         element_lst = np.split(elements, 4)
         if level < max_level - 1:
             img0 = _cat_sector(element_lst[0], level + 1, max_level)
@@ -79,19 +78,19 @@ def generate_natural_packet_image(packet_array: np.array, degree: int):
     return _cat_sector(packet_array, 0, degree).squeeze()
 
 
-def generate_frequency_packet_image(packet_array: np.array, degree: int):
+def generate_frequency_packet_image(packet_array: np.ndarray, degree: int):
     """Create a ready-to-polt image with frequency-order packages.
 
        Given a packet array in natural order, creat an image which is
        ready to plot in frequency order.
 
     Args:
-        packet_array (np.array): [packet_no, packet_height, packet_width]
+        packet_array (np.ndarray): [packet_no, packet_height, packet_width]
             in natural order.
         degree (int): The degree of the packet decomposition.
 
     Returns:
-        [np.array]: The image of shape [original_height, original_width]
+        [np.ndarray]: The image of shape [original_height, original_width]
     """
     wp_freq_path, wp_natural_path = get_freq_order(degree)
 
@@ -162,16 +161,18 @@ def main():
     #     "/nvme/mwolter/source_data_log_packets_train"
     # )
 
-    style_gan_list = []
-    ffhq_list = []
+    fake_labels = [1, 2, 3, 4]
+
+    fake_list = []
+    real_list = []
     for img_no in range(train_packet_set.__len__()):
         train_element = train_packet_set.__getitem__(img_no)
         packets = train_element["image"].numpy()
         label = train_element["label"].numpy()
-        if label == 1:
-            style_gan_list.append(packets)
+        if label in fake_labels:
+            fake_list.append(packets)
         elif label == 0:
-            ffhq_list.append(packets)
+            real_list.append(packets)
         else:
             print("skipping label", label)
 
@@ -179,25 +180,25 @@ def main():
             print(img_no, "of", train_packet_set.__len__(), "loaded")
             # break
 
-    style_gan_array = np.array(style_gan_list)
-    del style_gan_list
-    ffhq_array = np.array(ffhq_list)
-    del ffhq_list
-    print("train set loaded.", style_gan_array.shape, ffhq_array.shape)
+    fake_array = np.array(fake_list)
+    del fake_list
+    real_array = np.array(real_list)
+    del real_list
+    print("train set loaded.", fake_array.shape, real_array.shape)
 
     # mean image plots
-    gan_mean_packet_image = generate_frequency_packet_image(
-        np.mean(style_gan_array, axis=(0, -1)), degree=3
+    fake_mean_packet_image = generate_frequency_packet_image(
+        np.mean(fake_array, axis=(0, -1)), degree=3
     )
-    ffhq_mean_packet_image = generate_frequency_packet_image(
-        np.mean(ffhq_array, axis=(0, -1)), degree=3
+    real_mean_packet_image = generate_frequency_packet_image(
+        np.mean(real_array, axis=(0, -1)), degree=3
     )
     # std image plots
-    gan_std_packet_image = generate_frequency_packet_image(
-        np.std(style_gan_array, axis=(0, -1)), degree=3
+    fake_std_packet_image = generate_frequency_packet_image(
+        np.std(fake_array, axis=(0, -1)), degree=3
     )
-    ffhq_std_packet_image = generate_frequency_packet_image(
-        np.std(ffhq_array, axis=(0, -1)), degree=3
+    real_std_packet_image = generate_frequency_packet_image(
+        np.std(real_array, axis=(0, -1)), degree=3
     )
 
     fig = plt.figure(figsize=(8, 6))
@@ -206,10 +207,10 @@ def main():
     plot_count = 1
     cmap = "cividis"  # 'magma'  #'inferno'  # 'viridis
 
-    mean_vmin = np.min((np.min(gan_mean_packet_image), np.min(ffhq_mean_packet_image)))
-    mean_vmax = np.max((np.max(gan_mean_packet_image), np.max(ffhq_mean_packet_image)))
-    std_vmin = np.min((np.min(gan_std_packet_image), np.min(ffhq_std_packet_image)))
-    std_vmax = np.max((np.max(gan_std_packet_image), np.max(ffhq_std_packet_image)))
+    mean_vmin = np.min((np.min(fake_mean_packet_image), np.min(real_mean_packet_image)))
+    mean_vmax = np.max((np.max(fake_mean_packet_image), np.max(real_mean_packet_image)))
+    std_vmin = np.min((np.min(fake_std_packet_image), np.min(real_std_packet_image)))
+    std_vmax = np.max((np.max(fake_std_packet_image), np.max(real_std_packet_image)))
 
     def _plot_image(image, title, vmax=None, vmin=None):
         fig.add_subplot(rows, columns, plot_count)
@@ -219,25 +220,26 @@ def main():
         plt.title(title)
         plt.colorbar()
 
-    _plot_image(gan_mean_packet_image, "gan mean packets", mean_vmax, mean_vmin)
+    _plot_image(fake_mean_packet_image, "gan mean packets", mean_vmax, mean_vmin)
     plot_count += 1
-    _plot_image(ffhq_mean_packet_image, "data-set mean packets", mean_vmax, mean_vmin)
+    _plot_image(real_mean_packet_image, "data-set mean packets", mean_vmax, mean_vmin)
     plot_count += 1
     _plot_image(
-        np.abs(gan_mean_packet_image - ffhq_mean_packet_image),
+        np.abs(fake_mean_packet_image - real_mean_packet_image),
         "absolute mean difference",
     )
     plot_count += 1
-    _plot_image(gan_std_packet_image, "gan std packets", std_vmax, std_vmin)
+    _plot_image(fake_std_packet_image, "gan std packets", std_vmax, std_vmin)
     plot_count += 1
-    _plot_image(ffhq_std_packet_image, "data-set std packets", std_vmax, std_vmin)
+    _plot_image(real_std_packet_image, "data-set std packets", std_vmax, std_vmin)
     plot_count += 1
     _plot_image(
-        np.abs(gan_std_packet_image - ffhq_std_packet_image), "absolute std difference"
+        np.abs(fake_std_packet_image - real_std_packet_image), "absolute std difference"
     )
     plot_count += 1
 
-    if 1:
+    plt.savefig("plot.png")
+    if 0:
         import tikzplotlib
 
         tikzplotlib.save("ffhq_style_packet_mean_std_plot.tex", standalone=True)
@@ -245,10 +247,10 @@ def main():
     print("first plot done")
 
     # mean packet plots
-    style_gan_mean = np.mean(style_gan_array, axis=(0, 2, 3, 4))
-    style_gan_std = np.std(style_gan_array, axis=(0, 2, 3, 4))
-    ffhq_mean = np.mean(ffhq_array, axis=(0, 2, 3, 4))
-    ffhq_std = np.std(ffhq_array, axis=(0, 2, 3, 4))
+    style_gan_mean = np.mean(fake_array, axis=(0, 2, 3, 4))
+    style_gan_std = np.std(fake_array, axis=(0, 2, 3, 4))
+    ffhq_mean = np.mean(real_array, axis=(0, 2, 3, 4))
+    ffhq_std = np.std(real_array, axis=(0, 2, 3, 4))
 
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
     x = np.array(range(len(style_gan_mean)))
@@ -263,7 +265,8 @@ def main():
     plt.ylabel("mean absolute coefficient magnitude")
     plt.title("Mean absolute coefficient comparison real data-GAN")
 
-    if 1:
+    plt.savefig("plot2.png")
+    if 0:
         import tikzplotlib
 
         tikzplotlib.save("absolute_coeff_comparison.tex", standalone=True)

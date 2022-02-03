@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
+from tqdm import tqdm
 
 from .data_loader import CombinedDataset, NumpyDataset
 from .models import CNN, Regression, compute_parameter_total, save_model
@@ -18,6 +19,8 @@ def val_test_loop(
     model: torch.nn.Module,
     loss_fun,
     make_binary_labels: bool = False,
+    _description: str = "Validation",
+    pbar: bool = False,
 ) -> Tuple[float, Any]:
     """Test the performance of a model on a data set by calculating the prediction accuracy and loss of the model.
 
@@ -92,7 +95,7 @@ def _parse_args():
     parser.add_argument(
         "--validation-interval",
         type=int,
-        default=900,
+        default=200,
         help="number of training steps after which the model is tested on the validation data set (default: 200)",
     )
     parser.add_argument(
@@ -120,6 +123,31 @@ def _parse_args():
         "--tensorboard",
         action="store_true",
         help="enables a tensorboard visualization.",
+    )
+
+    parser.add_argument(
+        "--pbar",
+        action="store_true",
+        help="enables progress bars",
+    )
+
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=2,
+        help="Number of worker processes started by the test and validation data loaders. The training data_loader "
+        "uses three times this argument many workers. Hence, this argument should probably be chosen below 10. "
+        "Defaults to 2.",
+    )
+
+    parser.add_argument(
+        "--class-weights",
+        type=float,
+        metavar="CLASS_WEIGHT",
+        nargs="+",
+        default=None,
+        help="If specified, training samples are weighted based on their class "
+        "in the loss calculation. Expects one weight per class.",
     )
 
     # one should not specify normalization parameters and request their calculation at the same time
@@ -216,12 +244,19 @@ def main():
     The state_dict of the trained model is stored there as well.
 
     Raises:
-        ValueError: Raised if mean and std values are incomplete.
+        ValueError: Raised if mean and std values are incomplete or if the number of
+            specified class weights does not match the number of classes.
 
     # noqa: DAR401
     """
     args = _parse_args()
     print(args)
+
+    if args.class_weights and len(args.class_weights) != args.nclasses:
+        raise ValueError(
+            f"The number of class_weights ({len(args.class_weights)}) must equal "
+            f"the number of classes ({args.nclasses})"
+        )
 
     # fix the seed in the interest of reproducible results.
     torch.manual_seed(args.seed)
@@ -243,16 +278,35 @@ def main():
     print("model parameter count:", compute_parameter_total(model))
 
     if args.tensorboard:
-        writer = SummaryWriter()
+        writer_str = "runs/"
+        writer_str += "params_test2/"
+        writer_str += f"{args.model}/"
+        writer_str += f"{args.batch_size}/"
+        writer_str += str(args.data_prefix.split("/")[-1]) + "/"
+        writer_str += f"{args.learning_rate}_"
+        writer_str += f"{args.seed}"
+        writer = SummaryWriter(writer_str, max_queue=100)
 
-    loss_fun = torch.nn.NLLLoss()
+    if args.class_weights:
+        loss_fun = torch.nn.NLLLoss(weight=torch.tensor(args.class_weights).cuda())
+    else:
+        loss_fun = torch.nn.NLLLoss()
     optimizer = torch.optim.Adam(
         model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
     )
 
-    for e in range(args.epochs):
+    for e in tqdm(
+        range(args.epochs), desc="Epochs", unit="epochs", disable=not args.pbar
+    ):
         # iterate over training data.
-        for it, batch in enumerate(iter(train_data_loader)):
+        for it, batch in enumerate(
+            tqdm(
+                iter(train_data_loader),
+                desc="Training",
+                unit="batches",
+                disable=not args.pbar,
+            )
+        ):
             model.train()
             optimizer.zero_grad()
             # find the bug.
@@ -267,6 +321,8 @@ def main():
                 )
 
             batch_labels = batch["label"].cuda(non_blocking=True)
+            if make_binary_labels:
+                batch_labels[batch_labels > 0] = 1
 
             out = model(batch_images)
             loss = loss_fun(torch.squeeze(out), batch_labels)
@@ -293,22 +349,28 @@ def main():
             accuracy_list.append([step_total, e, acc.item()])
 
             if args.tensorboard:
-                writer.add_scalar("train_loss", loss.item(), step_total)
-                if it == 0:
+                writer.add_scalar("loss/train", loss.item(), step_total)
+                writer.add_scalar("accuracy/train", acc.item(), step_total)
+                if step_total == 0:
                     writer.add_graph(model, batch_images)
 
             # iterate over val batches.
             if step_total % args.validation_interval == 0:
-                print("validating....")
-                val_acc, val_loss = val_test_loop(val_data_loader, model, loss_fun)
+                val_acc, val_loss = val_test_loop(
+                    val_data_loader,
+                    model,
+                    loss_fun,
+                    make_binary_labels=make_binary_labels,
+                    pbar=args.pbar,
+                )
                 validation_list.append([step_total, e, val_acc])
                 if validation_list[-1] == 1.0:
                     print("val acc ideal stopping training.")
                     break
 
                 if args.tensorboard:
-                    writer.add_scalar("validation_loss", val_loss, step_total)
-                    writer.add_scalar("validation_accuracy", val_acc, step_total)
+                    writer.add_scalar("loss/validation", val_loss, step_total)
+                    writer.add_scalar("accuracy/validation", val_acc, step_total)
 
         if args.tensorboard:
             writer.add_scalar("epochs", e, step_total)
@@ -317,9 +379,16 @@ def main():
 
     data_prefix_folder = args.data_prefix[0].split("/")[-1]
     model_file = (
-        f"./log/{args.features}_{args.model}_{data_prefix_folder}_{args.seed}.pt"
+        "./log/"
+        + args.data_prefix.split("/")[-1]
+        + "_"
+        + str(args.learning_rate)
+        + "_"
+        + f"{args.epochs}e"
+        + "_"
+        + str(args.model)
     )
-    save_model(model, model_file)
+    save_model(model, model_file + "_" + str(args.seed) + ".pt")
     print(model_file, " saved.")
 
     # Run over the test set.
@@ -328,20 +397,27 @@ def main():
         test_data_set = CombinedDataset(test_data_set)
 
     test_data_loader = DataLoader(
-        test_data_set, args.batch_size, shuffle=False, num_workers=3
+        test_data_set,
+        args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
     )
     with torch.no_grad():
         test_acc, test_loss = val_test_loop(
-            test_data_loader, model, loss_fun, make_binary_labels=args.nclasses == 2
+            test_data_loader,
+            model,
+            loss_fun,
+            make_binary_labels=make_binary_labels,
+            pbar=not args.pbar,
+            _description="Testing",
         )
         print("test acc", test_acc)
 
     if args.tensorboard:
-        writer.add_scalar("test_accuracy", test_acc, step_total)
-        writer.add_scalar("test_loss", test_loss, step_total)
+        writer.add_scalar("accuracy/test", test_acc, step_total)
+        writer.add_scalar("loss/test", test_loss, step_total)
 
-    log_name = f"./log/{args.features}_{args.model}_{data_prefix_folder}_{args.seed}"
-    stats_file = log_name + ".pkl"
+    stats_file = model_file + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
     except OSError as e:
@@ -363,6 +439,8 @@ def main():
     )
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, " saved.")
+    if args.tensorboard:
+        writer.close()
 
 
 if __name__ == "__main__":
