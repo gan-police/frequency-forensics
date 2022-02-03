@@ -71,7 +71,7 @@ def get_test_acc_mean_std_max(dict_list: list, key: str):
     return np.mean(test_accs), np.std(test_accs), np.max(test_accs)
 
 
-def _plot_on_ax(
+def _plot_on_ax(  # noqa: C901
     dataset: str,
     param_str: str,
     axs: Axes,

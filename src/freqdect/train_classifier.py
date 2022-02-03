@@ -1,6 +1,7 @@
 """Source code to train deepfake detectors in wavelet and pixel space."""
 
 import argparse
+import os
 import pickle
 from typing import Any, Tuple
 
@@ -261,6 +262,7 @@ def main():
     # fix the seed in the interest of reproducible results.
     torch.manual_seed(args.seed)
 
+    make_binary_labels = args.nclasses == 2
     train_data_loader, val_data_loader, test_data_set = create_data_loaders(
         args.data_prefix, args.batch_size
     )
@@ -377,7 +379,8 @@ def main():
 
     print(validation_list)
 
-    data_prefix_folder = args.data_prefix[0].split("/")[-1]
+    if not os.path.exists("./log/"):
+        os.makedirs("./log/")
     model_file = (
         "./log/"
         + args.data_prefix.split("/")[-1]
@@ -417,6 +420,29 @@ def main():
         writer.add_scalar("accuracy/test", test_acc, step_total)
         writer.add_scalar("loss/test", test_loss, step_total)
 
+    _save_stats(
+        model_file,
+        loss_list,
+        accuracy_list,
+        validation_list,
+        test_acc,
+        args,
+        len(iter(train_data_loader)),
+    )
+
+    if args.tensorboard:
+        writer.close()
+
+
+def _save_stats(
+    model_file: str,
+    loss_list: list,
+    accuracy_list: list,
+    validation_list: list,
+    test_acc: float,
+    args,
+    iterations_per_epoch: int,
+):
     stats_file = model_file + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
@@ -434,13 +460,11 @@ def main():
             "val_acc": validation_list,
             "test_acc": test_acc,
             "args": args,
-            "iterations_per_epoch": len(iter(train_data_loader)),
+            "iterations_per_epoch": iterations_per_epoch,
         }
     )
     pickle.dump(res, open(stats_file, "wb"))
     print(stats_file, " saved.")
-    if args.tensorboard:
-        writer.close()
 
 
 if __name__ == "__main__":
