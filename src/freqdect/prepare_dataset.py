@@ -111,7 +111,7 @@ def get_label(path_to_image: Path, binary_classification: bool) -> int:
 
 
 def load_perturb_and_stack(
-    path_list: list,
+    path_list: np.ndarray,
     perturbation: Perturbation,
     binary_classification: bool = False,
 ) -> tuple:
@@ -120,7 +120,7 @@ def load_perturb_and_stack(
         If enabled, some images will be corruped here for robustness testing.
 
     Args:
-        path_list (list): A list of Poxis paths strings.
+        path_list (ndarray): An array of Poxis paths strings.
             The stings must follow the convention outlined
             in the get_label function.
         perturbation (Perturbation): Tuple with the image perturbations to apply.
