@@ -383,7 +383,7 @@ def main():
         os.makedirs("./log/")
     model_file = (
         "./log/"
-        + args.data_prefix.split("/")[-1]
+        + args.data_prefix[0].split("/")[-1]
         + "_"
         + str(args.learning_rate)
         + "_"
