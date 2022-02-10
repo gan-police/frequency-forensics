@@ -11,8 +11,8 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from .data_loader import LoadNumpyDataset
-from .models import CNN, MLP, Regression
+from .data_loader import NumpyDataset
+from .models import CNN, Regression
 
 
 def save_to_disk(
@@ -133,7 +133,7 @@ def main(args):
                 std = torch.from_numpy(std.astype(np.float32))
         except BaseException:
             print("loading mean and std from file failed. Re-computing.")
-            train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
+            train_data_set = NumpyDataset(args.data_prefix + "_train")
 
             img_lst = []
             for img_no in range(train_data_set.__len__()):
@@ -154,9 +154,9 @@ def main(args):
     print("mean", mean, "std", std)
 
     # Load data
-    train_data_set = LoadNumpyDataset(args.data_prefix + "_train", mean=mean, std=std)
-    val_data_set = LoadNumpyDataset(args.data_prefix + "_val", mean=mean, std=std)
-    test_data_set = LoadNumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
+    train_data_set = NumpyDataset(args.data_prefix + "_train", mean=mean, std=std)
+    val_data_set = NumpyDataset(args.data_prefix + "_val", mean=mean, std=std)
+    test_data_set = NumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
     train_data_loader = DataLoader(
         train_data_set,
         batch_size=args.batch_size,
@@ -180,9 +180,7 @@ def main(args):
     )
 
     # Build model
-    if args.model == "mlp":
-        model = MLP(args.nclasses).cuda()
-    elif args.model == "cnn":
+    if args.model == "cnn":
         model = CNN(args.nclasses, args.features == "packets").cuda()
     else:
         model = Regression(args.nclasses).cuda()
@@ -243,9 +241,9 @@ def _parse_args():
     )
     parser.add_argument(
         "--model",
-        choices=["regression", "cnn", "mlp"],
+        choices=["regression", "cnn"],
         default="regression",
-        help="The model type: regression, cnn, mlp. (default: regression).",
+        help="The model type: regression, cnn. (default: regression).",
     )
     parser.add_argument(
         "--data-prefix",
