@@ -121,16 +121,15 @@ def _parse_args():
         type=float,
         metavar=("MEAN", "STD"),
         help="normalize with specified values for mean and standard deviation (either 2 or 6 values "
-             "are accepted)",
+        "are accepted)",
     )
     group.add_argument(
         "--calc-normalization",
         action="store_true",
         help="calculates mean and standard deviation used in normalization"
-             "from the training data",
+        "from the training data",
     )
     return parser.parse_args()
-
 
     return parser.parse_args()
 
@@ -159,8 +158,8 @@ def main():
     if args.normalize:
         num_of_norm_vals = len(args.normalize)
         assert num_of_norm_vals == 2 or num_of_norm_vals == 6
-        mean = torch.tensor(args.normalize[:(num_of_norm_vals // 2)])
-        std = torch.tensor(args.normalize[(num_of_norm_vals // 2):])
+        mean = torch.tensor(args.normalize[: (num_of_norm_vals // 2)])
+        std = torch.tensor(args.normalize[(num_of_norm_vals // 2) :])
     elif args.calc_normalization:
         # load train data and compute mean and std
         try:

@@ -1,19 +1,21 @@
 """Sensitivity analysis results processing module."""
 
 import argparse
-from tqdm import tqdm
-from pathlib import Path
-import numpy as np
 import os
-from typing import Any, Tuple
+from pathlib import Path
+from typing import Tuple
+
+import numpy as np
+from tqdm import tqdm
 
 from .plot_mean_packets import generate_frequency_packet_image
 
 
-def process_results_dir_avg(data_dir: str,
-                            img_shape: Tuple[int, int] = (128, 128),
-                            degree: int = 3,
-                            ) -> np.ndarray:
+def process_results_dir_avg(
+    data_dir: str,
+    img_shape: Tuple[int, int] = (128, 128),
+    degree: int = 3,
+) -> np.ndarray:
     """Compute average gradients of most probable class.
 
     Args:
@@ -52,11 +54,11 @@ def process_results_dir_avg(data_dir: str,
         else:
             raise NotImplementedError(f"Data shape {s.shape} cannot be processed")
 
-    def process_batch(S, O):
+    def process_batch(s_in, o_in):
         batch_picture = np.zeros(img_shape, dtype=float)
-        for s, o in zip(S, O):
+        for s, o in zip(s_in, o_in):
             batch_picture += process_image(s, o)
-        return batch_picture, S.shape[0]
+        return batch_picture, s_in.shape[0]
 
     print("avg")
     avg_picture = np.zeros(img_shape, dtype=float)
@@ -64,7 +66,7 @@ def process_results_dir_avg(data_dir: str,
     file_lst = sorted(Path(data_dir).glob("./*.npy"))
     for file in tqdm(file_lst, desc="process files"):
         data = np.load(file)
-        batch_picture, batch_counter = process_batch(data['S'], data['O'])
+        batch_picture, batch_counter = process_batch(data["S"], data["O"])
         avg_picture += batch_picture
         counter += batch_counter
 
@@ -72,11 +74,12 @@ def process_results_dir_avg(data_dir: str,
     return avg_picture / counter
 
 
-def process_results_dir_std(data_dir: str,
-                            avg_picture: np.ndarray,
-                            img_shape: Tuple[int, int] = (128, 128),
-                            degree: int = 3,
-                            ) -> np.ndarray:
+def process_results_dir_std(
+    data_dir: str,
+    avg_picture: np.ndarray,
+    img_shape: Tuple[int, int] = (128, 128),
+    degree: int = 3,
+) -> np.ndarray:
     """Compute standard deviation of gradients of most probable class.
 
     Args:
@@ -116,11 +119,11 @@ def process_results_dir_std(data_dir: str,
         else:
             raise NotImplementedError(f"Data shape {s.shape} cannot be processed")
 
-    def process_batch(S, O):
+    def process_batch(s_in, o_in):
         batch_picture = np.zeros(img_shape, dtype=float)
-        for s, o in zip(S, O):
-            batch_picture += (process_image(s, o) - avg_picture)**2
-        return batch_picture, S.shape[0]
+        for s, o in zip(s_in, o_in):
+            batch_picture += (process_image(s, o) - avg_picture) ** 2
+        return batch_picture, s_in.shape[0]
 
     print("std")
     std_picture = np.zeros(img_shape, dtype=float)
@@ -128,7 +131,7 @@ def process_results_dir_std(data_dir: str,
     file_lst = sorted(Path(data_dir).glob("./*.npy"))
     for file in tqdm(file_lst, desc="process files"):
         data = np.load(file)
-        batch_picture, batch_counter = process_batch(data['S'], data['O'])
+        batch_picture, batch_counter = process_batch(data["S"], data["O"])
         std_picture += batch_picture
         counter += batch_counter
 
@@ -137,8 +140,7 @@ def process_results_dir_std(data_dir: str,
 
 
 def main(args):
-    """Process results from saliency.py"""
-
+    """Process results from saliency.py ."""
     print(f"Process '{args.sal_dir}'")
 
     avg_picture = process_results_dir_avg(args.sal_dir)

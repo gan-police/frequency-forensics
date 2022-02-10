@@ -93,8 +93,9 @@ def main():
         Returns:
             tuple: the raw_data, as well as mean and std values.
         """
-
-        print("Compute mean and std of dataset: may require a considerable amount of memory!")
+        print(
+            "Compute mean and std of dataset: may require a considerable amount of memory!"
+        )
 
         # compute mean and std
         img_lst = []
