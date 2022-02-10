@@ -1,4 +1,5 @@
-"""Sensitivity analysis/explainability module for trained models."""
+"""Sensitivity analysis/explainability module for trained models.
+   Written by https://github.com/RaoulHeese ."""
 
 import argparse
 import os

@@ -1,4 +1,5 @@
-"""Sensitivity analysis results processing module."""
+"""Sensitivity analysis results processing module.
+   Written by https://github.com/RaoulHeese ."""
 
 import argparse
 import os
