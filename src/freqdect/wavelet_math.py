@@ -1,6 +1,6 @@
 """Module implementing wavelet related math functions.
 
-The ides is to provide functionality to make the packet transform useful
+The idea is to provide functionality to make the packet transform useful
 for image analysis and gan-content recognition.
 """
 
@@ -27,7 +27,7 @@ def compute_packet_rep_2d(
         np.ndarray: A ready to plot wavelet packet image.
     """
     wavelet = pywt.Wavelet(wavelet_str)
-    wp_tree = pywt.WaveletPacket2D(data=image, wavelet=wavelet, mode="reflect")
+    wp_tree = pywt.WaveletPacket2D(image, wavelet=wavelet, mode="reflect")
     # Get the full decomposition
     wp_keys = list(product(["a", "h", "v", "d"], repeat=max_lev))
     count = 0
@@ -146,6 +146,7 @@ def batch_packet_preprocessing(
     image_batch_tensor = torch.from_numpy(image_batch.astype(np.float32))
     if torch.cuda.is_available():
         image_batch_tensor = image_batch_tensor.cuda()
+
     # transform to from H, W, C to C, H, W
     channels = []
     for channel in range(image_batch_tensor.shape[-1]):

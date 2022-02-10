@@ -19,8 +19,15 @@ def plot_mean_std(steps, mean, std, color, label="", marker="."):
 def _parse_args():
     """Parse the command line."""
     parser = argparse.ArgumentParser(description="Simply plot validation accuracy")
-    parser.add_argument("prefix_one", type=str)
-    parser.add_argument("prefix_two", type=str)
+    parser.add_argument("prefix_one", type=str, help="prefix to a first logfile group")
+    parser.add_argument("prefix_two", type=str, help="prefix to a second logfile group")
+    parser.add_argument(
+        "--seeds",
+        type=int,
+        nargs="+",
+        help="The seeds, defaults to 0 1 2 3 4",
+        default=[0, 1, 2, 3, 4],
+    )
     return parser.parse_args()
 
 
@@ -28,8 +35,16 @@ def main(args):
     """Plot two experiments."""
     print(args.prefix_one)
     print(args.prefix_two)
-    first_logs = pickle.load(open(f"./log/{args.prefix_one}.pkl", "rb"))
-    second_logs = pickle.load(open(f"./log/{args.prefix_two}.pkl", "rb"))
+
+    first_logs = []
+    for seed in args.seeds:
+        with open(f"./log/{args.prefix_one}_{seed}.pkl", "rb") as f:
+            first_logs.append(pickle.load(f)[0])
+    second_logs = []
+    for seed in args.seeds:
+        with open(f"./log/{args.prefix_two}_{seed}.pkl", "rb") as f:
+            second_logs.append(pickle.load(f)[0])
+
     colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
     steps, mean, std = get_plot_tuple(second_logs, "train_acc")
@@ -54,10 +69,10 @@ def main(args):
     plt.xlabel("training steps")
     plt.title("Accuracy source identification")
     plt.legend()
-    if 1:
+    if 0:
         import tikzplotlib as tikz
 
-        tikz.save("ffhq_style_style2.tex", standalone=True)
+        tikz.save("ffhq_style.tex", standalone=True)
     plt.show()
     print("done")
 
