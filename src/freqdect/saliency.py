@@ -96,9 +96,9 @@ def saliency(
 
             slc_batch = np.asarray(slc_batch)  # [idx_in_batch, class_idx, data...]
             out_batch = out_batch.cpu().detach().numpy()  # [idx_in_batch, label]
-            image_index = np.array(image_index)  # (index1, ..., indexN)
+            image_array = np.array(image_index)  # (index1, ..., indexN)
             save_to_disk(
-                {"S": slc_batch, "O": out_batch, "I": image_index},
+                {"S": slc_batch, "O": out_batch, "I": image_array},
                 directory,
                 sub_dir,
                 it,
