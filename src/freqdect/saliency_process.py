@@ -27,7 +27,7 @@ def process_results_dir_avg(
         np.ndarray : The resulting gradient image [img_shape[0], img_shape[1]]
     """
 
-    def process_raw_image(s, o):
+    def _process_raw_image(s, o):
         # s.shape = (classes, H, W, C)
         p = np.exp(o)  # p(class)
         i = np.argmax(p)
@@ -36,7 +36,7 @@ def process_results_dir_avg(
         x = (x - x.min()) / (x.max() - x.min()) if x.max() > x.min() else x  # [0,1]
         return x.astype(float)
 
-    def process_wavelet_image(s, o):
+    def _process_wavelet_image(s, o):
         # s.shape = (classes, wavelets, H, W, C)
         p = np.exp(o)  # p(class)
         i = np.argmax(p)
@@ -46,18 +46,18 @@ def process_results_dir_avg(
         x = (x - x.min()) / (x.max() - x.min()) if x.max() > x.min() else x  # [0,1]
         return x.astype(float)
 
-    def process_image(s, o):
+    def _process_image(s, o):
         if len(s.shape) == 4:
-            return process_raw_image(s, o)
+            return _process_raw_image(s, o)
         elif len(s.shape) == 5:
-            return process_wavelet_image(s, o)
+            return _process_wavelet_image(s, o)
         else:
             raise NotImplementedError(f"Data shape {s.shape} cannot be processed")
 
-    def process_batch(s_in, o_in):
+    def _process_batch(s_in, o_in):
         batch_picture = np.zeros(img_shape, dtype=float)
         for s, o in zip(s_in, o_in):
-            batch_picture += process_image(s, o)
+            batch_picture += _process_image(s, o)
         return batch_picture, s_in.shape[0]
 
     print("avg")
@@ -66,7 +66,7 @@ def process_results_dir_avg(
     file_lst = sorted(Path(data_dir).glob("./*.npy"))
     for file in tqdm(file_lst, desc="process files"):
         data = np.load(file)
-        batch_picture, batch_counter = process_batch(data["S"], data["O"])
+        batch_picture, batch_counter = _process_batch(data["S"], data["O"])
         avg_picture += batch_picture
         counter += batch_counter
 
@@ -92,7 +92,7 @@ def process_results_dir_std(
         np.ndarray : The resulting gradient image [img_shape[0], img_shape[1]]
     """
 
-    def process_raw_image(s, o):
+    def _process_raw_image(s, o):
         # s.shape = (classes, H, W, C)
         p = np.exp(o)  # p(class)
         i = np.argmax(p)
@@ -101,7 +101,7 @@ def process_results_dir_std(
         x = (x - x.min()) / (x.max() - x.min()) if x.max() > x.min() else x  # [0,1]
         return x.astype(float)
 
-    def process_wavelet_image(s, o):
+    def _process_wavelet_image(s, o):
         # s.shape = (classes, wavelets, H, W, C)
         p = np.exp(o)  # p(class)
         i = np.argmax(p)
@@ -111,18 +111,18 @@ def process_results_dir_std(
         x = (x - x.min()) / (x.max() - x.min()) if x.max() > x.min() else x  # [0,1]
         return x.astype(float)
 
-    def process_image(s, o):
+    def _process_image(s, o):
         if len(s.shape) == 4:
-            return process_raw_image(s, o)
+            return _process_raw_image(s, o)
         elif len(s.shape) == 5:
-            return process_wavelet_image(s, o)
+            return _process_wavelet_image(s, o)
         else:
             raise NotImplementedError(f"Data shape {s.shape} cannot be processed")
 
-    def process_batch(s_in, o_in):
+    def _process_batch(s_in, o_in):
         batch_picture = np.zeros(img_shape, dtype=float)
         for s, o in zip(s_in, o_in):
-            batch_picture += (process_image(s, o) - avg_picture) ** 2
+            batch_picture += (_process_image(s, o) - avg_picture) ** 2
         return batch_picture, s_in.shape[0]
 
     print("std")
@@ -131,7 +131,7 @@ def process_results_dir_std(
     file_lst = sorted(Path(data_dir).glob("./*.npy"))
     for file in tqdm(file_lst, desc="process files"):
         data = np.load(file)
-        batch_picture, batch_counter = process_batch(data["S"], data["O"])
+        batch_picture, batch_counter = _process_batch(data["S"], data["O"])
         std_picture += batch_picture
         counter += batch_counter
 
