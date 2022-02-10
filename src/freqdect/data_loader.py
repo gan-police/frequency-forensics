@@ -35,13 +35,15 @@ class NumpyDataset(Dataset):
                 Defaults to "image".
 
         Raises:
-            ValueError: If an unexpected file name is given
+            ValueError: If an unexpected file name is given or directory is empty.
 
         # noqa: DAR401
         """
         self.data_dir = data_dir
         self.file_lst = sorted(Path(data_dir).glob("./*.npy"))
         print("Loading ", data_dir)
+        if len(self.file_lst) == 0:
+            raise ValueError("empty directory")
         if self.file_lst[-1].name != "labels.npy":
             raise ValueError("unexpected file name")
         self.labels = np.load(self.file_lst[-1])
