@@ -183,7 +183,7 @@ def main(args):
 
     # Build model
     if args.model == "cnn":
-        model = CNN(args.nclasses, args.features == "packets").cuda()
+        model = CNN(args.nclasses, args.features).cuda()
     else:
         model = Regression(args.nclasses).cuda()
 
