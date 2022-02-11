@@ -154,14 +154,14 @@ def main():
     import matplotlib.pyplot as plt
 
     # raw images - use only the training set.
-    train_packet_set = NumpyDataset(
-        "/nvme/mwolter/ffhq1024x1024_log_packets_haar_reflect_train"
-    )
     # train_packet_set = NumpyDataset(
-    #     "/nvme/mwolter/source_data_log_packets_train"
+    #    "/nvme/mwolter/ffhq1024x1024_log_packets_haar_reflect_train"
     # )
+    train_packet_set = NumpyDataset(
+        "/nvme/mwolter/ffhq128_hard/source_data_log_packets_db4_boundary_3_train"
+    )
 
-    fake_labels = [1, 2, 3, 4]
+    fake_labels = [2]  # [1, 2, 3, 4]
 
     fake_list = []
     real_list = []
@@ -265,12 +265,16 @@ def main():
     plt.ylabel("mean absolute coefficient magnitude")
     plt.title("Mean absolute coefficient comparison real data-GAN")
 
-    plt.savefig("plot2.png")
-    if 0:
+    # plt.savefig("plot2.png")
+    if 1:
         import tikzplotlib
 
-        tikzplotlib.save("absolute_coeff_comparison.tex", standalone=True)
+        tikzplotlib.save(
+            "absolute_coeff_comparison_stylegan" + str(fake_labels) + ".tex",
+            standalone=True,
+        )
     plt.show()
+    print("done")
 
 
 if __name__ == "__main__":

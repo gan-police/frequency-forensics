@@ -20,8 +20,7 @@ def _parse_args():
         "model_path", type=str, help="path to the linear model to plot."
     )
     parser.add_argument(
-        "--classes", type=int, help="number of classes in the classifier.",
-        default=2
+        "--classes", type=int, help="number of classes in the classifier.", default=2
     )
     return parser.parse_args()
 
@@ -30,10 +29,12 @@ def main(args):
     """Plot the weights from the linear classifer defined in the models-module."""
     model = Regression(args.classes)
     model.load_state_dict(torch.load(args.model_path))
-    mat = torch.reshape(model.linear.weight.cpu().detach(), [args.classes, 64, 16, 16, 3])
+    mat = torch.reshape(
+        model.linear.weight.cpu().detach(), [args.classes, 64, 16, 16, 3]
+    )
     mat = torch.mean(mat, -1)
     real_weights = generate_frequency_packet_image(mat[0].numpy(), 3)
-    fake_weights =  []
+    fake_weights = []
     for c in range(1, args.classes):
         fake_weights.append(generate_frequency_packet_image(mat[c].numpy(), 3))
 
