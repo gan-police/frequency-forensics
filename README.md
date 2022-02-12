@@ -7,7 +7,7 @@
 
 
 
-# Wavelet-Packet Powered Deepfake Image Detection
+# Wavelet-Packets for Deepfake Image Analysis and Detection
 
 <p align="center">
 <a href="https://github.com/gan-police/frequency-forensics/actions/workflows/tests.yml">
