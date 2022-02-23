@@ -9,7 +9,7 @@ import torch
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from torch.utils.data import DataLoader
 
-from .data_loader import LoadNumpyDataset
+from .data_loader import NumpyDataset
 from .models import CNN, Regression, initialize_model
 
 
@@ -41,7 +41,7 @@ def calculate_confusion_matrix(args):
                 std = torch.from_numpy(std.astype(np.float32))
         except BaseException:
             print("loading mean and std from file failed. Re-computing.")
-            train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
+            train_data_set = NumpyDataset(args.data_prefix + "_train")
 
             img_lst = []
             for img_no in range(train_data_set.__len__()):
@@ -64,7 +64,8 @@ def calculate_confusion_matrix(args):
     else:
         mean, std = [None, None]
 
-    test_data_set = LoadNumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
+    print("Mean: {}, std: {}".format(mean, std))
+    test_data_set = NumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
     test_data_loader = DataLoader(
         test_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2
     )
@@ -72,7 +73,7 @@ def calculate_confusion_matrix(args):
     if args.model == "regression":
         model = Regression(args.nclasses).cuda()
     else:
-        model = CNN(args.nclasses, args.features == "packets").cuda()
+        model = CNN(args.nclasses, args.features).cuda()
 
     initialize_model(model, args.classifier_path)
     model.eval()
@@ -130,7 +131,7 @@ def calculate_generalized_confusion_matrix(args):
                 std = torch.from_numpy(std.astype(np.float32))
         except BaseException:
             print("loading mean and std from file failed. Re-computing.")
-            train_data_set = LoadNumpyDataset(args.data_prefix + "_train")
+            train_data_set = NumpyDataset(args.data_prefix + "_train")
 
             img_lst = []
             for img_no in range(train_data_set.__len__()):
@@ -153,7 +154,7 @@ def calculate_generalized_confusion_matrix(args):
     else:
         mean, std = [None, None]
 
-    test_data_set = LoadNumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
+    test_data_set = NumpyDataset(args.data_prefix + "_test", mean=mean, std=std)
     test_data_loader = DataLoader(
         test_data_set, batch_size=args.batch_size, shuffle=False, num_workers=2
     )
@@ -161,7 +162,7 @@ def calculate_generalized_confusion_matrix(args):
     if args.model == "regression":
         model = Regression(args.nclasses).cuda()
     else:
-        model = CNN(args.nclasses, args.features == "packets").cuda()
+        model = CNN(args.nclasses, args.features).cuda()
 
     initialize_model(model, args.classifier_path)
     model.eval()
@@ -311,6 +312,7 @@ def _parse_args():
 
 def _main():
     args = _parse_args()
+    print(args)
 
     if args.generalized:
         matrix = calculate_generalized_confusion_matrix(args)
