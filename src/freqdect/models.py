@@ -178,7 +178,6 @@ class Regression(torch.nn.Module):
         return self.logsoftmax(self.linear(x_flat))
 
 
-
 def save_model(model: torch.nn.Module, path):
     """Save the state dict of the model to the specified path.
 
