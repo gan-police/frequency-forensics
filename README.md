@@ -7,7 +7,7 @@
 
 
 
-# Wavelet-Packet Powered Deepfake Image Detection
+## Wavelet-Packets for Deepfake Image Analysis and Detection
 
 <p align="center">
 <a href="https://github.com/gan-police/frequency-forensics/actions/workflows/tests.yml">
@@ -20,7 +20,7 @@
 </p>
 
 
-This is the supplementary source code for our paper [Wavelet-Packet Powered Deepfake Image Detection](https://arxiv.org/abs/2106.09369), which is currently
+This is the supplementary source code for our paper Wavelet-Packets for Deepfake Image Analysis and Detection, which is currently
 under review.
 
 ![packet plot](./img/packet_visualization2.png)
@@ -49,8 +49,8 @@ We utilize pre-trained models from the following repositories:
 - [StyleGAN](https://github.com/NVlabs/stylegan)
 - [GANFingerprints](https://github.com/ningyu1991/GANFingerprints)
 
-For our wavelet-packet computations, we build upon :
-- [ptwt](https://github.com/v0lta/PyTorch-Wavelet-Toolbox)
+For our wavelet-packet computations, we use the :
+- [PyTorch-Wavelet-Toolbox: ptwt](https://github.com/v0lta/PyTorch-Wavelet-Toolbox)
 
 In the paper, we compare our approach to the DCT-method from:
 - [GANDCTAnalysis](https://github.com/RUB-SysSec/GANDCTAnalysis)
