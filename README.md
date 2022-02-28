@@ -174,14 +174,6 @@ This project has been supported by the following organizations (in alphabetical 
 - [Fraunhofer Cluster of Excellence Cognitive Internet Technologies (CCIT)](https://www.cit.fraunhofer.de/en.html)
 - [Harvard Program in Therapeutic Science - Laboratory of Systems Pharmacology](https://hits.harvard.edu/the-program/laboratory-of-systems-pharmacology/)
 
-### 💰 Funding
-
-This project has been funded by the following grants:
-
-| Funding Body                                             | Program                                                                                                                       | Grant           |
-|----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|-----------------|
-| DARPA                                                    | Young Faculty Award (PI: Benjamin M. Gyori) | W911NF2010255   |
-
 ### 🍪 Cookiecutter
 
 This package was created with [@audreyfeldroy](https://github.com/audreyfeldroy)'s
