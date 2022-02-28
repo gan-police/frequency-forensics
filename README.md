@@ -65,11 +65,12 @@ We utilize three datasets that commonly appeared in previous work:
 
 ## Reproduction
 
-The following section of the README serves as a guide to reproducing our paper.
+The following section of the README serves as a guide to reproducing our paper. Data for the 128 pixel FFHQ-Stylegan pair is available via
+[google-drive](https://drive.google.com/file/d/1pKmmRtRCtFqs-FuwmToXEYeZFaXk98Kw/view?usp=sharing) .
 
 ### Preparation
 
-We work with images of the size 128x128 pixels. Hence, the raw images from the LSUN/CelebA data set have to be cropped
+We work with images of the size 128x128 pixels. Hence, the raw images gave to be cropped
 and/or resized to this size. To do this, run `freqdect.crop_celeba` or `freqdect.crop_lsun`, depending on the dataset.
 This will create a new folder with the transformed images. The FFHQ dataset is already distributed in the required image
 size.
