@@ -66,7 +66,7 @@ We utilize three datasets that commonly appeared in previous work:
 ## Reproduction
 
 The following section of the README serves as a guide to reproducing our paper. Data for the 128 pixel FFHQ-Stylegan pair is available via
-[google-drive](https://drive.google.com/file/d/1pKmmRtRCtFqs-FuwmToXEYeZFaXk98Kw/view?usp=sharing) .
+[google-drive](https://drive.google.com/file/d/1MOHKuEVqURfCKAN9dwp1o2tuR19OTQCF/view?usp=sharing) .
 
 ### Preparation
 
