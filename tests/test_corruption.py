@@ -7,7 +7,7 @@ from scipy import misc
 
 sys.path.append("./src")
 
-from freqdect.corruption import jpeg_compression, random_resized_crop, random_rotation
+from src.freqdect.corruption import jpeg_compression, random_resized_crop, random_rotation
 
 
 def test_jpeg_compression():

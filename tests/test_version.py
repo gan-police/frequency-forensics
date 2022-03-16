@@ -4,7 +4,7 @@
 
 import unittest
 
-from freqdect.version import get_version
+from src.freqdect.version import get_version
 
 
 class TestVersion(unittest.TestCase):

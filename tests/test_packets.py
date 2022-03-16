@@ -10,7 +10,7 @@ import torch
 from scipy import misc
 
 sys.path.append("./src")
-from freqdect.wavelet_math import compute_pytorch_packet_representation_2d_tensor
+from src.freqdect.wavelet_math import compute_pytorch_packet_representation_2d_tensor
 
 
 def compute_pywt_packet_representation_2d_tensor(
