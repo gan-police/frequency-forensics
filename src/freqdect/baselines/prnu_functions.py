@@ -79,7 +79,7 @@ def noise_extract(im: np.ndarray, levels: int = 4, sigma: float = 5) -> np.ndarr
 
     im = im.astype(np.float32)
 
-    noise_var = sigma ** 2
+    noise_var = sigma**2
 
     if im.ndim == 2:
         im.shape += (1,)
@@ -259,7 +259,7 @@ def wiener_dft(im: np.ndarray, sigma: float) -> np.ndarray:
     :param sigma: estimated noise power
     :return: filtered version of input im
     """
-    noise_var = sigma ** 2
+    noise_var = sigma**2
     h, w = im.shape
 
     im_noise_fft = fft2(im)
@@ -376,7 +376,7 @@ def wiener_adaptive(x: np.ndarray, noise_var: float, **kwargs) -> np.ndarray:
     """
     window_size_list = list(kwargs.pop("window_size_list", [3, 5, 7, 9]))
 
-    energy = x ** 2
+    energy = x**2
 
     avg_win_energy = np.zeros(x.shape + (len(window_size_list),))
     for window_idx, window_size in enumerate(window_size_list):
@@ -559,7 +559,7 @@ def pce(cc: np.ndarray, neigh_radius: int = 2) -> dict:
     pce_energy = np.mean(cc_nopeaks.flatten() ** 2)
 
     out["peak"] = (max_y, max_x)
-    out["pce"] = (peak_height ** 2) / pce_energy * np.sign(peak_height)
+    out["pce"] = (peak_height**2) / pce_energy * np.sign(peak_height)
     out["cc"] = peak_height
 
     return out

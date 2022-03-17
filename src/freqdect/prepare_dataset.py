@@ -33,7 +33,7 @@ Perturbation = namedtuple("Perturbation", ["rotate", "crop", "jpeg", "noise", "b
 
 class WelfordEstimator:
     """Compute running mean and standard deviations.
-    
+
     The Welford approach greatly reduces memory consumption.
     """
 
@@ -49,7 +49,7 @@ class WelfordEstimator:
 
         Args:
             batch_vals (torch.Tensor): The current batch element.
-        """        
+        """
         if not self.collapsed_axis:
             self.collapsed_axis = tuple(np.arange(len(batch_vals.shape[:-1])))
             self.count = torch.zeros(1, device=batch_vals.device, dtype=torch.float64)
@@ -73,10 +73,8 @@ class WelfordEstimator:
 
         Returns:
             Tuple[torch.Tensor, torch.Tensor]: Estimated mean and variance.
-        """        
+        """
         return self.mean, torch.sqrt(self.m2 / self.count)
-
-
 
 
 def get_label_of_folder(
@@ -684,4 +682,3 @@ if __name__ == "__main__":
         ),
         level=args.level,
     )
-

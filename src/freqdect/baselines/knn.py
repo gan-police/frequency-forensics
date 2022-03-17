@@ -27,7 +27,7 @@ class KNNClassifier(Classifier):
     ):
         """Determine reasonable hyperparameters."""
         # hyperparameter grid
-        knn_grid = [1] + [(2 ** x) + 1 for x in range(1, 11)]
+        knn_grid = [1] + [(2**x) + 1 for x in range(1, 11)]
 
         # init results
         results = PersistentDefaultDict(output_dir.joinpath(f"knn_grid_search.json"))
