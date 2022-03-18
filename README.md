@@ -159,8 +159,8 @@ If you find this work useful please consider citing:
 ```
 @misc{wolter2021waveletpacket,
       title={Wavelet-Packet Powered Deepfake Image Detection}, 
-      author={Moritz Wolter and Felix Blanke and Charles Tapley Hoyt and Jochen Garcke},
-      year={2021},
+      author={Moritz Wolter and Felix Blanke and Raoul Heese and Jochen Garcke},
+      year={2022},
       eprint={2106.09369},
       archivePrefix={arXiv},
       primaryClass={cs.CV}
@@ -173,7 +173,6 @@ This project has been supported by the following organizations (in alphabetical 
 
 - [Fraunhofer Institute for Algorithms and Scientific Computing (SCAI)](https://www.scai.fraunhofer.de)
 - [Fraunhofer Cluster of Excellence Cognitive Internet Technologies (CCIT)](https://www.cit.fraunhofer.de/en.html)
-- [Harvard Program in Therapeutic Science - Laboratory of Systems Pharmacology](https://hits.harvard.edu/the-program/laboratory-of-systems-pharmacology/)
 
 ### 🍪 Cookiecutter
 
