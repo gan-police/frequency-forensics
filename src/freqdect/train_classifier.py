@@ -444,7 +444,7 @@ def _save_stats(
     args,
     iterations_per_epoch: int,
 ):
-    stats_file = model_file + ".pkl"
+    stats_file = model_file + "_" + str(args.seed) + ".pkl"
     try:
         res = pickle.load(open(stats_file, "rb"))
     except OSError as e:

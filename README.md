@@ -109,8 +109,8 @@ the raw image data) and stores the result as numpy arrays.
 Afterwards run e.g.:
 
 ```shell
-$ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/ --log-packets
-$ python -m freqdect.prepare_dataset ./data/ffhq_stylegan/
+$ python -m freqdect.prepare_dataset ./data/source_data/ --log-packets 
+$ python -m freqdect.prepare_dataset ./data/source_data/
 ```
 
 The dataset preparation script accepts additional arguments. For example, it is possible to change the sizes of the
@@ -122,7 +122,7 @@ Now you should be able to train a classifier using for example:
 
 ```shell
 $ python -m freqdect.train_classifier \
-    --data-prefix ./data/source_data_packets \
+    --data-prefix ./data/source_data_log_packets_haar_reflect_3 \
     --calc-normalization \
     --features packets
 ```
@@ -159,8 +159,8 @@ If you find this work useful please consider citing:
 ```
 @misc{wolter2021waveletpacket,
       title={Wavelet-Packet Powered Deepfake Image Detection}, 
-      author={Moritz Wolter and Felix Blanke and Charles Tapley Hoyt and Jochen Garcke},
-      year={2021},
+      author={Moritz Wolter and Felix Blanke and Raoul Heese and Jochen Garcke},
+      year={2022},
       eprint={2106.09369},
       archivePrefix={arXiv},
       primaryClass={cs.CV}
@@ -173,7 +173,6 @@ This project has been supported by the following organizations (in alphabetical 
 
 - [Fraunhofer Institute for Algorithms and Scientific Computing (SCAI)](https://www.scai.fraunhofer.de)
 - [Fraunhofer Cluster of Excellence Cognitive Internet Technologies (CCIT)](https://www.cit.fraunhofer.de/en.html)
-- [Harvard Program in Therapeutic Science - Laboratory of Systems Pharmacology](https://hits.harvard.edu/the-program/laboratory-of-systems-pharmacology/)
 
 ### 🍪 Cookiecutter
 

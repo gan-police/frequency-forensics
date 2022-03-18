@@ -9,6 +9,7 @@ from collections import namedtuple
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Optional
+from typing import Tuple
 
 
 import numpy as np
@@ -28,6 +29,52 @@ from .wavelet_math import batch_packet_preprocessing, identity_processing
 
 
 Perturbation = namedtuple("Perturbation", ["rotate", "crop", "jpeg", "noise", "blur"])
+
+
+class WelfordEstimator:
+    """Compute running mean and standard deviations.
+
+    The Welford approach greatly reduces memory consumption.
+    """
+
+    def __init__(self) -> None:
+        """Create a Welfordestimator."""
+        self.collapsed_axis: Optional[Tuple[int, ...]] = None
+
+    # estimate running mean and std
+    # average all axis except the color channel
+    # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    def update(self, batch_vals: torch.Tensor) -> None:
+        """Update the running estimation.
+
+        Args:
+            batch_vals (torch.Tensor): The current batch element.
+        """
+        if not self.collapsed_axis:
+            self.collapsed_axis = tuple(np.arange(len(batch_vals.shape[:-1])))
+            self.count = torch.zeros(1, device=batch_vals.device, dtype=torch.float64)
+            self.mean = torch.zeros(
+                batch_vals.shape[-1], device=batch_vals.device, dtype=torch.float64
+            )
+            self.std = torch.zeros(
+                batch_vals.shape[-1], device=batch_vals.device, dtype=torch.float64
+            )
+            self.m2 = torch.zeros(
+                batch_vals.shape[-1], device=batch_vals.device, dtype=torch.float64
+            )
+        self.count += torch.prod(torch.tensor(batch_vals.shape[:-1]))
+        delta = torch.sub(batch_vals, self.mean)
+        self.mean += torch.sum(delta / self.count, self.collapsed_axis)
+        delta2 = torch.sub(batch_vals, self.mean)
+        self.m2 += torch.sum(delta * delta2, self.collapsed_axis)
+
+    def finalize(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Finish the estimation and return the computed mean and std.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: Estimated mean and variance.
+        """
+        return self.mean, torch.sqrt(self.m2 / self.count)
 
 
 def get_label_of_folder(
@@ -454,16 +501,10 @@ def pre_process_folder(
     # load train data and compute mean and std
     print("computing mean and std values.")
     train_data_set = NumpyDataset(f"{target_dir}_train{dir_suffix}")
-    img_lst = []
+    welford = WelfordEstimator()
     for img_no in range(train_data_set.__len__()):
-        img_lst.append(train_data_set.__getitem__(img_no)["image"])
-    img_data = torch.stack(img_lst, 0)
-    # average all axis except the color channel
-    axis = tuple(np.arange(len(img_data.shape[:-1])))
-    # calculate mean and std in double to avoid precision problems
-    mean = torch.mean(img_data.double(), axis).float()
-    std = torch.std(img_data.double(), axis).float()
-    del img_data
+        welford.update(train_data_set.__getitem__(img_no)["image"])
+    mean, std = welford.finalize()
     print("mean", mean, "std:", std)
     with open(f"{target_dir}_train{dir_suffix}/mean_std.pkl", "wb") as f:
         pickle.dump([mean.numpy(), std.numpy()], f)
