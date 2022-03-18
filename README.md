@@ -20,7 +20,7 @@
 </p>
 
 
-This is the supplementary source code for our paper Wavelet-Packets for Deepfake Image Analysis and Detection, which is currently
+This is the supplementary source code for our paper [Wavelet-Packets for Deepfake Image Analysis and Detection](https://arxiv.org/pdf/2106.09369.pdf), which is currently
 under review.
 
 ![packet plot](./img/packet_visualization2.png)
