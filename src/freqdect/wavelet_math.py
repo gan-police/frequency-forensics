@@ -123,6 +123,7 @@ def batch_packet_preprocessing(
     eps: float = 1e-12,
     log_scale: bool = False,
     mode: str = "reflect",
+    cuda: bool = True,
 ) -> np.ndarray:
     """Preprocess image batches by computing the wavelet packet representation.
 
@@ -139,11 +140,14 @@ def batch_packet_preprocessing(
         log_scale (bool, optional): Use log-scaling if True.
             Log-scaled coefficients aren't invertible. Defaults to False.
         mode (str, optional): The boundary treatment method. Defaults to reflect.
+        cuda (bool, optional): If False computations take place on the cpu.
 
     Returns:
         [np.ndarray]: The wavelet packets [B, N, H, W, C].
     """
-    image_batch_tensor = torch.from_numpy(image_batch.astype(np.float32)).cuda()
+    image_batch_tensor = torch.from_numpy(image_batch.astype(np.float32))
+    if cuda:
+        image_batch_tensor = image_batch_tensor.cuda()
     # transform to from H, W, C to C, H, W
     channels = []
     for channel in range(image_batch_tensor.shape[-1]):
